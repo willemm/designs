@@ -62,7 +62,7 @@ function animate()
     ctx.stroke()
 }
 
-function cog(ctx, now, x, y, module, teeth, height = 20, offs = 0.0, style = 'rgb(0,0,0)', resolution = 30)
+function cog(ctx, now, x, y, module, teeth, height = 20, offs = 0.0, style = 'rgb(0,0,0)', resolution = 120)
 {
     let ang = (((now - starttime) / (4000*teeth) + offs) % 1) * Math.PI * 2
     if (teeth < 0) teeth = -teeth
@@ -125,11 +125,13 @@ function cogpoints(radius, ang, teeth, pressure, height, res)
 {
     let points = []
     let rad = radius * Math.cos(pressure)
-    let tang = Math.sqrt(height*height + 2*height*rad) / (rad*res)
+    let t_tang = Math.sqrt(height*height + 2*height*rad) / rad
+    let steps = Math.floor(t_tang * res / (Math.PI * 2))
+    let tang = t_tang / steps
     let extra = Math.sqrt(radius*radius - rad*rad) - pressure * rad
     for (let t = 0; t < teeth; t++) {
         let la = ang + ((t/teeth) * Math.PI * 2)
-        for (let inv = 0; inv < res; inv++) {
+        for (let inv = 0; inv <= steps; inv++) {
             let ia = inv * tang
             points.push({
                 x: (rad * Math.sin(la+ia)) - ((ia * rad + extra) * Math.cos(la+ia)),
@@ -137,11 +139,19 @@ function cogpoints(radius, ang, teeth, pressure, height, res)
             })
         }
         let ra = ang + (((t+0.5)/teeth) * Math.PI * 2)
-        for (let inv = res-1; inv >= 0; inv--) {
+        for (let inv = steps; inv >= 0; inv--) {
             let ia = inv * tang
             points.push({
                 x: (rad * Math.sin(ra-ia)) + ((ia * rad + extra) * Math.cos(ra-ia)),
                 y: (rad * Math.cos(ra-ia)) - ((ia * rad + extra) * Math.sin(ra-ia))
+            })
+        }
+        let ca = ang + (((t+0.75)/teeth) * Math.PI * 2)
+        for (let st = res/5; st >= -res/5; st--) {
+            let a = ca + st * Math.PI * 2 / res
+            points.push({
+                x: rad * Math.sin(ca) - ((1.5*radius/teeth-extra) * Math.sin(a)),
+                y: rad * Math.cos(ca) - ((1.5*radius/teeth-extra) * Math.cos(a))
             })
         }
     }
