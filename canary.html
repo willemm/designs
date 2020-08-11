@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Canary Demo</title>
+    <meta charset="utf-8">
+	<meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width">
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #200;
+}
+#canvas {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.entry {
+    background-color: #888;
+    border: 2px solid #ccc;
+    color: #ddd;
+    border-radius: 20px;
+    position: absolute;
+    transition:
+        width 4s ease,
+        height 4s ease,
+        top 3s linear,
+        left 3s ease,
+        right 3s ease,
+        opacity .2s ease;
+    width: 5px;
+    height: 5px;
+    top: 300px;
+    opacity: 1;
+}
+.entry.start {
+    left: calc(50% - 12px);
+    right: calc(50% - 12px);
+    top: 0px;
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+}
+.entry.green {
+    left: calc(5% + 20px);
+}
+.entry.blue {
+    right: calc(5% + 20px);
+}
+.total {
+    width: 40px;
+    height: 30px;
+    top: 300px;
+    text-align: center;
+    border: 2px solid #ccc;
+    border-radius: 20px;
+    position: absolute;
+    padding: 2px 5px;
+    font-size: 20px;
+    font-family: sans;
+    z-index: 1;
+    margin-left: -20px;
+    margin-right: -20px;
+}
+.total.green {
+    left: 5%;
+}
+.total.blue {
+    right: 5%;
+}
+.graph {
+    position: absolute;
+    top: 340px;
+    width: 500px;
+}
+.graph.green {
+    left: 5%;
+    background-color: transparent;
+}
+.graph.blue {
+    right: 5%;
+    background-color: transparent;
+}
+.graph div {
+    height: 1px;
+    overflow: none;
+    margin-bottom: 1px;
+    padding: 0px 10px;
+}
+.graph.green div {
+    background-color: #080;
+    text-align: right;
+}
+.graph.blue div {
+    background-color: #058;
+    margin-right: 0;
+    margin-left: auto;
+    text-align: left;
+}
+.green {
+    background-color: #080;
+    border-color: #0f0;
+    color: #8f8;
+}
+.blue {
+    background-color: #058;
+    border-color: #0af;
+    color: #8df;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+var totals = {}
+var queue = []
+var graphcnt = 0
+
+function drop(lr) {
+    var bucket = $('<div class="entry start"></div>').prependTo('#buckets')
+    setTimeout(function() {
+        bucket.removeClass('start').addClass(lr)
+        setTimeout(function() {
+            bucket.remove()
+            queue.push(lr)
+            totals[lr] = (totals[lr]||0)+1
+            while (queue.length > 100) {
+                var deq = queue.shift()
+                totals[deq] -= 1
+            }
+            $.each(totals, function(lr, val) {
+                var b = $('.total.'+lr)
+                b.text(val)
+                b.width(val*4+40)
+            })
+        }, 3000)
+    }, 90)
+}
+setInterval(function() {
+    var lr = Math.random() > 0.8 ? 'blue' : 'green'
+    drop(lr)
+}, 100)
+setInterval(function() {
+    graphcnt++
+    if (graphcnt > 15) {
+        graphcnt = 0
+        $.each(totals, function(lr, val) {
+            $('<div style="width: '+(val*4)+'px;">'+val+'</div>').prependTo('#buckets .graph.'+lr)
+        })
+    } else {
+        $.each(totals, function(lr, val) {
+            $('<div style="width: '+(val*4)+'px;"></div>').prependTo('#buckets .graph.'+lr)
+        })
+    }
+}, 1000)
+</script>
+</head>
+<body>
+    <div id="buckets">
+        <div class="total green">0</div>
+        <div class="total blue">0</div>
+        <div class="graph green"></div>
+        <div class="graph blue"></div>
+    </div>
+    <div id="messages"></div>
+</body>
+</html>
