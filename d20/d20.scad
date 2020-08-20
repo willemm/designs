@@ -14,7 +14,7 @@ lipin = 1;
 
 pinhi=16;
 
-thick = 1.6;
+thick = 1.2;
 side = 240;  // Edge length
 
 wid = side/s3;  // Radius of face triangles
@@ -33,13 +33,47 @@ lipins = lipin * 0.75;
 
 txtfont = "Calibri:style=Bold";
 txtsize = side/3;
-txtt = 1;
+txtt = 1.3;
 
+digpins = [
+    [], //0
+    [],
+    [],
+    [],
+    [],
+    [], //5
+    [],
+    [],
+    [],
+    [],
+    [ [28,33.5],[28,-45.8],[28,-28],[28,15.5],
+      [1.5,-25],[2.5,14],[54.5,-25],[54.5,14],
+      [-14,-27],[-14,0],[-16.5,31],[-0.5,-36],[-25,-44.5],
+      [-50,-36],[-35,-27],[-35,10],[-50,12.5],[-38,27.5]], //10
+    [],
+    [],
+    [],
+    [],
+    [], //15
+    [],
+    [],
+    [],
+    [],
+    []  //20
+];
+
+sdigit=0;
 dodigit=0;
 doedge=0;
-if (dodigit) {
+if (sdigit) {
     dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
-    rotate([180,0,0]) translate([0,0,-off]) triangleside(dig);
+    translate([0,0,-off]) triangledigit(dig, digpins[dodigit]);
+    
+    *translate([0,0,-off]) triangleside(dig, digpins[dodigit]);
+
+} else if (dodigit) {
+    dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
+    rotate([180,0,0]) translate([0,0,-off]) triangleside(dig, digpins[dodigit]);
 } else if (doedge) {
     rotate([90,0,0]) edge(doedge==2);
 } else {
@@ -102,7 +136,29 @@ module pinlip(t=14, w=1, pw=5.2, h=(pinhi*0.915)-4, no=1)
     ]);
 }
 
-module triangleside(txt="", w=wid, t=thick, o=off+tol, bt = 2.5)
+module triangledigit(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
+{
+    sds = 3;
+    difference() {
+        union() {
+            translate([0,-w/20,o]) linear_extrude(height=t-0.4)
+             offset(r=5.9) offset(r=-4)
+             text(text=txt, size=txtsize, font=txtfont,
+              halign="center",valign="center");
+            translate([0,-w/20,o-1]) linear_extrude(height=1)
+             offset(r=9) offset(r=-4)
+             text(text=txt, size=txtsize, font=txtfont,
+              halign="center",valign="center");
+        }
+        for (dp = dpins) {
+            translate([dp[0],dp[1],o-1.1])
+             cylinder(1.2, 1.1, 1.1, $fn=32);
+        }
+    }
+}
+
+
+module triangleside(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
 {
     sds = 3;
     difference() {
@@ -121,9 +177,16 @@ module triangleside(txt="", w=wid, t=thick, o=off+tol, bt = 2.5)
                 nbotsd(3,6)
             ), convexity=6
         );
-        translate([0,-w/20,o+t-txtt]) linear_extrude(height=t)
+        translate([0,-w/20,o+t-txtt]) linear_extrude(height=t+0.2)
          offset(r=6) offset(r=-4) text(text=txt, size=txtsize, font=txtfont,
             halign="center",valign="center");
+
+    }
+    for (dp = dpins) {
+         translate([dp[0],dp[1],o-1.5])
+         cylinder(1.6, 1, 1, $fn=32);
+         translate([dp[0],dp[1],o-2.5])
+         cylinder(1.4, 0.8, 1.1, $fn=32);
     }
 
     if (lips) {
