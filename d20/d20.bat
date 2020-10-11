@@ -20,3 +20,4 @@ rem openscad -D dodigit=19 -o d20-19.stl d20.scad
 openscad -D dodigit=20 -o d20-20.stl d20.scad
 openscad -D doedge=1 -o d20-edge.stl d20.scad
 openscad -D doedge=2 -o d20-edge2.stl d20.scad
+openscad -D dovertex=1 -o d20-vertex.stl d20.scad

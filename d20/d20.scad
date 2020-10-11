@@ -14,13 +14,14 @@ lipin = 1;
 
 pinhi=16;
 
-thick = 1.2;
+thick = 1.8;
 side = 240;  // Edge length
 
 wid = side/s3;  // Radius of face triangles
-off = side*s3*(3+sqrt(5))/12;  // Distance of faces from center
+off = side*s3*(3+sqrt(5))/12;     // Distance of faces from center
 
-eoff = side*(1+sqrt(5))/4;
+eoff = side*(1+sqrt(5))/4;        // Distance of edges from center
+voff = side*sqrt(10+2*sqrt(5))/4; // Distance of vertices from center
 
 lipheight = lipwidth * 2 * (off/wid);
 
@@ -29,11 +30,13 @@ dihed = acos(-sqrt(5)/3);  // Dihedral angle
 edgean = atan((wid/2)/off);  // Angle offset of edge
 edgesan = atan((side/2)/eoff);  // Angle offset of other edge
 
+vertan = edgean*2;
+
 lipins = lipin * 0.75;
 
 txtfont = "Calibri:style=Bold";
 txtsize = side/3;
-txtt = 1.3;
+txtt = 1.0;
 
 digpins = [
     [], //0
@@ -65,6 +68,7 @@ digpins = [
 sdigit=0;
 dodigit=0;
 doedge=0;
+dovertex=0;
 if (sdigit) {
     dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
     translate([0,0,-off]) triangledigit(dig, digpins[dodigit]);
@@ -76,6 +80,8 @@ if (sdigit) {
     rotate([180,0,0]) translate([0,0,-off]) triangleside(dig, digpins[dodigit]);
 } else if (doedge) {
     rotate([90,0,0]) edge(doedge==2);
+} else if (dovertex) {
+    rotate([0,0,0]) edgeconnector();
 } else {
     d20();
     *rotate([180,0,0]) translate([0,0,-off]) triangleside("16");
@@ -84,20 +90,78 @@ if (sdigit) {
 
 module d20()
 {
-    color("gray") for (a=[360/5:360/5:360]) {
+    #color("gray") for (a=[360/5:360/5:360]) {
         rotate([tran,0,a]) triangleside();
         rotate([dihed-tran,180,a]) triangleside();
-        *rotate([180+tran,0,a]) triangleside();
-        *rotate([180+dihed-tran,180,a]) triangleside();
+        rotate([180+tran,0,a]) triangleside();
+        rotate([180+dihed-tran,180,a]) triangleside();
     }
-    color("orange") for (a=[360/5:360/5:360]) {
+    for (a=[360/5:360/5:360]) {
         rotate([tran+edgean,0,a]) edge(a==360);
         rotate([0,edgesan,a+90]) edge(a==360);
+        
+        rotate([90,90-edgesan,a-18]) edge(a==288);
+        rotate([90,90+edgesan,a+18]) edge(a==72);
+        
+        rotate([0,edgesan+180,a+90]) edge(a==360);
+        rotate([tran+edgean,180,a+180]) edge(a==360);
+    }
+    edgeconnector();
+}
+
+module edgeconnector(w=8, o=voff, t=2, bt=2.5)
+{
+    d1 = 14.802;
+    d2 = 17.55;
+    d3 = 20.3;
+    d4 = 11.5;
+    bo = 8.7;
+    difference() {
+        translate([0,0,o]) polyhedron(
+            points = concat(
+                [[0,0,-3.14]],
+                stubpenta2(d1, bo),
+                stubpenta(d2, bo),
+                stubpenta3(d4, (25.8)/tan(90-edgesan))
+            ),
+            faces = concat(
+                [for (i=[0:4]) [0,i+1,(i+1)%5+1]],
+                [for (i=[0:4]) each [
+                    [i+1,(i*2+9)%10+1+5,i*2+1+5],
+                    [i+1,i*2+1+5,(i*2+1)%10+1+5],
+                    [i+1,(i*2+1)%10+1+5,(i+1)%5+1]]],
+                [for (i=[0:4]) each [
+                    [i+16,i*2+1+5,(i*2+9)%10+1+5],
+                    [i+16,(i*2+1)%10+1+5,i*2+1+5],
+                    [i+16,(i+1)%5+16,(i*2+1)%10+1+5]]],
+                nbotsd(5,16)
+            )
+        );
+        l=side - 2*(off/wid)-30;
+        for (a=[360/5:360/5:360]) {
+            rotate([0,edgesan,a+90]) translate([-l/2,0,(eoff-2.7)-(t+tol/4)*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w+tol,t+tol);
+        }
     }
 }
 
-module edge(top=false, l=side - 2*(off/wid)-25, w=8, o=eoff-2.7, t=2)
+function stubpenta2(w, bo, of=0) = concat(
+    [for (a = [360/5:360/5:360]) each
+        [[w*sin(a)+bo*sin(a-126), w*cos(a)+bo*cos(a-126), (-w-of)/tan(90-edgesan)]]    ]);
+
+function stubpenta3(w, of) = concat(
+    [for (a = [360/10:360/5:360]) each
+        [[w*sin(a), w*cos(a), -of]]    ]);
+
+function stubpenta(w, bo, of=0) = concat(
+    [for (a = [360/5:360/5:360]) each
+        [[w*sin(a)+bo*sin(a-126), w*cos(a)+bo*cos(a-126), -w/tan(90-edgesan)],
+         [w*sin(a)+bo*sin(a+126), w*cos(a)+bo*cos(a+126), -w/tan(90-edgesan)]]
+    ]);
+
+module edge(top=false, l=side - 2*(off/wid)-30, w=8, o=eoff-2.7, t=2)
 {
+    col = top?"green":"orange";
+    color(col) {
     translate([0,0,o-t/2]) difference() {
         cube([l,w,2], true);
         for (n=[0:numlip-1]) {
@@ -115,12 +179,23 @@ module edge(top=false, l=side - 2*(off/wid)-25, w=8, o=eoff-2.7, t=2)
         translate([no*side/(numlip+lipstr)-lipoff,0,o])
          pinlip(t=w);
     }
+    translate([l/2,0,o-t*2.175]) rotate([0,edgesan,0]) edgepin(w,t);
+
+    translate([-l/2,0,o-t*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w,t);
+
     if (top) {
         translate([0,0,o-t/2-13]) cube([l,w,2], true);
         for (n=[-5:2:5]) {
             translate([n*((l-2)/10),0,o-t/2-6]) cube([2,w,13], true);
         }
     }
+    }
+}
+
+module edgepin(w,t)
+{
+     linear_extrude(height=t) polygon([
+        [-5,-w/2],[3,-w/2],[7,0],[3,w/2],[-5,w/2]]);
 }
 
 module pinlip(t=14, w=1, pw=5.2, h=(pinhi*0.915)-4, no=1)
@@ -266,7 +341,7 @@ function triangle(w,h) = concat(
         [w*sin(a), w*cos(a), h]]
 );
 
-function nquads(n,o) = [for (i=[0:n-1]) [(i+1)%n+o,i+o,i+o+n,(i+1)%n+o+n]];
+function nquads(n,o) = [for (i=[0:n-1]) each [[(i+1)%n+o,i+o,i+o+n],[(i+1)%n+o,i+o+n,(i+1)%n+o+n]]];
 
 function ntopsd(n,o) = [[for (i=[0:n-1]) (i+o)]];
 function nbotsd(n,o) = [[for (i=[n-1:-1:0]) (i+o)]];
