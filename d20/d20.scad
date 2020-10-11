@@ -30,7 +30,7 @@ dihed = acos(-sqrt(5)/3);  // Dihedral angle
 edgean = atan((wid/2)/off);  // Angle offset of edge
 edgesan = atan((side/2)/eoff);  // Angle offset of other edge
 
-vertan = edgean*2;
+vertan = atan(2);
 
 lipins = lipin * 0.75;
 
@@ -81,7 +81,7 @@ if (sdigit) {
 } else if (doedge) {
     rotate([90,0,0]) edge(doedge==2);
 } else if (dovertex) {
-    rotate([0,0,0]) edgeconnector();
+    rotate([0,0,0]) vertex();
 } else {
     d20();
     *rotate([180,0,0]) translate([0,0,-off]) triangleside("16");
@@ -106,10 +106,15 @@ module d20()
         rotate([0,edgesan+180,a+90]) edge(a==360);
         rotate([tran+edgean,180,a+180]) edge(a==360);
     }
-    edgeconnector();
+    vertex();
+    for (a=[360/5:360/5:360]) {
+        rotate([vertan,0,a+36]) vertex();
+        rotate([180-vertan,0,a]) vertex();
+    }
+    rotate([180,0,0]) vertex();
 }
 
-module edgeconnector(w=8, o=voff, t=2, bt=2.5)
+module vertex(w=8, o=voff, t=2, bt=2.5)
 {
     d1 = 14.802;
     d2 = 17.55;
@@ -140,6 +145,12 @@ module edgeconnector(w=8, o=voff, t=2, bt=2.5)
         l=side - 2*(off/wid)-30;
         for (a=[360/5:360/5:360]) {
             rotate([0,edgesan,a+90]) translate([-l/2,0,(eoff-2.7)-(t+tol/4)*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w+tol,t+tol);
+        }
+        for (a=[360/5:360/5:360]) {
+            rotate([tran,0,a]) translate([0,wid-13,off-4.1]) {
+                cylinder(5,2.1,2.1,$fn=32);
+                translate([0,0,-2]) cylinder(2.01,0.3,2.1,$fn=32);
+            }
         }
     }
 }
@@ -257,7 +268,7 @@ module triangleside(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
             halign="center",valign="center");
 
     }
-    for (dp = dpins) {
+    *for (dp = dpins) {
          translate([dp[0],dp[1],o-1.5])
          cylinder(1.6, 1, 1, $fn=32);
          translate([dp[0],dp[1],o-2.5])
@@ -286,6 +297,15 @@ module triangleside(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
             }
         }
     }
+    
+    // Vertex pins
+    for (a=[360/3:360/3:360]) {
+        rotate([0,0,a]) translate([0,wid-13,off-4]) {
+            cylinder(5,2,2,$fn=64);
+            translate([0,0,-2]) cylinder(2,0.2,2,$fn=32);
+        }
+    }
+
 }
 
 module pin(t=2, w=5, h=pinhi, n=1, sk = off/wid)
