@@ -147,9 +147,9 @@ module vertex(w=8, o=voff, t=2, bt=2.5)
             rotate([0,edgesan,a+90]) translate([-l/2,0,(eoff-2.7)-(t+tol/4)*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w+tol,t+tol);
         }
         for (a=[360/5:360/5:360]) {
-            rotate([tran,0,a]) translate([0,wid-13,off-4.1]) {
+            rotate([tran,0,a]) translate([0,wid-10,off-4.1]) {
                 cylinder(5,2.1,2.1,$fn=32);
-                translate([0,0,-2]) cylinder(2.01,0.3,2.1,$fn=32);
+                translate([0,0,-2]) cylinder(2.01,1.1,2.1,$fn=32);
             }
         }
     }
@@ -300,9 +300,9 @@ module triangleside(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
     
     // Vertex pins
     for (a=[360/3:360/3:360]) {
-        rotate([0,0,a]) translate([0,wid-13,off-4]) {
+        rotate([0,0,a]) translate([0,wid-10,off-4]) {
             cylinder(5,2,2,$fn=64);
-            translate([0,0,-2]) cylinder(2,0.2,2,$fn=32);
+            translate([0,0,-2]) cylinder(2,1,2,$fn=32);
         }
     }
 
