@@ -70,6 +70,13 @@ digpins = [
     []  //20
 ];
 
+digholes = [0,
+    0,0,0,3,1,
+    0,0,0,0,0,
+    2,0,3,0,0,
+    0,0,3,0,0
+    ];
+
 sdigit=0;
 dodigit=0;
 doedge=0;
@@ -83,7 +90,7 @@ if (sdigit) {
 
 } else if (dodigit) {
     dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
-    rotate([180,0,0]) translate([0,0,-off]) triangleside(dig, digpins[dodigit]);
+    rotate([180,0,0]) translate([0,0,-off]) triangleside(dig, digpins[dodigit], hole=digholes[dodigit]);
 } else if (doedge) {
     rotate([90,0,0]) edge(doedge==2, doedge==3);
 } else if (dovertex) {
@@ -97,7 +104,7 @@ if (sdigit) {
 module d20()
 {
     color("gray") for (a=[360/5:360/5:360]) {
-        rotate([tran,0,a]) triangleside(hole=true);
+        rotate([tran,0,a]) triangleside(hole=3);
         rotate([dihed-tran,180,a]) triangleside();
         rotate([180+tran,0,a]) triangleside();
         rotate([180+dihed-tran,180,a]) triangleside();
@@ -316,7 +323,7 @@ module triangledigit(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
 }
 
 
-module triangleside(txt="", dpins = [], hole=false, w=wid, t=thick, o=off+tol, bt = 2.5)
+module triangleside(txt="", dpins = [], hole=0, w=wid, t=thick, o=off+tol, bt = 2.5)
 {
     sds = 3;
     difference() {
@@ -339,7 +346,7 @@ module triangleside(txt="", dpins = [], hole=false, w=wid, t=thick, o=off+tol, b
          offset(r=6) offset(r=-4) text(text=txt, size=txtsize, font=txtfont,
             halign="center",valign="center");
         if (hole) {
-            rotate([-tran,0,0]) translate([0,0,voff-10]) cylinder(15,cordhole/2,cordhole/2,$fn=120);
+            rotate([-tran,0,120*hole]) translate([0,0,voff-10]) cylinder(15,cordhole/2,cordhole/2,$fn=120);
         }
     }
     *for (dp = dpins) {
