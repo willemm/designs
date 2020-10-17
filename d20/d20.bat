@@ -22,3 +22,5 @@ openscad -D doedge=1 -o d20-edge.stl d20.scad
 openscad -D doedge=2 -o d20-edge2.stl d20.scad
 openscad -D doedge=3 -o d20-edge3.stl d20.scad
 openscad -D dovertex=1 -o d20-vertex.stl d20.scad
+openscad -D dovertex=2 -o d20-vertexhole.stl d20.scad
+openscad -D doclamp=1 -o d20-clamp.stl d20.scad

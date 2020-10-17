@@ -41,6 +41,8 @@ txtt = 1.0;
 
 edgewid=12.6;
 
+cordhole=5;
+
 digpins = [
     [], //0
     [],
@@ -72,6 +74,7 @@ sdigit=0;
 dodigit=0;
 doedge=0;
 dovertex=0;
+doclamp=0;
 if (sdigit) {
     dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
     translate([0,0,-off]) triangledigit(dig, digpins[dodigit]);
@@ -84,7 +87,9 @@ if (sdigit) {
 } else if (doedge) {
     rotate([90,0,0]) edge(doedge==2, doedge==3);
 } else if (dovertex) {
-    rotate([0,0,0]) vertex();
+    rotate([0,0,0]) vertex(dovertex==2);
+} else if (doclamp) {
+    cordholder();
 } else {
     d20();
     *rotate([180,0,0]) translate([0,0,-off]) triangleside("16");
@@ -109,7 +114,7 @@ module d20()
         rotate([0,edgesan+180,a+90]) edge(a==360, a==288);
         rotate([tran+edgean,180,a+180]) edge(a==360);
     }
-    vertex();
+    topvertex();
     for (a=[360/5:360/5:360]) {
         rotate([vertan,0,a+36]) vertex();
         rotate([180+vertan,0,a+36]) vertex();
@@ -117,7 +122,28 @@ module d20()
     rotate([180,0,0]) vertex();
 }
 
-module vertex(w=edgewid, o=voff, t=2, bt=2.5)
+module topvertex(d=cordhole)
+{
+    vertex(true);
+    cordholder(d=d);
+}
+
+module cordholder(h=7, d=cordhole, t=1.2, nw=6, nt=2, o=voff)
+{
+    x = 16;
+    translate([0,0,o-h-x]) difference() {
+        union() {
+            cylinder(h, d/2+t, d/2+t, $fn=120);
+            translate([0,-(d+t/2)/2,h/2]) cube([d+t*2,d+t/2,h], true);
+        }
+        translate([0,0,-0.1]) cylinder(h+0.2, d/2, d/2, $fn=120);
+        translate([0,-d/4-nt/2,h/2]) cube([d,d/2+nt,h+0.2], true);
+        translate([0,-d/2-nt/2,h/2]) cube([nw,nt,h+0.2], true);
+        translate([0,-d/2-0.1,h/2]) rotate([90,0,0]) cylinder(nt*2, 2, 2, $fn=120);
+    }
+}
+
+module vertex(hole=false, w=edgewid, o=voff, t=2, bt=2.5)
 {
     d1 = 14.802;
     d2 = 17.55;
@@ -156,6 +182,9 @@ module vertex(w=edgewid, o=voff, t=2, bt=2.5)
                 cylinder(5,2.1,2.1,$fn=32);
                 translate([0,0,-2]) cylinder(2.01,1.1,2.1,$fn=32);
             }
+        }
+        if (hole) {
+            translate([0,0,voff-30]) cylinder(30, cordhole/2, cordhole/2, $fn=120);
         }
     }
 }
