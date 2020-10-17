@@ -39,6 +39,8 @@ txtfont = "Calibri:style=Bold";
 txtsize = side/3;
 txtt = 1.0;
 
+edgewid=12.6;
+
 digpins = [
     [], //0
     [],
@@ -91,7 +93,7 @@ if (sdigit) {
 
 module d20()
 {
-    *#color("gray") for (a=[360/5:360/5:360]) {
+    #color("gray") for (a=[360/5:360/5:360]) {
         rotate([tran,0,a]) triangleside();
         rotate([dihed-tran,180,a]) triangleside();
         rotate([180+tran,0,a]) triangleside();
@@ -115,7 +117,7 @@ module d20()
     rotate([180,0,0]) vertex();
 }
 
-module vertex(w=12, o=voff, t=2, bt=2.5)
+module vertex(w=edgewid, o=voff, t=2, bt=2.5)
 {
     d1 = 14.802;
     d2 = 17.55;
@@ -172,10 +174,10 @@ function stubpenta(w, bo, of=0) = concat(
          [w*sin(a)+bo*sin(a+126), w*cos(a)+bo*cos(a+126), -w/tan(90-edgesan)]]
     ]);
 
-module edge(top=false, wire=false, l=side - 2*(off/wid)-30, w=12, o=eoff-2.7, t=2)
+module edge(top=false, wire=false, l=side - 2*(off/wid)-30, w=edgewid, o=eoff-2.7, t=2)
 {
-    col = top?"green":wire?"blue":"orange";
-    color(col) {
+  col = top?"green":wire?"blue":"orange";
+  color(col) {
     translate([0,0,o-t/2]) difference() {
         cube([l,w,2], true);
         for (n=[0:numlip-1]) {
@@ -197,42 +199,51 @@ module edge(top=false, wire=false, l=side - 2*(off/wid)-30, w=12, o=eoff-2.7, t=
 
     translate([-l/2,0,o-t*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w,t);
 
+
+    translate([0,0,o-t/2-13]) cube([l-10.79,w,2], true);
+    for (n=[-3:2:3]) {
+        translate([n*((l-2)/10),0,o-t/2-6]) cube([2,w,13], true);
+    }
+    translate([-5*((l-2)/10),0,o]) rotate([0,-20,0])
+        translate([0,0,-t/2-7.598]) cube([2,w,14], true);
+    translate([ 5*((l-2)/10),0,o]) rotate([0, 20,0])
+        translate([0,0,-t/2-7.598]) cube([2,w,14], true);
+    translate([-5*((l-2)/10),0,o-t/2-2]) cube([2,w,5], true);
+    *translate([ 5*((l-2)/10),0,o-t/2-6]) cube([2,w,13], true);
+
     if (top) {
-        translate([0,0,o-t/2-13]) cube([l,w,2], true);
-        for (n=[-5:2:5]) {
-            translate([n*((l-2)/10),0,o-t/2-6]) cube([2,w,13], true);
-        }
         for (n=[-4:4]) {
             translate([n*(33/2),0,o-t/2-14]) stripholder(w);
         }
         translate([(-5)*(33/2),0,o-t/2-14]) stripholder(w, h=1.5);
         translate([( 5)*(33/2),0,o-t/2-14]) stripholder(w, h=1.5);
-        translate([(-6)*(33/2),0,o-t/2-14]) stripholder(w, h=3, g=1);
-        translate([( 6)*(33/2),0,o-t/2-14]) stripholder(w, h=3, g=1);
+        translate([(-5.8)*(33/2),0,o-t/2-14]) stripholder(w, h=3, g=1);
+        translate([( 5.8)*(33/2),0,o-t/2-14]) stripholder(w, h=3, g=1);
 
     }
     if (wire) {
-        for (n=[-3:2:3]) {
-            translate([n*side/11,0,o-t]) wireholder(w);
+        for (n=[-4:2:4]) {
+            translate([n*side/11,0,o-t/2-14]) wireholder(w);
         }
     }
-    }
+  }
 }
 
-module stripholder(w=12, l=5, t=1.2, h=0.6, g=0.2)
+module stripholder(w=edgewid, l=5, t=1.2, iw=11, h=0.8, g=0.2)
 {
     x = w/2;
+    x2 = iw/2;
     rotate([0,90,0]) translate([0,0,-l/2]) linear_extrude(height=l) polygon([
-        [-1,x],[h+t,x],[h+t,-x],[g+1,-x],[g,-5],[h,-5],[h,5],[-1,5]
+        [-1,x],[h+t,x],[h+t,-x],[g+0.5,-x],[g,0.5-x],[g,-x2],[h,-x2],[h,x2],[-1,x2]
     ]);
 }
 
-module wireholder(w=12, l=10, t=1.2, b=2, h=4, g=0.2)
+module wireholder(w=edgewid, l=10, t=1.2, b=2, h=5, g=0.2)
 {
     x  = w/2;
     dt = t/2;
     rotate([0,90,0]) translate([0,0,-l/2]) linear_extrude(height=l) polygon([
-        [-1,x],[h-b,x],[h,x-b],[h,b-x],[h-b,-x],[g,-x],
+        [-1,x],[h-b,x],[h,x-b],[h,b-x],[h-b,-x],[g+0.6,-x],[g,0.6-x],
         [g,t-x],[h-b-dt,t-x],[h-t,dt+b-x],[h-t,x-dt-b],[h-b-dt,x-t],[-1,x-t]
     ]);
 }
@@ -240,7 +251,7 @@ module wireholder(w=12, l=10, t=1.2, b=2, h=4, g=0.2)
 module edgepin(w,t)
 {
      linear_extrude(height=t) polygon([
-        [-5,-w/2],[3,-w/2],[7,0],[3,w/2],[-5,w/2]]);
+        [-5,-w/2],[7-w/2,-w/2],[7,0],[7-w/2,w/2],[-5,w/2]]);
 }
 
 module pinlip(t=14, w=1.2, pw=5.2, h=(pinhi*0.915)-4, no=1)
