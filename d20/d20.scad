@@ -41,7 +41,7 @@ txtt = 1.0;
 
 edgewid=12.6;
 
-cordhole=5;
+cordhole=7;
 
 digpins = [
     [], //0
@@ -92,14 +92,12 @@ if (sdigit) {
     cordholder();
 } else {
     d20();
-    *rotate([180,0,0]) translate([0,0,-off]) triangleside("16");
-    *rotate([90,0,0]) edge();
 }
 
 module d20()
 {
-    #color("gray") for (a=[360/5:360/5:360]) {
-        rotate([tran,0,a]) triangleside();
+    color("gray") for (a=[360/5:360/5:360]) {
+        rotate([tran,0,a]) triangleside(hole=true);
         rotate([dihed-tran,180,a]) triangleside();
         rotate([180+tran,0,a]) triangleside();
         rotate([180+dihed-tran,180,a]) triangleside();
@@ -128,7 +126,7 @@ module topvertex(d=cordhole)
     cordholder(d=d);
 }
 
-module cordholder(h=7, d=cordhole, t=1.2, nw=6, nt=2, o=voff)
+module cordholder(h=7, d=cordhole, t=1.2, nw=7, nt=2.2, o=voff)
 {
     x = 16;
     translate([0,0,o-h-x]) difference() {
@@ -137,7 +135,7 @@ module cordholder(h=7, d=cordhole, t=1.2, nw=6, nt=2, o=voff)
             translate([0,-(d+t/2)/2,h/2]) cube([d+t*2,d+t/2,h], true);
         }
         translate([0,0,-0.1]) cylinder(h+0.2, d/2, d/2, $fn=120);
-        translate([0,-d/4-nt/2,h/2]) cube([d,d/2+nt,h+0.2], true);
+        translate([0,-d/4-nt/2,h/2]) cube([nw-2,d/2+nt,h+0.2], true);
         translate([0,-d/2-nt/2,h/2]) cube([nw,nt,h+0.2], true);
         translate([0,-d/2-0.1,h/2]) rotate([90,0,0]) cylinder(nt*2, 2, 2, $fn=120);
     }
@@ -318,7 +316,7 @@ module triangledigit(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
 }
 
 
-module triangleside(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
+module triangleside(txt="", dpins = [], hole=false, w=wid, t=thick, o=off+tol, bt = 2.5)
 {
     sds = 3;
     difference() {
@@ -340,7 +338,9 @@ module triangleside(txt="", dpins = [], w=wid, t=thick, o=off+tol, bt = 2.5)
         translate([0,-w/20,o+t-txtt]) linear_extrude(height=t+0.2)
          offset(r=6) offset(r=-4) text(text=txt, size=txtsize, font=txtfont,
             halign="center",valign="center");
-
+        if (hole) {
+            rotate([-tran,0,0]) translate([0,0,voff-10]) cylinder(15,cordhole/2,cordhole/2,$fn=120);
+        }
     }
     *for (dp = dpins) {
          translate([dp[0],dp[1],o-1.5])
