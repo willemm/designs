@@ -1,4 +1,5 @@
 s3=sqrt(3);
+
 tol=0.1;
 
 lips = false;
@@ -79,7 +80,7 @@ if (sdigit) {
     dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
     rotate([180,0,0]) translate([0,0,-off]) triangleside(dig, digpins[dodigit]);
 } else if (doedge) {
-    rotate([90,0,0]) edge(doedge==2);
+    rotate([90,0,0]) edge(doedge==2, doedge==3);
 } else if (dovertex) {
     rotate([0,0,0]) vertex();
 } else {
@@ -90,7 +91,7 @@ if (sdigit) {
 
 module d20()
 {
-    #color("gray") for (a=[360/5:360/5:360]) {
+    *#color("gray") for (a=[360/5:360/5:360]) {
         rotate([tran,0,a]) triangleside();
         rotate([dihed-tran,180,a]) triangleside();
         rotate([180+tran,0,a]) triangleside();
@@ -98,23 +99,23 @@ module d20()
     }
     for (a=[360/5:360/5:360]) {
         rotate([tran+edgean,0,a]) edge(a==360);
-        rotate([0,edgesan,a+90]) edge(a==360);
+        rotate([0,edgesan,a+90]) edge(a==360, a==288);
         
-        rotate([90,90-edgesan,a-18]) edge(a==288);
-        rotate([90,90+edgesan,a+18]) edge(a==72);
+        rotate([90,90-edgesan,a-18]) edge(a==288, a==72||a==360);
+        rotate([90,90+edgesan,a+18]) edge(a==72, a==144||a==216);
         
-        rotate([0,edgesan+180,a+90]) edge(a==360);
+        rotate([0,edgesan+180,a+90]) edge(a==360, a==288);
         rotate([tran+edgean,180,a+180]) edge(a==360);
     }
     vertex();
     for (a=[360/5:360/5:360]) {
         rotate([vertan,0,a+36]) vertex();
-        rotate([180-vertan,0,a]) vertex();
+        rotate([180+vertan,0,a+36]) vertex();
     }
     rotate([180,0,0]) vertex();
 }
 
-module vertex(w=8, o=voff, t=2, bt=2.5)
+module vertex(w=12, o=voff, t=2, bt=2.5)
 {
     d1 = 14.802;
     d2 = 17.55;
@@ -143,9 +144,11 @@ module vertex(w=8, o=voff, t=2, bt=2.5)
             )
         );
         l=side - 2*(off/wid)-30;
+        // Edge lip holes
         for (a=[360/5:360/5:360]) {
-            rotate([0,edgesan,a+90]) translate([-l/2,0,(eoff-2.7)-(t+tol/4)*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w+tol,t+tol);
+            rotate([0,edgesan,a+90]) translate([-l/2,0,(eoff-2.7)-(t+tol/2)*2.175]) rotate([0,-edgesan,0]) rotate([0,0,180]) edgepin(w+tol*2,t+tol+0.2);
         }
+        // Face pin holes
         for (a=[360/5:360/5:360]) {
             rotate([tran,0,a]) translate([0,wid-10,off-4.1]) {
                 cylinder(5,2.1,2.1,$fn=32);
@@ -169,9 +172,9 @@ function stubpenta(w, bo, of=0) = concat(
          [w*sin(a)+bo*sin(a+126), w*cos(a)+bo*cos(a+126), -w/tan(90-edgesan)]]
     ]);
 
-module edge(top=false, l=side - 2*(off/wid)-30, w=8, o=eoff-2.7, t=2)
+module edge(top=false, wire=false, l=side - 2*(off/wid)-30, w=12, o=eoff-2.7, t=2)
 {
-    col = top?"green":"orange";
+    col = top?"green":wire?"blue":"orange";
     color(col) {
     translate([0,0,o-t/2]) difference() {
         cube([l,w,2], true);
@@ -199,8 +202,39 @@ module edge(top=false, l=side - 2*(off/wid)-30, w=8, o=eoff-2.7, t=2)
         for (n=[-5:2:5]) {
             translate([n*((l-2)/10),0,o-t/2-6]) cube([2,w,13], true);
         }
+        for (n=[-4:4]) {
+            translate([n*(33/2),0,o-t/2-14]) stripholder(w);
+        }
+        translate([(-5)*(33/2),0,o-t/2-14]) stripholder(w, h=1.5);
+        translate([( 5)*(33/2),0,o-t/2-14]) stripholder(w, h=1.5);
+        translate([(-6)*(33/2),0,o-t/2-14]) stripholder(w, h=3, g=1);
+        translate([( 6)*(33/2),0,o-t/2-14]) stripholder(w, h=3, g=1);
+
+    }
+    if (wire) {
+        for (n=[-3:2:3]) {
+            translate([n*side/11,0,o-t]) wireholder(w);
+        }
     }
     }
+}
+
+module stripholder(w=12, l=5, t=1.2, h=0.6, g=0.2)
+{
+    x = w/2;
+    rotate([0,90,0]) translate([0,0,-l/2]) linear_extrude(height=l) polygon([
+        [-1,x],[h+t,x],[h+t,-x],[g+1,-x],[g,-5],[h,-5],[h,5],[-1,5]
+    ]);
+}
+
+module wireholder(w=12, l=10, t=1.2, b=2, h=4, g=0.2)
+{
+    x  = w/2;
+    dt = t/2;
+    rotate([0,90,0]) translate([0,0,-l/2]) linear_extrude(height=l) polygon([
+        [-1,x],[h-b,x],[h,x-b],[h,b-x],[h-b,-x],[g,-x],
+        [g,t-x],[h-b-dt,t-x],[h-t,dt+b-x],[h-t,x-dt-b],[h-b-dt,x-t],[-1,x-t]
+    ]);
 }
 
 module edgepin(w,t)
@@ -209,7 +243,7 @@ module edgepin(w,t)
         [-5,-w/2],[3,-w/2],[7,0],[3,w/2],[-5,w/2]]);
 }
 
-module pinlip(t=14, w=1, pw=5.2, h=(pinhi*0.915)-4, no=1)
+module pinlip(t=14, w=1.2, pw=5.2, h=(pinhi*0.915)-4, no=1)
 {
     n = no*0.97;
     rotate([-90,0,0]) translate([-pw/2,0,-t/2]) 
