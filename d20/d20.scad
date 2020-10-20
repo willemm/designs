@@ -15,7 +15,7 @@ lipin = 1;
 
 pinhi=16;
 
-thick = 1.8;
+thick = 1.6;
 side = 240;  // Edge length
 
 wid = side/s3;  // Radius of face triangles
