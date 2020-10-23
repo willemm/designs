@@ -82,6 +82,7 @@ dodigit=0;
 doedge=0;
 dovertex=0;
 doclamp=0;
+doswitch=0;
 if (sdigit) {
     dig = dodigit==6?" 6.":dodigit==9?" 9.":str(dodigit);
     translate([0,0,-off]) triangledigit(dig, digpins[dodigit]);
@@ -97,6 +98,12 @@ if (sdigit) {
     rotate([0,0,0]) vertex(dovertex==2);
 } else if (doclamp) {
     cordholder();
+} else if (doswitch) {
+    if (doswitch == 2) {
+        rotate([0,0,0]) switchcap();
+    } else {
+        rotate([-18,0,0]) rotate([0,-90,0]) switchhouse();
+    }
 } else {
     d20();
 }
@@ -125,6 +132,167 @@ module d20()
         rotate([180+vertan,0,a+36]) vertex();
     }
     rotate([180,0,0]) vertex();
+    cord();
+    switch();
+    translate([0,0,268]) cord();
+}
+
+module switch(h=50, d=24, t=1.6, s=5)
+{
+    color("gray") switchhouse(h=h, d=d, t=t, s=s);
+    #switchcap(h=h, d=d, t=t, s=s);
+    
+    *color("blue") translate([0,0,voff+200]) rotate([0,90,-18]) translate([0,0,5.4]) {
+        wemosd1();
+    }
+    translate([0,0,200-1.9]) rotate([0,0,72]) cordholder();
+    translate([0,0,250-9.1]) rotate([0,0,72]) cordholder();
+}
+
+module switchhouse(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5)
+{
+    side = tan(180/s)*(d+t*2);
+    translate([0,0,voff+200]) {
+        difference() {
+            union() {
+                for (a=[0:s-3]) {
+                    rotate([0,0,a*360/s]) translate([0,d/2+t/2,0]) cube([side,t,h], true);
+                }
+                rotate([0,0,(s-2)*360/s]) translate([0,d/2+t/2,0]) {
+                    translate([side/2-l1/2,t/4,0])
+                     cube([l1,t/2,h], true);
+                    translate([side/2-l2/2,-t/4,0])
+                     cube([l2,t/2,h], true);
+                }
+                rotate([0,0,(s-1)*360/s]) translate([0,d/2+t/2,0]) {
+                    translate([-(side/2-l1/2),t/4,0])
+                     cube([l1,t/2,h], true);
+                    translate([-(side/2-l2/2),-t/4,0])
+                     cube([l2,t/2,h], true);
+                }
+                rotate([0,90,-18]) translate([0,0,-d/2+1.9]) {
+                    cube([20,20,4.1], true);
+                }
+            }
+            rotate([0,90,-18]) translate([0,0,-d/2-t-0.1]) cylinder(t+0.2, 4, 4, $fn=60);
+            rotate([0,90,-18]) translate([0,0,-d/2+2.8]) {
+                intersection() {
+                    cube([17.7,17.7,5.5], true);
+                    rotate([0,0,45]) cube([21.4,21.4,5.7],true);
+                }
+            }
+        }
+
+        ed = d/2/cos(36);
+        edt = (d/2+t)/cos(36);
+        difference() {
+            polyhedron(points = concat(
+              [[0,0,h/2+d/2+t]],
+              [for (a=[180/s:360/s:360]) [edt*sin(a),edt*cos(a),h/2]],
+              [for (a=[180/s:360/s:360]) [ed*sin(a),ed*cos(a),h/2]]
+            ), faces = concat(
+              [[0,1,2],[0,2,3],[0,3,4],[0,4,5],[0,5,1]],
+              [[2,1,6,7],[3,2,7,8],[4,3,8,9],[5,4,9,10],[1,5,10,6]],
+              [[10,9,8,7,6]]
+            ));
+            translate([0,0,d]) cylinder(d/2+t+2,cordhole/2,cordhole/2,$fn=60);
+        }
+        mirror([0,0,1]) difference() {
+            polyhedron(points = concat(
+              [[0,0,h/2+d/2+t]],
+              [for (a=[180/s:360/s:360]) [edt*sin(a),edt*cos(a),h/2]],
+              [for (a=[180/s:360/s:360]) [ed*sin(a),ed*cos(a),h/2]]
+            ), faces = concat(
+              [[0,1,2],[0,2,3],[0,3,4],[0,4,5],[0,5,1]],
+              [[2,1,6,7],[3,2,7,8],[4,3,8,9],[5,4,9,10],[1,5,10,6]],
+              [[10,9,8,7,6]]
+            ));
+            translate([0,0,d]) cylinder(d/2+t+2,cordhole/2,cordhole/2,$fn=60);
+        }
+
+        sa = sin(36);
+        ca = cos(36);
+        b1 = side/2-l2;
+        wmo = 13;
+        wd = (d/2-tol);
+        // wd*sa+bx*ca = wmo
+        // wd*ca-bx*sa = b2
+        // bx*ca = wmo-wd*sa
+        // bx = (wmo-wd*sa)/ca
+        // bx*sa = (wmo-wd*sa)*sa/ca
+        // b2 = wd*ca - bx*sa
+        //    = wd*ca - ((wmo-wd*sa)*sa/ca)
+        b2 = wd*ca - ((wmo-wd*sa)*sa/ca);
+        rotate([0,0,72]) translate([0,0,-h/2]) linear_extrude(height=h) polygon([
+            [-12.8,0],
+            [-14.5,-4.5],
+            [-d/2*sa-b1*ca,-d/2*ca+b1*sa],
+            [-(d/2-tol)*sa-b1*ca,-(d/2-tol)*ca+b1*sa],
+            [-wmo,-b2],
+            [-12.8,-5]
+        ]);
+        rotate([0,0,72]) translate([0,0,-h/2]) linear_extrude(height=h) polygon([
+            [12.8,0],
+            [14.5,-4.5],
+            [d/2*sa+b1*ca,-d/2*ca+b1*sa],
+            [(d/2-tol)*sa+b1*ca,-(d/2-tol)*ca+b1*sa],
+            [wmo,-b2],
+            [12.8,-5]
+        ]);
+    }
+}
+
+module switchcap(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5, tol=0.1)
+{
+    l1t = l1+tol;
+    l2t = l2+tol;
+    side = tan(180/s)*(d+t*2);
+    translate([0,0,voff+200]) {
+        union() {
+            rotate([0,0,(s-2)*360/s]) translate([0,d/2+t/2,0]) {
+                translate([-l1t/2,t/4-tol/2,0])
+                 cube([side-l1t,t/2+tol,h-tol*2], true);
+                translate([-l2t/2,-t/4-tol/2,0])
+                 cube([side-l2t,t/2-tol,h-tol*2], true);
+            }
+            rotate([0,0,(s-1)*360/s]) translate([0,d/2+t/2,0]) {
+                translate([l1t/2,t/4-tol/2,0])
+                 cube([side-l1t,t/2+tol,h-tol*2], true);
+                translate([l2t/2,-t/4-tol/2,0])
+                 cube([side-l2t,t/2-tol,h-tol*2], true);
+            }
+        }
+    }
+}
+
+module wemosd1() {
+    translate([0,0,-2.4]) cube([34.6,25.4,4.8], true);
+    // translate([-17.3,   0,0]) rotate([0,0,90]) mcutab(12);
+    /*
+    translate([ 17.3,-11.2,0]) rotate([0,0,-90]) mcutab(6);
+    translate([ 17.3, 11.2,0]) rotate([0,0,-90]) mcutab(6);
+    translate([-17.3,-11.2,0]) rotate([0,0, 90]) mcutab(6);
+    translate([-17.3, 11.2,0]) rotate([0,0, 90]) mcutab(6);
+
+    translate([ 10,-12.7-2/2,-7/2+0.1]) cube([7,2,7],true);
+    translate([ 10, 12.7+2/2,-7/2+0.1]) cube([7,2,7],true);
+    translate([-10,-12.7-2/2,-7/2+0.1]) cube([7,2,7],true);
+    translate([-10, 12.7+2/2,-7/2+0.1]) cube([7,2,7],true);
+    */
+}
+
+
+module mcutab(w) {
+    translate([-w/2,0,0]) rotate([0,90,0]) linear_extrude(height=w) polygon([
+        [0,0],[4.8,0],[5.4,-0.5],[7,0.5],[5.4,1.5],[0,1.5]
+    ]);
+}
+
+module cord(h=230, d=6)
+{
+    color("black") translate([0,0,voff+h/2-50]) {
+        cylinder(h, d/2, d/2, true, $fn=30);
+    }
 }
 
 module topvertex(d=cordhole)
