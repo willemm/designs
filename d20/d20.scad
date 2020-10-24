@@ -331,7 +331,7 @@ module cordlip(h=7, d=cordhole, t=0.8, nw=7, o=voff)
                 translate([0,-d/2-t/2+2,h/2-0.1]) cube([nw-2.2,t+4,h+0.2], true);
                 translate([0,-d/2-w/2+2,-t/2-0.1]) cube([nw-2.2,w+4,t], true);
             }
-            cylinder(h+0.4, d/2, d/2, true, $fn=60);
+            translate([0,0,-1.2]) cylinder(h+1.4, d/2, d/2, $fn=60);
         }
     }
 }
