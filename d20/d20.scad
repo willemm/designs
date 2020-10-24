@@ -98,13 +98,13 @@ if (sdigit) {
     rotate([0,0,0]) vertex(dovertex==2);
 } else if (doclamp) {
     if (doclamp == 2) {
-        cordlip();
+        rotate([0,90,0]) cordlip();
     } else {
         cordholder();
     }
 } else if (doswitch) {
     if (doswitch == 2) {
-        rotate([0,0,0]) switchcap();
+        rotate([0,0,108]) switchcap();
     } else {
         rotate([-18,0,0]) rotate([0,-90,0]) switchhouse();
     }
