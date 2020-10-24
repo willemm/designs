@@ -97,7 +97,11 @@ if (sdigit) {
 } else if (dovertex) {
     rotate([0,0,0]) vertex(dovertex==2);
 } else if (doclamp) {
-    cordholder();
+    if (doclamp == 2) {
+        cordlip();
+    } else {
+        cordholder();
+    }
 } else if (doswitch) {
     if (doswitch == 2) {
         rotate([0,0,0]) switchcap();
@@ -299,20 +303,36 @@ module topvertex(d=cordhole)
 {
     vertex(true);
     cordholder(d=d);
+    cordlip(d=d);
 }
 
-module cordholder(h=7, d=cordhole, t=1.2, nw=7, nt=2.2, o=voff)
+module cordholder(h=7, d=cordhole, t=1.2, nw=7, nt=2.2, lt=0.8, o=voff)
 {
     x = 16;
     translate([0,0,o-h-x]) difference() {
         union() {
             cylinder(h, d/2+t, d/2+t, $fn=120);
-            translate([0,-(d+t/2)/2,h/2]) cube([d+t*2,d+t/2,h], true);
+            translate([0,-(d+1)/2,h/2]) cube([d+t*2,d+1,h], true);
         }
         translate([0,0,-0.1]) cylinder(h+0.2, d/2, d/2, $fn=120);
-        translate([0,-d/4-nt/2,h/2]) cube([nw-2,d/2+nt,h+0.2], true);
-        translate([0,-d/2-nt/2,h/2]) cube([nw,nt,h+0.2], true);
-        translate([0,-d/2-0.1,h/2]) rotate([90,0,0]) cylinder(nt*2, 2, 2, $fn=120);
+        translate([0,-d/4-nt/2-lt,h/2]) cube([nw-2,d/2+nt,h+0.2], true);
+        translate([0,-d/2-nt/2-lt,h/2]) cube([nw,nt,h+0.2], true);
+        translate([0,-d/2-0.1,h/2]) rotate([90,0,0]) cylinder(nt*3, 2, 2, $fn=120);
+    }
+}
+
+module cordlip(h=7, d=cordhole, t=0.8, nw=7, o=voff)
+{
+    x = 16;
+    w = 4;
+    translate([0,0,o-h-x]) {
+        difference() {
+            union() {
+                translate([0,-d/2-t/2+2,h/2-0.1]) cube([nw-2.2,t+4,h+0.2], true);
+                translate([0,-d/2-w/2+2,-t/2-0.1]) cube([nw-2.2,w+4,t], true);
+            }
+            cylinder(h+0.4, d/2, d/2, true, $fn=60);
+        }
     }
 }
 
