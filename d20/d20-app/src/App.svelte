@@ -28,8 +28,8 @@
 
 <style>
 span.color {
-  border: 5px solid black;
-  padding: 10px;
-  border-radius: 10px;
+  border: 10px solid black;
+  padding: 5px;
+  border-radius: 20px;
 }
 </style>
