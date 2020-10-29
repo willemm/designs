@@ -41,7 +41,7 @@
     {
       const x = event.clientX - canvas.offsetLeft - (canvas.width-1)/2
       const y = event.clientY - canvas.offsetTop - (canvas.height-1)/2
-      sat = Math.min(1,Math.sqrt(x*x + y*y) / (w/2))*100 >>> 0
+      sat = Math.min(1,Math.sqrt(x*x + y*y) / (w/2))*256 >>> 0
       hue = (Math.atan(x/y)+(y<0)*Math.PI+Math.PI/2)*180/Math.PI >>> 0
     }
     function handleMouseup(event)

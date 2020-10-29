@@ -1,9 +1,12 @@
 <script>
   import Brightness from './Brightness.svelte'
   import Color from './Color.svelte'
-  let brightness = [0,0,0,0,0,0]
-  let hue = 100
-  let sat = 100
+  import { sendcolor } from './sendcolor.js'
+  let brightness = [0]
+  let hue = 0
+  let sat = 0
+
+  $: sentcolor = sendcolor(sentcolor, hue, sat, brightness[0])
 
   function hsv2rgb(H,S,V)
   {
@@ -22,8 +25,8 @@
 
 <Brightness bind:values={brightness}/>
 <Color bind:hue={hue} bind:sat={sat}/>
-<span class="color" style="border-color: {hsv2rgb(hue, sat/100, 1)}">
-	Brightness: {brightness}, Hue: {hue}, Saturation: {sat}, Color: {hsv2rgb(hue, sat/100, 1)}
+<span class="color" style="border-color: {hsv2rgb(hue, sat/256, brightness[0]/255)}">
+	Brightness: {brightness}, Hue: {hue}, Saturation: {sat}, Color: {hsv2rgb(hue, sat/256, brightness[0]/255)}
 </span>
 
 <style>
@@ -31,5 +34,18 @@ span.color {
   border: 10px solid black;
   padding: 5px;
   border-radius: 20px;
+}
+:global(html), :global(body) {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+:global(body) {
+        background-color: #123;
+	color: #dec;
+	margin: 0;
+	padding: 8px;
+	box-sizing: border-box;
 }
 </style>
