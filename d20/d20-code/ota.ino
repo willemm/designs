@@ -2,9 +2,16 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#define OTA_NAME "d20-lamp-1"
+#define OTA_NAME "d20-lamp"
+
+bool ota_is_setup;
 
 void ota_setup()
+{
+  ota_is_setup = false;
+}
+
+void ota_do_setup()
 {
   ArduinoOTA.setHostname(OTA_NAME);
   ArduinoOTA.setPassword("Chocola");
@@ -39,5 +46,12 @@ void ota_setup()
 
 void ota_check()
 {
-  ArduinoOTA.handle();  
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!ota_is_setup) {
+      ota_do_setup();
+      ota_is_setup = true;
+    } else {
+      ArduinoOTA.handle();
+    }
+  }
 }

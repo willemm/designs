@@ -70,9 +70,7 @@ export default {
 		// instead of npm run dev), minify
 		production && terser(),
 
-                production && gzipPlugin(),
-
-                production && serve()
+                production && gzipPlugin()
 	],
 	watch: {
 		clearScreen: false

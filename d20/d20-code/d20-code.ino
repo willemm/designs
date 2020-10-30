@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
+#include <ArduinoJson.h>
 #include <math.h>
 
 ESP8266WebServer server(80);
@@ -12,18 +13,9 @@ const uint16_t PixelCount = 60;
 
 NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod> strip(PixelCount, 0);
 
-/*
-RgbColor red(colorSaturation, 0, 0);
-RgbColor green(0, colorSaturation, 0);
-RgbColor blue(0, 0, colorSaturation);
-//RgbColor white(colorSaturation);
-RgbwColor white(0,0,0,colorSaturation);
-RgbColor black(0);
-*/
-
 void setup()
 {
-  /*
+    /*
     Serial.begin(74880);
     while (!Serial); // wait for serial attach
 
@@ -43,9 +35,7 @@ void setup()
     */
     WiFi.disconnect(true);
     WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(100);
-    }
+    
     /*
     Serial.println("WiFi connected...");
     Serial.flush();
@@ -53,6 +43,7 @@ void setup()
     ota_setup();
     
     server.on("/set", handle_set);
+    server.on("/get", handle_get);
     server.serveStatic("/build/bundle.css", SPIFFS, "/bundle.css");
     server.serveStatic("/build/bundle.js", SPIFFS, "/bundle.js");
     server.serveStatic("/index.html", SPIFFS, "/index.html");
@@ -64,10 +55,20 @@ void setup()
     */
 }
 
+int hue, sat, val;
+bool setcolor = false;
+
 void loop()
 {
     ota_check();
     server.handleClient();
+    if (setcolor) {
+      RgbwColor color = hsv2rgb(hue, sat, val);
+      for (int i = 0; i < PixelCount; i++) {
+        strip.SetPixelColor(i, color);
+      }
+      strip.Show();
+    }
 }
 
 RgbwColor hsv2rgb(int h, int s, int v)
@@ -101,7 +102,8 @@ RgbwColor hsv2rgb(int h, int s, int v)
   return RgbwColor(rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
 }
 
-void handle_set() {
+void handle_set()
+{
   if (!server.hasArg("plain")) {
     server.send(400, "text/plain", "No data");
     return;
@@ -110,20 +112,36 @@ void handle_set() {
   Serial.print("Got: ");
   Serial.println(server.arg("plain"));
   */
+  /*
   int h, s, v;
   if (sscanf(server.arg("plain").c_str(), "%d:%d:%d", &h, &s, &v) < 3) {
     server.send(400, "text/plain", "Argument error");
     return;
   }
-  RgbwColor color = hsv2rgb(h, s, v);
-  for (int i = 0; i < PixelCount; i++) {
-    strip.SetPixelColor(i, color);
+  */
+  StaticJsonDocument<256> json;
+  if (DeserializationError err = deserializeJson(json, server.arg("plain"))) {
+    server.send(400, "text/plain", err.c_str());
+    return;
   }
-  strip.Show();
+  hue = json["hue"];
+  sat = json["sat"];
+  val = json["val"];
+
+  /*
   char buf[32];
   sprintf(buf, "Color: %d,%d,%d,%d", color.R, color.G, color.B, color.W);
-  /*
   Serial.println(buf);
-  */
   server.send(200, "text/plain", buf);
+  */
+  server.send(200, "application/json", json.as<String>());
+}
+
+void handle_get()
+{
+  StaticJsonDocument<256> json;
+  json["hue"] = hue;
+  json["sat"] = sat;
+  json["val"] = val;
+  server.send(200, "application/json", json.as<String>());
 }

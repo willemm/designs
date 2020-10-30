@@ -1,12 +1,10 @@
 <script>
   import Brightness from './Brightness.svelte'
   import Color from './Color.svelte'
-  import { sendcolor } from './sendcolor.js'
+  import Sendcolor from './Sendcolor.svelte'
   let brightness = [0]
   let hue = 0
   let sat = 0
-
-  $: sentcolor = sendcolor(sentcolor, hue, sat, brightness[0])
 
   function hsv2rgb(H,S,V)
   {
@@ -23,6 +21,7 @@
   }
 </script>
 
+<Sendcolor bind:hue={hue} bind:sat={sat} bind:val={brightness[0]}/>
 <Brightness bind:values={brightness}/>
 <Color bind:hue={hue} bind:sat={sat}/>
 <span class="color" style="border-color: {hsv2rgb(hue, sat/256, brightness[0]/255)}">
