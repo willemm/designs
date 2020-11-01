@@ -55,25 +55,32 @@ void setup()
     */
 }
 
-int hue, sat, val;
-bool setcolor = false;
+const int numsets = 6;
+struct hsv {
+  int hue, sat, val;
+} colors[6];
+int setcolor = 0;
 
 void loop()
 {
     ota_check();
     server.handleClient();
-    if (setcolor) {
-      RgbwColor color = hsv2rgb(hue, sat, val);
-      for (int i = 0; i < PixelCount; i++) {
-        strip.SetPixelColor(i, color);
+    if (setcolor > 0) {
+      const int csz = PixelCount / numsets;
+      for (int s = 0; s < numsets; s++) {
+        RgbwColor color = hsv2rgb(colors[s]);
+        for (int p = 0; p < csz; p++) {
+          strip.SetPixelColor(s*csz+p, color);
+        }
       }
       strip.Show();
+      setcolor = 0;
     }
 }
 
-RgbwColor hsv2rgb(int h, int s, int v)
+RgbwColor hsv2rgb(struct hsv color)
 {
-  double H = h, S = ((double)s)/255, V = ((double)v)/255;
+  double H = color.hue, S = ((double)color.sat)/255, V = ((double)color.val)/255;
   /*
   Serial.print("H="); Serial.print(H);
   Serial.print(" S="); Serial.print(S);
@@ -112,22 +119,18 @@ void handle_set()
   Serial.print("Got: ");
   Serial.println(server.arg("plain"));
   */
-  /*
-  int h, s, v;
-  if (sscanf(server.arg("plain").c_str(), "%d:%d:%d", &h, &s, &v) < 3) {
-    server.send(400, "text/plain", "Argument error");
-    return;
-  }
-  */
+
   StaticJsonDocument<256> json;
   if (DeserializationError err = deserializeJson(json, server.arg("plain"))) {
     server.send(400, "text/plain", err.c_str());
     return;
   }
-  hue = json["hue"];
-  sat = json["sat"];
-  val = json["val"];
-
+  for (int i = 0; i < numsets; i++) {
+    colors[i].hue = json[i]["hue"];
+    colors[i].sat = json[i]["sat"];
+    colors[i].val = json[i]["val"];
+  }
+  setcolor = true;
   /*
   char buf[32];
   sprintf(buf, "Color: %d,%d,%d,%d", color.R, color.G, color.B, color.W);
@@ -140,8 +143,10 @@ void handle_set()
 void handle_get()
 {
   StaticJsonDocument<256> json;
-  json["hue"] = hue;
-  json["sat"] = sat;
-  json["val"] = val;
+  for (int i = 0; i < numsets; i++) {
+    json[i]["hue"] = colors[i].hue;
+    json[i]["sat"] = colors[i].sat;
+    json[i]["val"] = colors[i].val;
+  }
   server.send(200, "application/json", json.as<String>());
 }
