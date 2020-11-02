@@ -2,7 +2,7 @@
   export let value = 0
 </script>
 
-<input type="range" bind:value={value} min="0" max="255"/>
+<input type="range" bind:value={value} min="0" max="255" on:focus/>
 
 <style>
 input {

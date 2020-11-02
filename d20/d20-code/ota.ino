@@ -14,7 +14,7 @@ void ota_setup()
 void ota_do_setup()
 {
   ArduinoOTA.setHostname(OTA_NAME);
-  ArduinoOTA.setPassword("Chocola");
+  // ArduinoOTA.setPassword("Chocola");
   ArduinoOTA
     .onStart([]() {
       String type;

@@ -1,29 +1,13 @@
 <script>
+  import { tick } from 'svelte'
   import Slider from './Slider.svelte'
-  export let values = []
-  let linksets = [
-    [[0,1,2,3,4,5]],
-    [[0,1,2],[3,4,5]],
-    [[0,1],[2,3],[4,5]],
-    [[0],[1],[2],[3],[4],[5]]
-  ]
-  let links = 2
-  let curvalues = []
-  $: for (let i = 0; i < values.length; i++) {
-    let val = values[i]
-    if (curvalues[i] != val) {
-      let block = linksets[links].find(el => el.indexOf(i) >= 0)
-      for (let j = 0; j < block.length; j++) {
-        values[block[j]] = val
-        curvalues[block[j]] = val
-      }
-    }
-  }
+  export let colors = []
+  export let selected = 0
 </script>
 
-<div class="sliders" style="--columns:{values.length}">
-{#each values as value}
-<Slider bind:value={value}/>
+<div class="sliders" style="--columns:{colors.length}">
+{#each colors as color, idx}
+<Slider bind:value={color.val} on:focus={() => { selected = idx }}/>
 {/each}
 </div>
 

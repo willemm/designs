@@ -2,9 +2,24 @@
   import Brightness from './Brightness.svelte'
   import Color from './Color.svelte'
   import Sendcolor from './Sendcolor.svelte'
-  let brightness = [0,0,0,0,0,0]
-  let hue = 0
-  let sat = 0
+  let colors = [
+    { hue: 0, sat: 0, val: 0 },
+    { hue: 0, sat: 0, val: 0 },
+    { hue: 0, sat: 0, val: 0 },
+    { hue: 0, sat: 0, val: 0 },
+    { hue: 0, sat: 0, val: 0 },
+    { hue: 0, sat: 0, val: 0 }
+  ]
+  let selected = 0
+
+  let linksets = [
+    [0,0,0,0,0,0],
+    [0,0,0,3,3,3],
+    [0,0,2,2,4,4],
+    [0,1,2,3,4,5]
+  ]
+  let links = 3
+  $: linkedcolors = linksets[links].map(c => colors[c])
 
   function hsv2rgb(H,S,V)
   {
@@ -21,18 +36,22 @@
   }
 </script>
 
-<Sendcolor bind:hue={hue} bind:sat={sat} bind:val={brightness[0]}/>
-<Color bind:hue={hue} bind:sat={sat}/>
-<Brightness bind:values={brightness}/>
-<span class="color" style="border-color: {hsv2rgb(hue, sat/256, brightness[0]/255)}">
-	Brightness: {brightness}, Hue: {hue}, Saturation: {sat}, Color: {hsv2rgb(hue, sat/256, brightness[0]/255)}
-</span>
+<Sendcolor bind:colors={linkedcolors} />
+<Color bind:color={linkedcolors[selected]} />
+<Brightness bind:colors={linkedcolors} bind:selected={selected}/>
+{#each linkedcolors as color}
+<div class="color" style="border-color: {hsv2rgb(color.hue, color.sat/256, color.val/255)}">
+  Hue: {color.hue}, Saturation: {color.sat}, Value: {color.val},Color: {hsv2rgb(color.hue, color.sat/256, color.val/255)}
+</div>
+{/each}
 
 <style>
-span.color {
+div.color {
+  display: table;
   border: 10px solid black;
   padding: 5px;
   border-radius: 20px;
+  margin-bottom: 2px;
 }
 :global(html), :global(body) {
 	position: relative;

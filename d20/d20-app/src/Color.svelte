@@ -1,5 +1,7 @@
 <script>
-  export let hue, sat
+  export let color
+  $: curx = -Math.cos(color.hue * Math.PI/180)*color.sat*100/256
+  $: cury = Math.sin(color.hue * Math.PI/180)*color.sat*100/256
 
   function colorcircle(canvas)
   {
@@ -39,24 +41,23 @@
     }
     function handleMousemove(event)
     {
-      const x = event.clientX - canvas.offsetLeft - (canvas.width-1)/2
-      const y = event.clientY - canvas.offsetTop - (canvas.height-1)/2
-      sat = Math.min(1,Math.sqrt(x*x + y*y) / (w/2))*256 >>> 0
-      hue = (Math.atan(x/y)+(y<0)*Math.PI+Math.PI/2)*180/Math.PI >>> 0
+      const x = event.clientX - 40 -(canvas.width-1)/2
+      const y = event.clientY - 40 -(canvas.height-1)/2
+      color.sat = Math.min(1,Math.sqrt(x*x + y*y) / (w/2))*256 >>> 0
+      color.hue = (Math.atan(x/y)+(y<0)*Math.PI+Math.PI/2)*180/Math.PI >>> 0
     }
     function handleMouseup(event)
     {
       window.removeEventListener('mousemove', handleMousemove)
       window.removeEventListener('mouseup', handleMouseup)
     }
-    canvas.addEventListener('mousedown', handleMousedown)
+    canvas.parentElement.addEventListener('mousedown', handleMousedown)
     return {
       destroy() {
-        canvas.removeEnevtListener('mousedown', handleMousedown)
+        canvas.parentElement.removeEventListener('mousedown', handleMousedown)
       }
     }
   }
-
 </script>
 
 <div class="colorcircle">
@@ -64,6 +65,7 @@
         width={200}
         height={200}
 />
+<div class="cursor" style="left: {curx + 100}px; top: {cury + 100}px;" />
 </div>
 
 <style>
@@ -75,5 +77,20 @@ div.colorcircle {
   box-shadow: 1px 1px 3px 3px #000;
   margin: 30px;
   overflow: hidden;
+  position: relative;
+}
+div.colorcircle canvas {
+  position: absolute;
+}
+div.cursor {
+  position: absolute;
+  height: 6px;
+  width: 6px;
+  margin-left: -5px;
+  margin-top: -5px;
+  border: 2px solid rgba(32,48,64,0.3);
+  box-shadow: 1px 1px 1px 0px #469 inset, 1px 1px 1px 0px #246;
+  border-radius: 100%;
+  z-index: 5;
 }
 </style>

@@ -58,7 +58,7 @@ void setup()
 const int numsets = 6;
 struct hsv {
   int hue, sat, val;
-} colors[6];
+} colors[numsets];
 int setcolor = 0;
 
 void loop()
@@ -120,7 +120,7 @@ void handle_set()
   Serial.println(server.arg("plain"));
   */
 
-  StaticJsonDocument<256> json;
+  StaticJsonDocument<512> json;
   if (DeserializationError err = deserializeJson(json, server.arg("plain"))) {
     server.send(400, "text/plain", err.c_str());
     return;
@@ -130,7 +130,7 @@ void handle_set()
     colors[i].sat = json[i]["sat"];
     colors[i].val = json[i]["val"];
   }
-  setcolor = true;
+  setcolor = 1;
   /*
   char buf[32];
   sprintf(buf, "Color: %d,%d,%d,%d", color.R, color.G, color.B, color.W);
@@ -142,7 +142,7 @@ void handle_set()
 
 void handle_get()
 {
-  StaticJsonDocument<256> json;
+  StaticJsonDocument<512> json;
   for (int i = 0; i < numsets; i++) {
     json[i]["hue"] = colors[i].hue;
     json[i]["sat"] = colors[i].sat;
