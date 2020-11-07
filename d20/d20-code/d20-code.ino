@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include <math.h>
 
-#define SERIALOUT
+// #define SERIALOUT
 
 ESP8266WebServer server(80);
 
@@ -64,35 +64,53 @@ void setup()
     server.serveStatic("/", SPIFFS, "/");
 
     server.begin();
-#ifdef SERIALOUT
-    Serial.print("Listening on "); Serial.print(WiFi.localIP()); Serial.println(".");
-    Serial.flush();
-#endif
 }
 
 const int numsets = 6;
 struct hsv {
   int hue, sat, val;
 } colors[numsets];
-int setcolor = 0;
+struct hsv curcolors[numsets];
+unsigned long setcolor = 0;
 
 unsigned long tick = 0;
+unsigned long ctick = 0;
 
 void loop()
 {
     ota_check();
     server.handleClient();
-    if (setcolor > 0) {
+    nub_check();
+    if ((setcolor > 0) && (ctick < millis())) {
+      setcolor--;
+      ctick = millis() + 25;
       const int csz = PixelCount / numsets;
       for (int s = 0; s < numsets; s++) {
-        RgbwColor color = hsv2rgb(colors[s]);
+        int ch = colors[s].hue;
+        int cch = curcolors[s].hue;
+        if (ch < cch) {
+          if (cch - ch > 180) ch += 360;
+        } else {
+          if (ch - cch > 180) cch += 360;
+        }
+        curcolors[s].hue = ((cch * setcolor + ch) / (setcolor+1)) % 360;
+        curcolors[s].sat = (curcolors[s].sat * setcolor + colors[s].sat) / (setcolor+1);
+        curcolors[s].val = (curcolors[s].val * setcolor + colors[s].val) / (setcolor+1);
+#ifdef SERIALOUT
+        if (setcolor == 0) {
+          Serial.print("Setting color "); Serial.print(s); Serial.print(" to ("); Serial.print(colors[s].hue);
+          Serial.print(","); Serial.print(colors[s].sat); Serial.print(","); Serial.print(colors[s].val); Serial.println(")");
+          Serial.flush();
+        }
+#endif
+        RgbwColor color = hsv2rgb(curcolors[s]);
         for (int p = 0; p < csz; p++) {
           strip.SetPixelColor(s*csz+p, color);
         }
       }
       strip.Show();
-      setcolor = 0;
     }
+/*
 #ifdef SERIALOUT
     if (tick < millis()) {
       digitalWrite(joyY, LOW);
@@ -107,6 +125,71 @@ void loop()
       tick = millis() + 1000;
     }
 #endif
+*/
+}
+
+void nub_check()
+{
+  if (tick < millis()) {
+    digitalWrite(joyY, LOW);
+    digitalWrite(joyX, HIGH);
+    int vert = analogRead(joyIN);
+    digitalWrite(joyX, LOW);
+    digitalWrite(joyY, HIGH);
+    int horz = analogRead(joyIN);
+    digitalWrite(joyY, LOW);
+    digitalWrite(joyX, LOW);
+
+    if (horz < 350) { // Hue rotate
+      int scl = (350-horz)/35;
+      for (int c = 0; c < numsets; c++) {
+        int newhue = colors[c].hue - scl;
+        if (newhue < 0) newhue += 360;
+        colors[c].hue = newhue;
+        int newsat = colors[c].sat + scl*2;
+        if (newsat > 255) newsat = 255;
+        colors[c].sat = newsat;
+      }
+      setcolor = 4;
+    }
+    if (horz > 600) { // Hue rotate
+      int scl = (horz-600)/35;
+      for (int c = 0; c < numsets; c++) {
+        int newhue = colors[c].hue + scl;
+        if (newhue >= 360) newhue -= 360;
+        colors[c].hue = newhue;
+        int newsat = colors[c].sat + scl*2;
+        if (newsat > 255) newsat = 255;
+        colors[c].sat = newsat;
+      }
+      setcolor = 4;
+    }
+    if (vert < 350) { // Dimming
+      int scl = (350-vert)/35;
+      for (int c = 0; c < numsets; c++) {
+        int newval = colors[c].val - scl;
+        if (newval < 0) newval = 0;
+        colors[c].val = newval;
+      }
+      setcolor = 4;
+    }
+    if (vert > 600) { // Brightening
+      int scl = (vert-600)/35;
+      for (int c = 0; c < numsets; c++) {
+        int newval = colors[c].val + scl;
+        if (newval > 255) {
+          newval = 255;
+          int newsat = colors[c].sat - scl;
+          if (newsat < 0) newsat = 0;
+          colors[c].sat = newsat;
+        }
+        colors[c].val = newval;
+      }
+      setcolor = 4;
+    }
+
+    tick = millis() + 100;
+  }
 }
 
 RgbwColor hsv2rgb(struct hsv color)
@@ -161,7 +244,7 @@ void handle_set()
     colors[i].sat = json[i]["sat"];
     colors[i].val = json[i]["val"];
   }
-  setcolor = 1;
+  setcolor = 10;
   /*
   char buf[32];
   sprintf(buf, "Color: %d,%d,%d,%d", color.R, color.G, color.B, color.W);

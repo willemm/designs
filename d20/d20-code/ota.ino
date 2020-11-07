@@ -13,6 +13,10 @@ void ota_setup()
 
 void ota_do_setup()
 {
+#ifdef SERIALOUT
+  Serial.print("Listening on "); Serial.print(WiFi.localIP()); Serial.println(".");
+  Serial.flush();
+#endif
   ArduinoOTA.setHostname(OTA_NAME);
   // ArduinoOTA.setPassword("Chocola");
   ArduinoOTA
