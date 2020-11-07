@@ -5,6 +5,8 @@
 #include <ArduinoJson.h>
 #include <math.h>
 
+#define SERIALOUT
+
 ESP8266WebServer server(80);
 
 const char *ssid = "Airy";
@@ -13,33 +15,45 @@ const uint16_t PixelCount = 60;
 
 NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod> strip(PixelCount, 0);
 
+const int joyGnd = 16;
+const int joyX = 14;
+const int joyY = 12;
+const int joyIN = A0;
+
 void setup()
 {
-    /*
+    pinMode(joyGnd, OUTPUT);
+    pinMode(joyX, OUTPUT);
+    pinMode(joyY, OUTPUT);
+    digitalWrite(joyGnd, LOW);
+    digitalWrite(joyX, LOW);
+    digitalWrite(joyY, LOW);
+      
+#ifdef SERIALOUT
     Serial.begin(74880);
     while (!Serial); // wait for serial attach
 
     Serial.println();
     Serial.println("Initializing...");
     Serial.flush();
-    */
+#endif
 
     // this resets all the neopixels to an off state
     strip.Begin();
     strip.Show();
 
     SPIFFS.begin();
-    /*
+#ifdef SERIALOUT
     Serial.println("SPIFFS OK...");
     Serial.flush();
-    */
+#endif
     WiFi.disconnect(true);
     WiFi.begin(ssid, password);
     
-    /*
+#ifdef SERIALOUT
     Serial.println("WiFi connected...");
     Serial.flush();
-    */
+#endif    
     ota_setup();
     
     server.on("/set", handle_set);
@@ -50,9 +64,10 @@ void setup()
     server.serveStatic("/", SPIFFS, "/");
 
     server.begin();
-    /*
-    Serial.print("Listening on"); Serial.print(WiFi.localIP()); Serial.println(".");
-    */
+#ifdef SERIALOUT
+    Serial.print("Listening on "); Serial.print(WiFi.localIP()); Serial.println(".");
+    Serial.flush();
+#endif
 }
 
 const int numsets = 6;
@@ -60,6 +75,8 @@ struct hsv {
   int hue, sat, val;
 } colors[numsets];
 int setcolor = 0;
+
+unsigned long tick = 0;
 
 void loop()
 {
@@ -76,6 +93,20 @@ void loop()
       strip.Show();
       setcolor = 0;
     }
+#ifdef SERIALOUT
+    if (tick < millis()) {
+      digitalWrite(joyY, LOW);
+      digitalWrite(joyX, HIGH);
+      int posX = analogRead(joyIN);
+      digitalWrite(joyX, LOW);
+      digitalWrite(joyY, HIGH);
+      int posY = analogRead(joyIN);
+      digitalWrite(joyY, LOW);
+      digitalWrite(joyX, LOW);
+      Serial.print("X = "); Serial.print(posX); Serial.print(", Y = "); Serial.println(posY);
+      tick = millis() + 1000;
+    }
+#endif
 }
 
 RgbwColor hsv2rgb(struct hsv color)

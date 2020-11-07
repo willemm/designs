@@ -103,7 +103,9 @@ if (sdigit) {
         cordholder();
     }
 } else if (doswitch) {
-    if (doswitch == 2) {
+    if (doswitch == 3) {
+        nub();
+    } else if (doswitch == 2) {
         rotate([0,0,108]) switchcap();
     } else {
         rotate([-18,0,0]) rotate([0,-90,0]) switchhouse();
@@ -141,19 +143,37 @@ module d20()
     translate([0,0,268]) cord();
 }
 
-module switch(h=50, d=24, t=1.6, s=5)
+module switch(h=70, d=30, t=1.6, s=5)
 {
     color("gray") switchhouse(h=h, d=d, t=t, s=s);
-    #switchcap(h=h, d=d, t=t, s=s);
+    *#switchcap(h=h, d=d, t=t, s=s);
     
-    *color("blue") translate([0,0,voff+200]) rotate([0,90,-18]) translate([0,0,5.4]) {
+    color("blue") translate([0,0,voff+200]) rotate([0,90,-18]) translate([0,0,8]) {
         wemosd1();
     }
-    translate([0,0,200-1.9]) rotate([0,0,72]) cordholder();
-    translate([0,0,250-9.1]) rotate([0,0,72]) cordholder();
+    translate([0,0,225-h/2-1.9]) rotate([0,0,72]) cordholder();
+    translate([0,0,225+h/2-9.1]) rotate([0,0,72]) cordholder();
+    
+    translate([0,0,voff+200]) rotate([0,90,162]) translate([0,0,d/2+1.8]) nub();
 }
 
-module switchhouse(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5)
+module nub(d=23, t=6, h=4, sh=3)
+{
+    hd = d/2;
+    r = (t*t+hd*hd)/(2*t);
+    difference() {
+        intersection() {
+            translate([0,0,t-r]) sphere(r, $fn=120);
+            translate([0,0,t/2]) cube([d,d,t], true);
+        }
+        intersection() {
+            cylinder(6, h/2, h/2, true, $fn=32);
+            cube([sh, h+0.1, 6], true);
+        }
+    }
+}
+
+module switchhouse(h=70, d=30, t=1.6, s=5, l1=2.5, l2=1.5)
 {
     side = tan(180/s)*(d+t*2);
     translate([0,0,voff+200]) {
@@ -174,16 +194,21 @@ module switchhouse(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5)
                     translate([-(side/2-l2/2),-t/4,0])
                      cube([l2,t/2,h], true);
                 }
-                rotate([0,90,-18]) translate([0,0,-d/2+1.9]) {
-                    cube([20,20,4.1], true);
+                rotate([0,90,-18]) translate([0,0,-d/2+1.8]) {
+                    cube([20,20,4], true);
+                    // translate([0,0,2]) cube([20,21,1], true);
                 }
             }
             rotate([0,90,-18]) translate([0,0,-d/2-t-0.1]) cylinder(t+0.2, 4, 4, $fn=60);
-            rotate([0,90,-18]) translate([0,0,-d/2+2.8]) {
-                intersection() {
-                    cube([17.7,17.7,5.5], true);
-                    rotate([0,0,45]) cube([21.4,21.4,5.7],true);
+            wt = -0.1;
+            rotate([0,90,-18]) translate([0,0,-d/2+1.2+wt]) {
+                translate([0,0,0.3]) intersection() {
+                    cube([17.7,17.7,4.9], true);
+                    rotate([0,0,45]) cube([21.4,21.4,5.0],true);
                 }
+                cylinder(5.5,17.7/2,17.7/2,true,$fn=60);
+                translate([0,0,2.2]) cube([21,7,1.2],true);
+                translate([0,0,2.2]) cube([7,21,1.2],true);
             }
         }
 
@@ -199,7 +224,7 @@ module switchhouse(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5)
               [[2,1,6,7],[3,2,7,8],[4,3,8,9],[5,4,9,10],[1,5,10,6]],
               [[10,9,8,7,6]]
             ));
-            translate([0,0,d]) cylinder(d/2+t+2,cordhole/2,cordhole/2,$fn=60);
+            translate([0,0,h/2-0.1]) cylinder(d/2+t+2,cordhole/2,cordhole/2,$fn=60);
         }
         mirror([0,0,1]) difference() {
             polyhedron(points = concat(
@@ -211,12 +236,13 @@ module switchhouse(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5)
               [[2,1,6,7],[3,2,7,8],[4,3,8,9],[5,4,9,10],[1,5,10,6]],
               [[10,9,8,7,6]]
             ));
-            translate([0,0,d]) cylinder(d/2+t+2,cordhole/2,cordhole/2,$fn=60);
+            translate([0,0,h/2-0.1]) cylinder(d/2+t+2,cordhole/2,cordhole/2,$fn=60);
         }
 
         sa = sin(36);
         ca = cos(36);
         b1 = side/2-l2;
+        b3 = side/2-l2+1;
         wmo = 13;
         wd = (d/2-tol);
         // wd*sa+bx*ca = wmo
@@ -228,25 +254,32 @@ module switchhouse(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5)
         //    = wd*ca - ((wmo-wd*sa)*sa/ca)
         b2 = wd*ca - ((wmo-wd*sa)*sa/ca);
         rotate([0,0,72]) translate([0,0,-h/2]) linear_extrude(height=h) polygon([
-            [-12.8,0],
-            [-14.5,-4.5],
+            [-12.8,-3],
+            [-9.8,-3],
+            //[-12.8,0],
+            [-15.8,3],
+            //[-14.5,-4.5],
+            [-d/2*sa-b3*ca,-d/2*ca+b3*sa],
             [-d/2*sa-b1*ca,-d/2*ca+b1*sa],
             [-(d/2-tol)*sa-b1*ca,-(d/2-tol)*ca+b1*sa],
             [-wmo,-b2],
             [-12.8,-5]
         ]);
-        rotate([0,0,72]) translate([0,0,-h/2]) linear_extrude(height=h) polygon([
-            [12.8,0],
-            [14.5,-4.5],
-            [d/2*sa+b1*ca,-d/2*ca+b1*sa],
-            [(d/2-tol)*sa+b1*ca,-(d/2-tol)*ca+b1*sa],
-            [wmo,-b2],
-            [12.8,-5]
+        rotate([0,0,72]) translate([0,0,-h/2]) mirror([1,0,0]) linear_extrude(height=h) polygon([
+            [-12.8,-3],
+            [-9.8,-3],
+            [-15.8,3],
+            //[-14.5,-4.5],
+            [-d/2*sa-b3*ca,-d/2*ca+b3*sa],
+            [-d/2*sa-b1*ca,-d/2*ca+b1*sa],
+            [-(d/2-tol)*sa-b1*ca,-(d/2-tol)*ca+b1*sa],
+            [-wmo,-b2],
+            [-12.8,-5]
         ]);
     }
 }
 
-module switchcap(h=50, d=24, t=1.6, s=5, l1=2.5, l2=1.5, tol=0.1)
+module switchcap(h=70, d=30, t=1.6, s=5, l1=2.5, l2=1.5, tol=0.1)
 {
     l1t = l1+tol;
     l2t = l2+tol;
