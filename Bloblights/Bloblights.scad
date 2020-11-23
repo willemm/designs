@@ -1,4 +1,4 @@
-doback=1;
+doback=2;
 docover=1;
 
 numparts = 14;
@@ -31,18 +31,37 @@ thick = 1.2;
 
 s2 = sqrt(2);
 
-numbl = ceil(length/offs)+0;
+numbl = ceil(length/offs)+1;
 
 if (doback) {
-    translate([0,250,-20]) ledstrip();
+    translate([0,250,-20]) ledholder();
+    if (doback >= 2) {
+        color("lightblue") translate([0,250,-19.9]) {
+            ledstrip();
+            mirror([1,0,0]) ledstrip();
+        }
+    }
+    if (doback >= 3) {
+        blobcover();
+    }
 } else {
     blobcover();
 }
 
-module ledstrip()
+module ledstrip(l = 250, h=strip-2)
+{
+    bo = -bwidth/2+thick+2.2;
+    translate([bo,-l,0]) cube([0.2,l,h]);
+    loff = 50/3;
+    for (ld = [loff/2:loff:l]) {
+        translate([bo,-ld-2.5,2.5]) cube([1.7,4.7,5]);
+    }
+}
+
+module ledholder(l = 250)
 {
     b1 = bwidth/2-thick-0.1;
-    t = 2;
+    t = 1.6;
     s = strip;
     f = 2;
     tr = 6;
@@ -50,43 +69,91 @@ module ledstrip()
     b2 = 20/2;
     b3 = b2+th;
 
+    bh = bwidth/2-thick-7;
+    bhr = 4/2;
+    
+    hoff = 50/6+25;
     difference() {
-        rotate([90,0,0]) linear_extrude(height=250, convexity=3) polygon([
+        rotate([90,0,0]) linear_extrude(height=l, convexity=5) polygon([
             [-b1, s],[-b1,-f],[-b3,-f],[-b2,tr],
             [b2,tr],[b3,-f],[b1,-f],[b1,s],
             [b1-t,s],[b1-t,0],[b3,0],[b3-th,th],[0,s],
             [-(b3-th),th],[-b3,0],[-(b1-t),0],[-(b1-t), s]
         ]);
-        bh = bwidth/2-thick-7;
-        bhr = 4/2;
-        for (h = [-16:-218:-234]) {
+
+        for (h = [-hoff:-l+hoff*2:-l+hoff]) {
             translate([ bh,h,-t-0.5]) cylinder(t+1, bhr, bhr, false, $fn=20);
             translate([-bh,h,-t-0.5]) cylinder(t+1, bhr, bhr, false, $fn=20);
         }
+        
+        // Holes for connecting led strip
+        translate([  b3-1 ,-l+3,0]) rotate([0, 45,0]) cylinder(4,2,2,true,$fn=4);
+        translate([-(b3-1),-l+3,0]) rotate([0,-45,0]) cylinder(4,2,2,true,$fn=4);
+        
+        // Mating hole top near
+        translate([ 4,-l-0.1,8.2]) rotate([-90,0,0])
+            cylinder(2.2, 2.2, 0, false, $fn=4);
+        
+        // Mating holes sides near
+        translate([-bh-1,-l,-f-0.1]) cylinder(f+0.2,2,2,false,$fn=4);
+        translate([ b1+0.1,-l,6]) rotate([0,-90,0]) cylinder(t+0.2,2,2,false,$fn=4);
+        
+        // Mating hole top far
+        translate([ 4,0.1,8.2]) rotate([90,0,0])
+            cylinder(2.2, 2.2, 0, false, $fn=4);
+        
+        // Mating holes sides far
+        translate([-bh+1,0,-f-0.1]) cylinder(f+0.2,2,2,false,$fn=4);
+        translate([ b1+0.1,0,6]) rotate([0,-90,0]) cylinder(t+0.2,2,2,false,$fn=4);
     }
-    for (h = [-holeoff/2:-holeoff:-250]) {
+    for (h = [-holeoff/2:-holeoff:-l]) {
         translate([-b1,h,holerad+1]) rotate([0,-90,0])
             cylinder(thick+0.2, holerad, holerad-thick, false, $fn=4);
         translate([ b1,h,holerad+1]) rotate([0, 90,0])
             cylinder(thick+0.2, holerad, holerad-thick, false, $fn=4);
     }
     taboff = 50;
+    
     stripholder(-2, b1-t, s, 4);
+
     mirror([1,0,0]) stripholder(-2, b1-t, s, 4);
-    for (b = [-taboff:-taboff:-250+taboff]) {
+    
+    stripholder(-taboff/3, b1-t, s, 4);
+    mirror([1,0,0]) stripholder(-taboff/3, b1-t, s, 4);
+
+    stripholder(-l+taboff/3, b1-t, s, 4);
+    mirror([1,0,0]) stripholder(-l+taboff/3, b1-t, s, 4);
+
+    for (b = [-taboff:-taboff:-l+taboff]) {
         stripholder(b, b1-t, s, 4);
         mirror([1,0,0]) stripholder(b, b1-t, s, 4);
     }
+    
+    // Mating pin top near
+    translate([-4,-l,8.2]) rotate([90,0,0]) cylinder(2, 2, 0, false, $fn=4);
+    
+    // Mating pins sides near
+    translate([ bh+1,-l,-f]) cylinder(f,2,2,false,$fn=4);
+    translate([-b1,-l,6]) rotate([0,90,0]) cylinder(t,2,2,false,$fn=4);
+
+    // Mating pin top far
+    translate([-4,0,8.2]) rotate([-90,0,0]) cylinder(2, 2, 0, false, $fn=4);
+    
+    // Mating pins sides far
+    translate([ bh-1,0,-f]) cylinder(f,2,2,false,$fn=4);
+    translate([-b1,0,6]) rotate([0,90,0]) cylinder(t,2,2,false,$fn=4);
+
 }
 
 module stripholder(b, be, s, h) {
     lt = 2;
     st = 0.5;
+    t = 1.6;
     translate([0,b+h/2,0]) rotate([90,0,0])
       linear_extrude(height=h, convexity=3) polygon([
-        [-(be+0.1),s],[-(be-2),s],[-(be-4),s-2],[-(be-4),-1],
+        [-(be+0.1),s],[-(be-1),s],[-(be-2-t),s-t-2],[-(be-2-t),-1],
         [-(be-st),-1],[-(be-st),0],[-(be-lt),2],
-        [-(be-lt),8],[-(be-st),10],[-(be+0.1),10]
+        [-(be-lt),8.2],[-(be-st),10.2],[-(be+0.1),10.2]
     ]);
 }
 
@@ -115,6 +182,8 @@ module blobcover()
     
     hs = floor(pstart/holeoff)*holeoff+holeoff/2;
     he = ceil(pend/holeoff)*holeoff-holeoff/2;
+    
+    cof = 2.5;
  
     if (docap == 1) {
       difference() {
@@ -122,10 +191,10 @@ module blobcover()
             union() {
                 blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe);
 
-                color("red") translate([-bwidth/2,-thick-0.5,-21.5])
+                color("red") translate([-bwidth/2,-thick-cof,-21.5])
                     cube([bwidth, thick, 25.9]);
             }
-            translate([-bwidth,-40-0.5,-22]) cube([bwidth*2, 40, 60]);
+            translate([-bwidth,-40-cof,-22]) cube([bwidth*2, 40, 60]);
         }
         blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe, -thick);
       }
@@ -135,10 +204,10 @@ module blobcover()
             union() {
                 blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe);
 
-                color("red") translate([-bwidth/2,length+0.5,-21.5])
+                color("red") translate([-bwidth/2,length+cof,-21.5])
                     cube([bwidth, thick, 25.9]);
             }
-            translate([-bwidth,length+0.5,-22]) cube([bwidth*2, 40, 60]);
+            translate([-bwidth,length+cof,-22]) cube([bwidth*2, 40, 60]);
         }
         blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe, -thick);
       }
@@ -148,10 +217,11 @@ module blobcover()
             union() {
                 blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe);
 
-                color("red") translate([-bwidth/2,pstart-(pstart == 0 ? thick+0.5 : 0),-21.5])
-                    cube([bwidth, blength+(pend==length ? thick+0.5 : 0)+(pstart== 0 ? thick+0.5 : 0), 25.9]);
+                color("red") translate([-bwidth/2,pstart-(pstart == 0 ? thick+cof : 0),-21.5])
+                    cube([bwidth, blength+(pend==length ? thick+cof : 0)+(pstart== 0 ? thick+cof : 0), 25.9]);
             }
-            translate([-bwidth,pstart-(doend?0.5:30)*(docover%2),-22]) cube([bwidth*2, blength+(doend?0.5:30), 60]);
+            translate([-bwidth,pstart-(doend?cof:30)*(docover%2),-22])
+                cube([bwidth*2, blength+(doend?cof:30), 60]);
         }
 
         if (docover%2) {
