@@ -1,3 +1,4 @@
+doback=1;
 docover=1;
 
 numparts = 14;
@@ -32,9 +33,11 @@ s2 = sqrt(2);
 
 numbl = ceil(length/offs)+0;
 
-*translate([0,250,-20]) ledstrip();
-
-blobcover();
+if (doback) {
+    translate([0,250,-20]) ledstrip();
+} else {
+    blobcover();
+}
 
 module ledstrip()
 {
@@ -47,18 +50,44 @@ module ledstrip()
     b2 = 20/2;
     b3 = b2+th;
 
-    rotate([90,0,0]) linear_extrude(height=250) polygon([
-        [-b1, s],[-b1,-f],[-b2,-f],[-b2,tr],
-        [b2,tr],[b2,-f],[b1,-f],[b1,s],
-        [b1-t,s],[b1-t,0],[b3,0],[b3-th,th],[0,s],
-        [-(b3-th),th],[-b3,0],[-(b1-t),0],[-(b1-t), s]
-    ]);
+    difference() {
+        rotate([90,0,0]) linear_extrude(height=250, convexity=3) polygon([
+            [-b1, s],[-b1,-f],[-b3,-f],[-b2,tr],
+            [b2,tr],[b3,-f],[b1,-f],[b1,s],
+            [b1-t,s],[b1-t,0],[b3,0],[b3-th,th],[0,s],
+            [-(b3-th),th],[-b3,0],[-(b1-t),0],[-(b1-t), s]
+        ]);
+        bh = bwidth/2-thick-7;
+        bhr = 4/2;
+        for (h = [-16:-218:-234]) {
+            translate([ bh,h,-t-0.5]) cylinder(t+1, bhr, bhr, false, $fn=20);
+            translate([-bh,h,-t-0.5]) cylinder(t+1, bhr, bhr, false, $fn=20);
+        }
+    }
     for (h = [-holeoff/2:-holeoff:-250]) {
         translate([-b1,h,holerad+1]) rotate([0,-90,0])
             cylinder(thick+0.2, holerad, holerad-thick, false, $fn=4);
         translate([ b1,h,holerad+1]) rotate([0, 90,0])
             cylinder(thick+0.2, holerad, holerad-thick, false, $fn=4);
     }
+    taboff = 50;
+    stripholder(-2, b1-t, s, 4);
+    mirror([1,0,0]) stripholder(-2, b1-t, s, 4);
+    for (b = [-taboff:-taboff:-250+taboff]) {
+        stripholder(b, b1-t, s, 4);
+        mirror([1,0,0]) stripholder(b, b1-t, s, 4);
+    }
+}
+
+module stripholder(b, be, s, h) {
+    lt = 2;
+    st = 0.5;
+    translate([0,b+h/2,0]) rotate([90,0,0])
+      linear_extrude(height=h, convexity=3) polygon([
+        [-(be+0.1),s],[-(be-2),s],[-(be-4),s-2],[-(be-4),-1],
+        [-(be-st),-1],[-(be-st),0],[-(be-lt),2],
+        [-(be-lt),8],[-(be-st),10],[-(be+0.1),10]
+    ]);
 }
 
 module blobcover()
