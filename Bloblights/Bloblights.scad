@@ -50,7 +50,7 @@ if (doback) {
 
 module ledstrip(l = 250, h=strip-2)
 {
-    bo = -bwidth/2+thick+2.2;
+    bo = -bwidth/2+thick+1.8;
     translate([bo,-l,0]) cube([0.2,l,h]);
     loff = 50/3;
     for (ld = [loff/2:loff:l]) {

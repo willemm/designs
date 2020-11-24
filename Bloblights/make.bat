@@ -14,3 +14,4 @@ openscad -D docover=12 -o blobcover-12.stl Bloblights.scad
 openscad -D docover=13 -o blobcover-13.stl Bloblights.scad
 openscad -D docover=14 -o blobcover-14.stl Bloblights.scad
 openscad -D docover=15 -o blobcover-15.stl Bloblights.scad
+openscad -D doback=1 -o blobback.stl Bloblights.scad
