@@ -17,21 +17,63 @@ kext = off*2;
 kwid = off*(xside*2+xextra);
 khei = off*(yside*2*s3/2+yextra);
 
-doobs = 0;
+doobs = 2;
 
 if (doobs == 1) {
     rotate([0,180,0]) keyplane();
 } else if (doobs == 2) {
-    rotate([0,180,0]) keycover();
+    rotate([0,180,0]) keycoverleft();
+    translate([0.2,0,0]) rotate([0,180,0]) keycoverright();
 } else if (doobs == 3) {
     keycap();
 } else {
     color("green") translate([0,0,-1.1]) keyplane();
     color("lightblue") translate([0,0,-0.9]) keycover();
 
-    keycaps();
+    *keycaps();
     *wires();
     *bolts();
+}
+
+module keycoverleft()
+{
+    thk = 1.4;
+    difference() {
+        intersection() {
+            keycover();
+            translate([kwid/2,0,0])
+                cube([kwid+kext, khei+1, 40], true);
+        }
+        translate([-kext/2, (khei/2-5),7.5]) rotate([0,0,0])
+            cylinder(1.1,1,1, true, $fn=4);
+        translate([-kext/2,-(khei/2-0.2),2]) rotate([90,0,0])
+            cylinder(thk+0.1,2,2, true, $fn=4);
+    }
+    translate([-kext/2,-(khei/2-5),7.5]) rotate([0,0,0])
+        cylinder(1,1,1, true, $fn=4);
+    translate([-kext/2, (khei/2-0.2),2]) rotate([90,0,0])
+        cylinder(thk,2,2, true, $fn=4);
+}
+
+module keycoverright()
+{
+    thk = 1.4;
+    difference() {
+        intersection() {
+            keycover();
+            translate([-kwid/2-kext,0,0])
+                cube([kwid+kext, khei+1, 40], true);
+        }
+        translate([-kext/2,-(khei/2-5),7.5]) rotate([0,0,0])
+            cylinder(1.1,1,1, true, $fn=4);
+        translate([-kext/2, (khei/2-0.2),2]) rotate([90,0,0])
+            cylinder(thk+0.1,2,2, true, $fn=4);
+    }
+    translate([-kext/2, (khei/2-5),7.5]) rotate([0,0,0])
+        cylinder(1,1,1, true, $fn=4);
+    translate([-kext/2,-(khei/2-0.2),2]) rotate([90,0,0])
+        cylinder(thk,2,2, true, $fn=4);
+
 }
 
 module keycaps()
@@ -63,10 +105,10 @@ module wires()
 
 module bolts()
 {
-    color("gray") translate([-(kwid/2-boltoff),-(khei/2-boltoff),-6]) bolt();
-    color("gray") translate([ (kwid/2-boltoff),-(khei/2-boltoff),-6]) bolt();
-    color("gray") translate([-(kwid/2-boltoff), (khei/2-boltoff),-6]) bolt();
-    color("gray") translate([ (kwid/2-boltoff), (khei/2-boltoff),-6]) bolt();
+    color("gray") translate([-(kwid/2-boltoff)-kext,-(khei/2-boltoff),-6]) bolt();
+    color("gray") translate([ (kwid/2-boltoff),     -(khei/2-boltoff),-6]) bolt();
+    color("gray") translate([-(kwid/2-boltoff)-kext, (khei/2-boltoff),-6]) bolt();
+    color("gray") translate([ (kwid/2-boltoff),      (khei/2-boltoff),-6]) bolt();
 }
 
 module bolt(dia=3, head=6, length=11.2, thick=1.4)
@@ -123,17 +165,28 @@ module keycover(thick=1, dia=off+1, hi=7, dpt=10)
               cube([kw, bevel/s2, bevel/s2], true);
             translate([0,  (kh-thick-1)/2, 0]) rotate([45,0,0])
               cube([kw, bevel/s2, bevel/s2], true);
-              
-            translate([-(kwid/2-boltoff),-(khei/2-boltoff),-3.5])
+            
+            // Nut bolt blocks
+            translate([-(kwid/2-boltoff+kext/2),-(khei/2-boltoff),-3.5])
               cube([10,10,7],true);
-            translate([ (kwid/2-boltoff),-(khei/2-boltoff),-3.5])
+            translate([ (kwid/2-boltoff+kext/2),-(khei/2-boltoff),-3.5])
               cube([10,10,7],true);
-            translate([-(kwid/2-boltoff), (khei/2-boltoff),-3.5])
+            translate([-(kwid/2-boltoff+kext/2), (khei/2-boltoff),-3.5])
               cube([10,10,7],true);
-            translate([ (kwid/2-boltoff), (khei/2-boltoff),-3.5])
+            translate([ (kwid/2-boltoff+kext/2), (khei/2-boltoff),-3.5])
+              cube([10,10,7],true);
+
+            translate([-off/2,-(khei/2-boltoff),-3.5])
+              cube([10,10,7],true);
+            translate([ off/2,-(khei/2-boltoff),-3.5])
+              cube([10,10,7],true);
+            translate([-off/2, (khei/2-boltoff),-3.5])
+              cube([10,10,7],true);
+            translate([ off/2, (khei/2-boltoff),-3.5])
               cube([10,10,7],true);
  
           }
+          
           translate([0,0,-(hi+dpt-thick+bevel/2)/2]) rotate([45,0,0])
             cube([kw+0.1,(kh+tothi-bevel/2)/s2,(kh+tothi-bevel/2)/s2],true);
           translate([0,0,-(hi+dpt-thick+bevel/2)/2]) rotate([0,45,0])
@@ -145,8 +198,8 @@ module keycover(thick=1, dia=off+1, hi=7, dpt=10)
         
         // Main hex keys
         for (col = [-yside:yside], row = [-(xside+((col+yside)%2)/2):xside+((col+yside)%2)/2]) {
-            translate([off*row, off*col*s3/2, -hi])
-                linear_extrude(height=thick+hi+0.1)
+            translate([off*row, off*col*s3/2, -hi-0.1])
+                linear_extrude(height=thick+hi+0.2)
                 polygon([for (a=[60:60:360]) [sin(a)*dia/s3, cos(a)*dia/s3]]);
         }
         
@@ -163,25 +216,71 @@ module keycover(thick=1, dia=off+1, hi=7, dpt=10)
                     [sin(a+o)*d/s3, cos(a+o)*d/s3]]]);
         }
     
-        translate([-(kwid/2-boltoff),-(khei/2-boltoff),-3.3]) {
+        // Nut bolt holes
+        translate([-(kwid/2-boltoff)-kext,-(khei/2-boltoff),-3.3]) {
             cylinder(7.6,2,2, true, $fn=60);
-            translate([ 2,0,-2.5/2]) cube([10,6,2.5], true);
+            translate([0, 2,-2.5/2]) cube([6,10,2.5], true);
         }
         translate([ (kwid/2-boltoff),-(khei/2-boltoff),-3.3]) {
             cylinder(7.6,2,2, true, $fn=60);
-            translate([-2,0,-2.5/2]) cube([10,6,2.5], true);
+            translate([0, 2,-2.5/2]) cube([6,10,2.5], true);
 
         }
-        translate([-(kwid/2-boltoff), (khei/2-boltoff),-3.3]) {
+        translate([-(kwid/2-boltoff)-kext, (khei/2-boltoff),-3.3]) {
             cylinder(7.6,2,2, true, $fn=60);
-            translate([ 2,0,-2.5/2]) cube([10,6,2.5], true);
+            translate([0,-2,-2.5/2]) cube([6,10,2.5], true);
         }
         translate([ (kwid/2-boltoff), (khei/2-boltoff),-3.3]) {
             cylinder(7.6,2,2, true, $fn=60);
-            translate([-2,0,-2.5/2]) cube([10,6,2.5], true);
+            translate([0,-2,-2.5/2]) cube([6,10,2.5], true);
         }
 
+        translate([-(off/2)-kext/2,-(khei/2-boltoff),-3.3]) {
+            cylinder(7.6,2,2, true, $fn=60);
+            translate([0, 2,-2.5/2]) cube([6,10,2.5], true);
+        }
+        translate([ (off/2)-kext/2,-(khei/2-boltoff),-3.3]) {
+            cylinder(7.6,2,2, true, $fn=60);
+            translate([0, 2,-2.5/2]) cube([6,10,2.5], true);
+
+        }
+        translate([-(off/2)-kext/2, (khei/2-boltoff),-3.3]) {
+            cylinder(7.6,2,2, true, $fn=60);
+            translate([0,-2,-2.5/2]) cube([6,10,2.5], true);
+        }
+        translate([ (off/2)-kext/2, (khei/2-boltoff),-3.3]) {
+            cylinder(7.6,2,2, true, $fn=60);
+            translate([0,-2,-2.5/2]) cube([6,10,2.5], true);
+        }
+        
     }
+    // Sacrificial layers for bolt holes
+    translate([-(kwid/2-boltoff)-kext,-(khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+    translate([ (kwid/2-boltoff),-(khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+    translate([-(kwid/2-boltoff)-kext, (khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+    translate([ (kwid/2-boltoff), (khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+
+    translate([-(off/2)-kext/2,-(khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+    translate([ (off/2)-kext/2,-(khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+    translate([-(off/2)-kext/2, (khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+    translate([ (off/2)-kext/2, (khei/2-boltoff),1.1]) {
+        #cube([8,8,0.2], true);
+    }
+
 }
 
 module trikeycap(thick=2, dia=20)
@@ -314,17 +413,31 @@ module keyplane(off=off, thick=2, kthick=1.6, rh=6, skthick=1)
         }
         
         // Bolt holes
-        translate([-(kwid/2-boltoff),-(khei/2-boltoff),0]) {
+        translate([-(kwid/2-boltoff)-kext,-(khei/2-boltoff),0]) {
             cylinder(2.5,2,2, true, $fn=60);
         }
         translate([ (kwid/2-boltoff),-(khei/2-boltoff),0]) {
             cylinder(2.5,2,2, true, $fn=60);
 
         }
-        translate([-(kwid/2-boltoff), (khei/2-boltoff),0]) {
+        translate([-(kwid/2-boltoff)-kext, (khei/2-boltoff),0]) {
             cylinder(2.5,2,2, true, $fn=60);
         }
         translate([ (kwid/2-boltoff), (khei/2-boltoff),0]) {
+            cylinder(2.5,2,2, true, $fn=60);
+        }
+        
+        translate([-off/2-kext/2,-(khei/2-boltoff),0]) {
+            cylinder(2.5,2,2, true, $fn=60);
+        }
+        translate([ off/2-kext/2,-(khei/2-boltoff),0]) {
+            cylinder(2.5,2,2, true, $fn=60);
+
+        }
+        translate([-off/2-kext/2, (khei/2-boltoff),0]) {
+            cylinder(2.5,2,2, true, $fn=60);
+        }
+        translate([ off/2-kext/2, (khei/2-boltoff),0]) {
             cylinder(2.5,2,2, true, $fn=60);
         }
         
