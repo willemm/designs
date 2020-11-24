@@ -29,6 +29,8 @@ if (doobs == 1) {
     rotate([0,180,0]) keycoverright();
 } else if (doobs == 5) {
     keycap();
+} else if (doobs == 6) {
+    trikeycap();
 } else {
     color("green") translate([0,0,-1.1]) {
         translate([ 0.1,0,0]) keyplaneleft();
@@ -39,7 +41,7 @@ if (doobs == 1) {
         translate([-0.1,0,0]) keycoverright();
     }
 
-    *keycaps();
+    keycaps();
     *wires();
     *bolts();
 }
@@ -152,7 +154,7 @@ module keycaps()
 {
     // Normal hex keys
     for (col = [-yside:yside], row = [-(xside+((col+yside)%2)/2):xside+((col+yside)%2)/2]) {
-        translate([off*row, off*col*s3/2, 0]) {
+        translate([off*row+0.1*sign(row), off*col*s3/2, 0]) {
             color("brown") cherryswitch();
             color("orange") rgbmodule();
             color("white") translate([0,0,5.1]) keycap();
@@ -161,8 +163,8 @@ module keycaps()
     // Side triangle keys
     for (col = [-yside:2:yside]) {
         xcol = off*s3*((floor((col+2)/4))*1.5+0.5)-7+14*(floor(col/2+yside)%2);
-        translate([-kwid/2-off*s3/2, xcol, 0]) {
-            *color("brown") smallswitch();
+        translate([-kwid/2-off*s3/2-0.1, xcol, 0]) {
+            color("brown") smallswitch();
             color("grey") translate([0,0,5.1])
                 rotate([0,0,180*(floor(col/2+1)%2)]) trikeycap();
         }
@@ -301,14 +303,14 @@ module trikeycap(thick=2, dia=20)
     rd = dia/s3;
     difference() {
         polyhedron( points = concat(
-            triangle(dia-4, 5),
-            triangle(dia-2, 4),
+            triangle(dia-4, 3),
+            triangle(dia-2, 2),
             triangle(dia-2, 0),
             triangle(dia, 0),
-            triangle(dia, 5),
-            triangle(dia-5, 7),
-            triangle(dia-7, 7),
-            triangle(4, 6)
+            triangle(dia, 3),
+            triangle(dia-2, 4),
+            triangle(dia-6, 5),
+            triangle(6, 6)
         ), faces = concat(
             topface(6,0),
             nquads(6,0),
@@ -321,13 +323,14 @@ module trikeycap(thick=2, dia=20)
             botface(6,42)
         ), convexity=3);
     }
-    stx = 2.8;
-    sty = 1.6;
-    pwx = 0.9;
-    pwy = 1.2;
+    stx = 4;
+    sty = 4.5;
+    pwx = 1.9;
+    pwy = 2.4;
     
-    for (x=[-1:2:1], y=[-1:2:1]) {
-        translate([x*(pwx+stx)/2, y*(pwy+sty)/2, 2.6]) cube([stx,sty,5.2], true);
+    translate([0,0,1.5]) difference() {
+        cube([stx, sty, 3], true);
+        cube([pwx, pwy, 3.1], true);
     }
 }
 
@@ -361,7 +364,7 @@ module keycap(thick=2, dia=off-1)
     pwx = 0.9;
     pwy = 1.2;
     
-    for (x=[-1:2:1], y=[-1:2:1]) {
+    for (x=[-1,1], y=[-1,1]) {
         translate([x*(pwx+stx)/2, y*(pwy+sty)/2, 2.6]) cube([stx,sty,5.2], true);
     }
 }
@@ -377,6 +380,25 @@ function topface(n, o) = [[for (i=[n-1:-1:0]) o+i]];
     
 function nquads(n, o) = [for (i=[0:n-1]) each [
     [i+o, (i+1)%n+o, (i+1)%n+n+o], [i+o, (i+1)%n+n+o, i+n+o] ]];
+
+module smallswitch()
+{
+    of = 2.5;
+    bw = 5.9;
+    bh = 5.3;
+    ph = 3.3;
+    sw = 2.9;
+    sl = 3.6;
+    sh = 2.3;
+    s2w = 1.9;
+    s2l = 2.4;
+    s2h = 2.6;
+    translate([0,0,bh/2-of]) cube([bw,bw,bh], true);
+    for (x=[-2.3,2.3], y=[-2,0,2])
+        translate([x,y,(ph-bh)/2-of]) cube([0.2,0.5,ph], true);
+    translate([0,0,bh+sh/2-of]) cube([sw,sl,sh], true);
+    translate([0,0,bh+sh+s2h/2-of]) cube([s2w,s2l,s2h], true);
+}
 
 module cherryswitch()
 {
@@ -403,10 +425,14 @@ module rgbmodule()
     }
 }
 
-module keyplane(off=off, thick=2, kthick=1.6, rh=6, skthick=1)
+module keyplane(off=off, thick=2, kthick=1.6, rh=6, skthick=1.6)
 {
     translate([0,0,-thick/2]) difference() {
-        translate([-off, 0, 0]) cube([kwid+kext, khei, thick], true);
+        union() {
+            translate([-kext/2, 0, 0]) cube([kwid+kext, khei, thick], true);
+            translate([-kwid/2-off*s3/2, 0, -0.3])
+                cube([10, khei, thick+0.6], true);
+        }
         
         // Normal hex keys
         for (col = [-yside:yside], row = [-(xside+((col+yside)%2)/2):xside+((col+yside)%2)/2]) {
@@ -417,11 +443,11 @@ module keyplane(off=off, thick=2, kthick=1.6, rh=6, skthick=1)
         // Side triangle keys
         for (col = [-yside:2:yside]) {
             xcol = off*s3*((floor((col+2)/4))*1.5+0.5)-7+14*(floor(col/2+yside)%2);
-            translate([-kwid/2-off*s3/2, xcol, ]) {
+            translate([-kwid/2-off*s3/2, xcol, 0]) {
                 translate([0,0,(thick-skthick)/2+0.1])
-                    cube([6, 6, skthick+0.1], true);
-                translate([-2,0,0]) cube([2, 6, thick+0.1], true);
-                translate([ 2,0,0]) cube([2, 6, thick+0.1], true);
+                    cube([6, 6, skthick+0.2], true);
+                translate([-2,0,-0.3]) cube([2, 6, thick+0.7], true);
+                translate([ 2,0,-0.3]) cube([2, 6, thick+0.7], true);
             }
         }
         
