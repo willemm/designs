@@ -1,14 +1,17 @@
 off  = 22;
 
-// numrows = 11;
-// numcols = 11;
-// smallkeyoff = 0.5;
-// riboff = 2;
-
+/*
+numrows = 11;
+numcols = 11;
+smallkeyoff = 0.5;
+riboff = 2;
+// */
+//*
 numrows = 3;
 numcols = 3;
 smallkeyoff = 0.0;
 riboff = 0;
+// */
 
 tol=0.1;
 
@@ -18,6 +21,9 @@ yextra = 1.8;
 boltoff = 5.5;
 
 ribthick = 2;
+
+coverhi = 7;
+mpthick = 1;
 
 yside = (numrows-1)/2;
 xside = (numcols-1)/2;
@@ -48,19 +54,23 @@ if (doobs == 1) {
 } else if (doobs == 8) {
     coverconnector();
 } else {
-    color("green") translate([0,0,-1.1]) {
+    *color("green") translate([0,0,-1.1]) {
         translate([ 0,0,0]) keyplaneleft();
         translate([-0,0,0]) keyplaneright();
     }
-    color("lightblue") translate([0,0,-0.9]) {
+    color("lightgreen") translate([0,0,-1.05]) {
+        keyholderleft();
+        keyholderright();
+    }
+    *color("lightblue") translate([0,0, mpthick-0.9]) {
         translate([ 0,0,0]) keycoverleft();
         translate([-0,0,0]) keycoverright();
     }
-    color("blue") {
+    *color("blue") {
         translate([0,0,-4.2]) keyplaneconnector();
         translate([0,0,-4.2]) mirror([0,1,0]) keyplaneconnector();
     }
-    color("blue") translate([0,0,-0.9]) {
+    *color("blue") translate([0,0,-0.9]) {
         coverconnector();
         mirror([0,1,0]) coverconnector();
     }
@@ -72,7 +82,7 @@ if (doobs == 1) {
 
 module coverconnector()
 {
-    thi = 6.8;
+    thi = coverhi-mpthick-0.2;
     hei = 5.4;
     wid = (off-10)-0.2;
     
@@ -90,7 +100,7 @@ module coverconnector()
         // Connector pins
         for ( x = [-off/8-kext/2,off/8-kext/2],
               y = [-(khei/2-4),(khei/2-4)]) {
-            translate([x,y,3]) scale([1,2,1]) cylinder(4.1,1.1,1.1,false,$fn=60);
+            translate([x,y,2.9]) scale([1,2,1]) cylinder(4.1,1.1,1.1,false,$fn=60);
         }
     }
 }
@@ -102,14 +112,6 @@ module keyplaneconnector()
     thick=1;
     length=off*2;
     difference() {
-        /* union() {
-            translate([-off*0.5,0,thick/2])
-                cylinder(thick, dia/2, dia/2, true, $fn=60);
-            translate([-off*1.5,0,thick/2])
-                cylinder(thick, dia/2, dia/2, true, $fn=60);
-            translate([-off,0,thick/2])
-                cube([off,dia,thick], true);
-        } */
         translate([-off*1.25, khei/2-dia/2,thick/2])
             cube([length,dia-0.2,thick], true);
         translate([-off*0.5, khei/2-boltoff,thick/2])
@@ -117,6 +119,40 @@ module keyplaneconnector()
         translate([-off*1.5, khei/2-boltoff,thick/2])
             cylinder(thick+0.1, hole/2, hole/2, true, $fn=60);
 
+    }
+}
+
+module keyholderleft()
+{
+    difference() {
+        intersection() {
+            keyholder();
+            translate([kwid/2+tol,0,0])
+                cube([kwid+kext, khei+1, 40], true);
+        }
+        for (col = [-yside:2:yside]) {
+            translate([-off, off*col*s3/2, 0]) {
+                cube([18+tol*2,18+tol*2,40], true);
+            }
+        }
+    }
+}
+
+module keyholderright()
+{
+    difference() {
+        intersection() {
+            keyholder();
+            union() {
+                translate([-kwid/2-kext-tol,0,0])
+                    cube([kwid+kext, khei+1, 40], true);
+                for (col = [-yside:2:yside]) {
+                    translate([-off, off*col*s3/2, 0]) {
+                        cube([18,18,40], true);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -185,6 +221,7 @@ module keyplaneright()
 
 module keycoverleft()
 {
+    chi = coverhi-mpthick;
     thk = 2;
     difference() {
         intersection() {
@@ -192,19 +229,24 @@ module keycoverleft()
             translate([kwid/2+tol,0,0])
                 cube([kwid+kext, khei+4, 40], true);
         }
-        translate([-kext/2+tol, (khei/2-5),7.5]) rotate([0,0,0])
+        translate([-kext/2+tol, (khei/2-5),chi+0.5]) rotate([0,0,0])
             cylinder(1.1,1,1, true, $fn=4);
-        translate([-kext/2+tol,-(khei/2+0.1),2]) rotate([90,0,0])
+        translate([-kext/2+tol,-(khei/2+0.1),chi-5]) rotate([90,0,0])
             cylinder(thk+0.1,2,2, true, $fn=4);
     }
-    translate([-kext/2+tol,-(khei/2-5),7.5]) rotate([0,0,0])
+    translate([-kext/2+tol,-(khei/2-5),chi+0.5]) rotate([0,0,0])
         cylinder(1,1,1, true, $fn=4);
-    translate([-kext/2+tol, (khei/2+0.1),2]) rotate([90,0,0])
-        cylinder(thk,2,2, true, $fn=4);
+    difference() {
+        translate([-kext/2+tol, (khei/2+0.1),chi-5]) rotate([90,0,0])
+            cylinder(thk,2,2, true, $fn=4);
+        translate([-kext/2+tol, (khei/2+0.1)-0.505,-5/2])
+            cube([5,1.01,5], true);
+    }
 }
 
 module keycoverright()
 {
+    chi = coverhi-mpthick;
     thk = 2;
     difference() {
         intersection() {
@@ -212,16 +254,19 @@ module keycoverright()
             translate([-kwid/2-kext-tol,0,0])
                 cube([kwid+kext, khei+4, 40], true);
         }
-        translate([-kext/2-tol,-(khei/2-5),7.5]) rotate([0,0,0])
+        translate([-kext/2-tol,-(khei/2-5),chi+0.5]) rotate([0,0,0])
             cylinder(1.1,1,1, true, $fn=4);
-        translate([-kext/2-tol, (khei/2+0.1),2]) rotate([90,0,0])
+        translate([-kext/2-tol, (khei/2+0.1),chi-5]) rotate([90,0,0])
             cylinder(thk+0.1,2,2, true, $fn=4);
     }
-    translate([-kext/2-tol, (khei/2-5),7.5]) rotate([0,0,0])
+    translate([-kext/2-tol, (khei/2-5),chi+0.5]) rotate([0,0,0])
         cylinder(1,1,1, true, $fn=4);
-    translate([-kext/2-tol,-(khei/2+0.1),2]) rotate([90,0,0])
-        cylinder(thk,2,2, true, $fn=4);
-
+    difference() {
+        translate([-kext/2-tol,-(khei/2+0.1),chi-5]) rotate([90,0,0])
+            cylinder(thk,2,2, true, $fn=4);
+        translate([-kext/2-tol,-(khei/2+0.1)+0.505,-5/2])
+            cube([5,1.01,5], true);
+    }
 }
 
 module keycaps()
@@ -281,7 +326,7 @@ module matrix_y(thick=0.4)
     }
 }
 
-module keycover(thick=1, dia=off+1, hi=7, dpt=10)
+module keycover(thick=1, dia=off+1, hi=coverhi-mpthick, dpt=12)
 {
     kw = kwid+2.2+kext;
     kh = khei+2.2;
@@ -314,11 +359,12 @@ module keycover(thick=1, dia=off+1, hi=7, dpt=10)
             translate([0,  (kh-thick-1)/2, 0]) rotate([45,0,0])
               cube([kw, bevel/s2, bevel/s2], true);
 
+            // Bolthole cubes
             for ( x = [-(kwid/2-boltoff+kext/2),(kwid/2-boltoff+kext/2),
                        -off/2,off/2],
                   y = [-(khei/2-boltoff),(khei/2-boltoff)]) {
-                translate([x,y,-3.5])
-                    cube([10,10,7],true);
+                translate([x,y,-hi/2])
+                    cube([10,10,hi],true);
 
             }
           }
@@ -355,8 +401,8 @@ module keycover(thick=1, dia=off+1, hi=7, dpt=10)
         for ( x = [-(kwid/2-boltoff)-kext,(kwid/2-boltoff),
                    -off/2-kext/2,off/2-kext/2],
               y = [-(khei/2-boltoff),(khei/2-boltoff)]) {
-            translate([x,y,-3.3]) {
-                translate([0,0,-0.3]) cylinder(7.2,2,2, true, $fn=60);
+            translate([x,y,-(hi-3.7)]) {
+                translate([0,0,-3.9]) cylinder(5.2,2,2, false, $fn=60);
                 translate([0,-2*sign(y),-2.5/2]) cube([6,10,2.5], true);
             }
         }
@@ -374,8 +420,8 @@ module keycover(thick=1, dia=off+1, hi=7, dpt=10)
     // Connector pins
     for ( x = [-off/8-kext/2,off/8-kext/2],
           y = [-(khei/2-4),(khei/2-4)]) {
-        translate([x,y,4]) scale([1,2,1]) cylinder(3.1,1,1,false,$fn=60);
-        translate([x,y,3]) scale([1,2,1]) cylinder(1,0.2,1,false,$fn=60);
+        translate([x,y,hi-3]) scale([1,2,1]) cylinder(3.1,1,1,false,$fn=60);
+        translate([x,y,hi-4]) scale([1,2,1]) cylinder(1,0.2,1,false,$fn=60);
     }
 }
 
@@ -405,7 +451,7 @@ module trikeycap(thick=2, dia=20)
         ), convexity=3);
     }
     stx = 4;
-    sty = 4.5;
+    sty = 4;
     pwx = 1.9;
     pwy = 2.4;
     
@@ -504,6 +550,69 @@ module rgbmodule()
         cube([8.8, 12.5,1.1], true);
         translate([0,-1.5,-1.5+0.55]) cube([6,5,3], true);
     }
+}
+
+
+module keyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
+{
+    tkthick = 3.8;
+    lcl = 7;
+    lch = 5;
+    lct = 1.2;
+    translate([0,0,0]) difference() {
+        union() {
+            translate([-kext/2, 0, thick/2]) cube([kwid+kext, khei, thick], true);
+
+            // Normal hex keys
+            for (col = [-yside:yside],
+                 row = [-(xside+((col+yside)%2)/2):xside+((col+yside)%2)/2]) {
+                translate([off*row, off*col*s3/2, 1]) {
+                    cube([18,18,2], true);
+                    translate([0,7+lct,0]) rotate([90,0,0])
+                      linear_extrude(height=lct) polygon([
+                        [-5,0],[-3,lch],[3,lch],[5,0]
+                      ]);
+                    // translate([0,(14+lct)/2,lch/2]) cube([lcl,lct,lch], true);
+                }
+            }
+            
+            // Triangle keys
+            for (col = [-yside:2:yside]) {
+                xcol = off*s3*((floor((col+2)/4))*1.5+smallkeyoff)-7+14*(floor(col/2+yside)%2);
+                translate([-kwid/2-off*s3/2, xcol, (tkthick)/2+0.2])
+                    cube([10, 10, tkthick+0.4], true);
+            }
+
+        }
+        
+        // Normal hex keys
+        for (col = [-yside:yside], row = [-(xside+((col+yside)%2)/2):xside+((col+yside)%2)/2]) {
+            translate([off*row, off*col*s3/2, thick/2-0.01/2])
+                cube([16,16,thick+0.01], true);
+            translate([off*row, off*col*s3/2 ,0.999])
+                rotate([0,0,45]) cylinder(1.002,16/s2,(16-2)/s2, $fn=4);
+
+        }
+        
+        // Side triangle keys
+        for (col = [-yside:2:yside]) {
+            xcol = off*s3*((floor((col+2)/4))*1.5+smallkeyoff)-7+14*(floor(col/2+yside)%2);
+            translate([-kwid/2-off*s3/2, xcol, 0]) {
+                translate([0,0,(tkthick)/2-0.001])
+                    cube([6, 6, tkthick+0.002], true);
+                translate([0,0,tkthick-0.001])
+                    rotate([0,0,45]) cylinder(0.4+0.002,6/s2,(6-0.8)/s2, $fn=4);
+            }
+        }
+        
+        // Bolt holes
+        for ( x = [-(kwid/2-boltoff)-kext,(kwid/2-boltoff),
+                   -off/2-kext/2,off/2-kext/2],
+              y = [-(khei/2-boltoff),(khei/2-boltoff)]) {
+             translate([x,y,0]) cylinder(2.5,2,2, true, $fn=60);
+        }
+    }
+
 }
 
 module keyplane(off=off, thick=2, kthick=1.6, rh=6, skthick=1.6)
