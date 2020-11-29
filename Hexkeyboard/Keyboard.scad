@@ -46,19 +46,23 @@ if (doobs == 1) {
 } else if (doobs == 4) {
     rotate([0,180,0]) keycoverright();
 } else if (doobs == 5) {
-    keycap();
+    keyholderleft();
 } else if (doobs == 6) {
-    trikeycap();
+    keyholderright();
 } else if (doobs == 7) {
-    keyplaneconnector();
+    keycap();
 } else if (doobs == 8) {
+    trikeycap();
+} else if (doobs == 9) {
+    keyplaneconnector();
+} else if (doobs == 10) {
     coverconnector();
 } else {
-    *color("green") translate([0,0,-1.1]) {
+    color("green") translate([0,0,-1.1]) {
         translate([ 0,0,0]) keyplaneleft();
         translate([-0,0,0]) keyplaneright();
     }
-    color("lightgreen") translate([0,0,-1.05]) {
+    *color("lightgreen") translate([0,0,-1.05]) {
         keyholderleft();
         keyholderright();
     }
@@ -489,9 +493,18 @@ module keycap(thick=2, dia=off-1)
     stx = 2.8;
     sty = 1.6;
     pwx = 0.9;
-    pwy = 1.2;
+    pwy = 1.1;
     
-    for (x=[-1,1], y=[-1,1]) {
+    btx = 3.9;
+    bty = 3.9;
+    
+    translate([0,0,2.6]) difference() {
+        rotate([0,0,360/16]) cylinder(5.2, btx/2+0.6, btx/2+0.6, true, $fn=8);
+        cube([pwx, bty, 5.201], true);
+        cube([btx, pwy, 5.201], true);
+    }
+    
+    *for (x=[-1,1], y=[-1,1]) {
         translate([x*(pwx+stx)/2, y*(pwy+sty)/2, 2.6]) cube([stx,sty,5.2], true);
     }
 }
@@ -580,7 +593,7 @@ module keyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
             for (col = [-yside:2:yside]) {
                 xcol = off*s3*((floor((col+2)/4))*1.5+smallkeyoff)-7+14*(floor(col/2+yside)%2);
                 translate([-kwid/2-off*s3/2, xcol, (tkthick)/2+0.2])
-                    cube([10, 10, tkthick+0.4], true);
+                    cube([12, 14, tkthick+0.4], true);
             }
 
         }
@@ -615,7 +628,7 @@ module keyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
 
 }
 
-module keyplane(off=off, thick=2, kthick=1.6, rh=6, skthick=1.6)
+module keyplane(off=off, thick=2, kthick=1.4, rh=6, skthick=1.6)
 {
     translate([0,0,-thick/2]) difference() {
         union() {
