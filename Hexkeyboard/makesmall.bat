@@ -1,0 +1,10 @@
+openscad -D dosmall=1 -D doobs=1  -o keyplanesmall-left.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=2  -o keyplanesmall-right.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=3  -o keycoversmall-left.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=4  -o keycoversmall-right.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=5  -o keyholdersmall-left.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=6  -o keyholdersmall-right.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=7  -o keycap-hex.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=8  -o keycap-tri.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=9  -o keyplane-connect.stl Keyboard.scad
+openscad -D dosmall=1 -D doobs=10 -o keycover-connect.stl Keyboard.scad
