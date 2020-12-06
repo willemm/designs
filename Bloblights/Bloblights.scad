@@ -1,5 +1,5 @@
-doback=2;
-docover=1;
+doback=1;
+docover=2;
 
 numparts = 14;
 length = 2500;
@@ -90,13 +90,14 @@ module ledholder(l = 250)
         translate([  b3-1 ,-l+3,0]) rotate([0, 45,0]) cylinder(4,2,2,true,$fn=4);
         translate([-(b3-1),-l+3,0]) rotate([0,-45,0]) cylinder(4,2,2,true,$fn=4);
         
-        // Mating hole top near
+        // Mating hole top near (glue)
         translate([ 4,-l-0.1,8.2]) rotate([-90,0,0])
             cylinder(2.2, 2.2, 0, false, $fn=4);
         
-        // Mating holes sides near
+        // Mating holes sides near (glue)
         translate([-bh-1,-l,-f-0.1]) cylinder(f+0.2,2,2,false,$fn=4);
-        translate([ b1+0.1,-l,6]) rotate([0,-90,0]) cylinder(t+0.2,2,2,false,$fn=4);
+        translate([ b1-t/2,-l,6]) rotate([0,-90,0])
+            cylinder(t/2+0.1,5,5,false,$fn=4);
         
         // Mating hole top far
         translate([ 4,0.1,8.2]) rotate([90,0,0])
@@ -129,12 +130,13 @@ module ledholder(l = 250)
         mirror([1,0,0]) stripholder(b, b1-t, s, 4);
     }
     
-    // Mating pin top near
+    // Mating pin top near (glue)
     translate([-4,-l,8.2]) rotate([90,0,0]) cylinder(2, 2, 0, false, $fn=4);
     
-    // Mating pins sides near
+    // Mating pins sides near (glue)
     translate([ bh+1,-l,-f]) cylinder(f,2,2,false,$fn=4);
-    translate([-b1,-l,6]) rotate([0,90,0]) cylinder(t,2,2,false,$fn=4);
+    translate([-b1+t/2,-l,6]) rotate([0,90,0])
+        cylinder(t/2,4.9,4.9,false,$fn=4);
 
     // Mating pin top far
     translate([-4,0,8.2]) rotate([-90,0,0]) cylinder(2, 2, 0, false, $fn=4);
