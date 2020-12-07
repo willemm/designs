@@ -1,5 +1,9 @@
-doback=1;
+doback=0;
 docover=2;
+
+interlace = false;
+
+overlap = 2;
 
 numparts = 14;
 length = 2500;
@@ -7,10 +11,6 @@ length = 2500;
 partlength = length / numparts;
 
 seed = 2;
-
-
-pend = partlength * docover;
-pstart = pend - partlength;
 
 offs = partlength/20;
 width = 55;
@@ -42,10 +42,15 @@ if (doback) {
         }
     }
     if (doback >= 3) {
-        blobcover();
+        blobcover(docover);
     }
 } else {
-    blobcover();
+    if (docover == 100) {
+        blobcover(2);
+        translate([0,0.2,0]) blobcover(3);
+    } else {
+        blobcover(docover);
+    }
 }
 
 module ledstrip(l = 250, h=strip-2)
@@ -159,8 +164,11 @@ module stripholder(b, be, s, h) {
     ]);
 }
 
-module blobcover()
+module blobcover(covernumber)
 {
+    pend = partlength * covernumber;
+    pstart = pend - partlength;
+    
     xpts  = rands( 0,       width/2, numbl, seed);
     ypts  = rands(-ywob,    ywob,    numbl, seed+1);
     zpts  = rands( 0,       zwob,    numbl, seed+2);
@@ -169,16 +177,18 @@ module blobcover()
     rots  = rands(0, 360, numbl*3, seed+4);
     fns   = rands(10, 15, numbl, seed+5);
     
-    docap = ((docover == 0) ? 1 : ((docover == numparts+1) ? -1 : 0));
-    doend = (docover == 1 || docover == numparts);
+    docap = ((covernumber == 0) ? 1 : ((covernumber == numparts+1) ? -1 : 0));
+    doend = (covernumber == 1 || covernumber == numparts);
     
-    ps = max(0, floor(numbl*pstart/length)-4+4*(docover%2)+docap*4);
-    pe = min(numbl-1, floor(numbl*pend/length)-1+4*(docover%2)+docap*4);
+    ps = max(0, floor(numbl*pstart/length)-4+4*(covernumber%2)+docap*4-(interlace?0:2));
+    pe = min(numbl-1, floor(numbl*pend/length)-1+4*(covernumber%2)+docap*4+(interlace?0:2));
     
-    ps3 = max(-1, ps-1);
+    ps3 = max(-1, ps-1+(interlace?0:4));
     ps2 = max(0, ps-4);
     pe3 = min(numbl-1, pe+4);
-    pe2 = min(numbl, pe+1);
+    pe2 = min(numbl, pe+1-(interlace?0:4));
+    
+    ilof = interlace ? 30 : overlap/2;
     
     blength = pend-pstart;
     
@@ -222,16 +232,36 @@ module blobcover()
                 color("red") translate([-bwidth/2,pstart-(pstart == 0 ? thick+cof : 0),-21.5])
                     cube([bwidth, blength+(pend==length ? thick+cof : 0)+(pstart== 0 ? thick+cof : 0), 25.9]);
             }
-            translate([-bwidth,pstart-(doend?cof:30)*(docover%2),-22])
-                cube([bwidth*2, blength+(doend?cof:30), 60]);
+            translate([-bwidth,pstart-(doend?cof:ilof)*(covernumber%2),-22])
+                cube([bwidth*2, blength+(doend?cof:ilof), 60]);
         }
 
-        if (docover%2) {
+        if (interlace) {
+          if (covernumber%2) {
             blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps2, ps3, -thick);
 
-        } else {
+          } else {
             blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, pe2, pe3);
-
+          }
+        } else {
+          if (covernumber%2) {
+            intersection() {
+                blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps2, ps3, -thick/2);
+                translate([-bwidth,pstart-overlap*1.5,-22])
+                    cube([bwidth*2, overlap*2, 60]);
+            }
+          } else {
+            intersection() {
+                difference() {
+                    blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, pe2, pe3, 0.1);
+                    blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, pe2, pe3, -thick/2);
+                }
+                translate([-bwidth,pend-overlap*0.5,-22])
+                    cube([bwidth*2, overlap*2, 60]);
+            }
+            translate([-bwidth/2-0.001,pend-overlap*0.5,-22])
+                cube([bwidth+0.002, overlap*2, 25]);
+          }
         }
 
         blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe, -thick);
