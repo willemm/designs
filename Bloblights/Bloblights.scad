@@ -1,5 +1,5 @@
 doback=0;
-docover=1;
+docover=4;
 
 interlace = false;
 
@@ -28,6 +28,7 @@ holerad = 3;
 strip = 12;
 
 thick = 1.2;
+sthick = 2;
 
 s2 = sqrt(2);
 
@@ -51,7 +52,7 @@ if (doback) {
         blobcover(1);
         translate([0,0,0]) blobcover(2);
         
-        gshi = 21.5 - 0.8 - 1;
+        gshi = 21.5 - 0.8 - 1.25;
         #translate([-bwidth/2,partlength,-gshi]) rotate([0, 90,0]) coverconnect();
         #translate([ bwidth/2,partlength,-gshi]) rotate([0,-90,0]) coverconnect();
     } else {
@@ -61,8 +62,8 @@ if (doback) {
 
 module coverconnect()
 {
-    gsw = 2-0.2;
-    gsl = 20;
+    gsw = 2.5-0.2;
+    gsl = 10;
 
     translate([0,0,thick/4]) cube([gsw,gsl*2,thick/2], true);
     translate([0,-gsl,0]) cylinder(thick,gsw/2,gsw/2,false,$fn=4);
@@ -81,7 +82,7 @@ module ledstrip(l = 250, h=strip-2)
 
 module ledholder(l = 250)
 {
-    b1 = bwidth/2-thick-0.1;
+    b1 = bwidth/2-sthick-0.1;
     t = 1.6;
     s = strip;
     f = 2;
@@ -90,7 +91,7 @@ module ledholder(l = 250)
     b2 = 20/2;
     b3 = b2+th;
 
-    bh = bwidth/2-thick-7;
+    bh = bwidth/2-sthick-7;
     bhr = 4/2;
     
     hoff = 50/6+25;
@@ -128,11 +129,12 @@ module ledholder(l = 250)
         translate([-bh+1,0,-f-0.1]) cylinder(f+0.2,2,2,false,$fn=4);
         translate([ b1+0.1,0,6]) rotate([0,-90,0]) cylinder(t+0.2,2,2,false,$fn=4);
     }
+    // Cover holding pins
     for (h = [-holeoff/2:-holeoff:-l]) {
         translate([-b1,h,holerad+1]) rotate([0,-90,0])
-            cylinder(thick+0.2, holerad, holerad-thick, false, $fn=4);
+            cylinder(sthick+0.2, holerad, holerad-sthick, false, $fn=4);
         translate([ b1,h,holerad+1]) rotate([0, 90,0])
-            cylinder(thick+0.2, holerad, holerad-thick, false, $fn=4);
+            cylinder(sthick+0.2, holerad, holerad-sthick, false, $fn=4);
     }
     taboff = 50;
     
@@ -196,13 +198,13 @@ module blobcover(covernumber)
     docap = ((covernumber == 0) ? 1 : ((covernumber == numparts+1) ? -1 : 0));
     doend = (covernumber == 1 || covernumber == numparts);
     
-    ps = max(0, floor(numbl*pstart/length)-4+4*(covernumber%2)+docap*4-(interlace?0:2));
-    pe = min(numbl-1, floor(numbl*pend/length)-1+4*(covernumber%2)+docap*4+(interlace?0:2));
+    ps = max(0, floor(numbl*pstart/length)-4+4*(covernumber%2)+docap*4-(interlace?0:4));
+    pe = min(numbl-1, floor(numbl*pend/length)-1+4*(covernumber%2)+docap*4+(interlace?0:4));
     
-    ps3 = max(-1, ps-1+(interlace?0:4));
+    ps3 = max(-1, ps-1+(interlace?0:8));
     ps2 = max(0, ps-4);
     pe3 = min(numbl-1, pe+4);
-    pe2 = min(numbl, pe+1-(interlace?0:4));
+    pe2 = min(numbl, pe+1-(interlace?0:8));
     
     ilof = interlace ? 30 : overlap/2;
     
@@ -263,7 +265,7 @@ module blobcover(covernumber)
           } else {
             blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, pe2, pe3);
           }
-        } else {
+        } else if (!doend) {
           // Straight cut but with a small lip
           if (covernumber%2) {
             // Lip is on the outside, so cut out the inside
@@ -291,41 +293,41 @@ module blobcover(covernumber)
 
         // Hollow out the inside
         blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe, -thick);
-        translate([-bwidth/2+1,pstart-40,-22])
-            cube([bwidth-2, blength+80, 25]);
+        translate([-bwidth/2+sthick,pstart-40,-22])
+            cube([bwidth-sthick*2, blength+80, 25]);
         
-        b1 = bwidth/2-thick-0.1;
+        b1 = bwidth/2-sthick-0.1;
         for (h = [hs:holeoff:he]) {
             translate([-b1,h,holerad-19]) rotate([0,-90,0])
-                cylinder(thick+0.2, holerad+0.1, holerad-thick+0.1, false, $fn=4);
+                cylinder(sthick+0.2, holerad+0.1, holerad-sthick+0.1, false, $fn=4);
             translate([ b1,h,holerad-19]) rotate([0, 90,0])
-                cylinder(thick+0.2, holerad+0.1, holerad-thick+0.1, false, $fn=4);
+                cylinder(sthick+0.2, holerad+0.1, holerad-sthick+0.1, false, $fn=4);
         }
         
         gshi = 21.5 - 0.8;
-        gsw = 2;
-        gsl = 20;
+        gsw = 2.5;
+        gsl = 10;
         // Room for glue strip, with holes
         if (covernumber%2) {
             translate([-bwidth/2-0.001,pend-gsl,-gshi])
-                cube([thick/2+0.001, 20.001, 2]);
+                cube([sthick/2+0.001, 20.001, gsw]);
             translate([-b1,pend-gsl,-gshi+gsw/2]) rotate([0,-90,0])
-                cylinder(thick+0.2, gsw/2,gsw/2, false, $fn=4);
+                cylinder(sthick+0.2, gsw/2,gsw/2, false, $fn=4);
             
-            translate([bwidth/2-thick/2,pend-gsl,-gshi])
-                cube([thick/2+0.001, 20.001, 2]);
+            translate([bwidth/2-sthick/2,pend-gsl,-gshi])
+                cube([sthick/2+0.001, 20.001, gsw]);
             translate([ b1,pend-gsl,-gshi+gsw/2]) rotate([0, 90,0])
-                cylinder(thick+0.2, gsw/2,gsw/2, false, $fn=4);
+                cylinder(sthick+0.2, gsw/2,gsw/2, false, $fn=4);
         } else {
             translate([-bwidth/2-0.001,pstart-0.001,-gshi])
-                cube([thick/2+0.001, gsl+0.001, 2]);
+                cube([sthick/2+0.001, gsl+0.001, gsw]);
             translate([-b1,pstart+gsl,-gshi+gsw/2]) rotate([0,-90,0])
-                cylinder(thick+0.2, gsw/2,gsw/2, false, $fn=4);
+                cylinder(sthick+0.2, gsw/2,gsw/2, false, $fn=4);
 
-            translate([bwidth/2-thick/2,pstart-0.001,-gshi])
-                cube([thick/2+0.001, gsl+0.001, 2]);
+            translate([bwidth/2-sthick/2,pstart-0.001,-gshi])
+                cube([sthick/2+0.001, gsl+0.001, gsw]);
             translate([ b1,pstart+gsl,-gshi+gsw/2]) rotate([0, 90,0])
-                cylinder(thick+0.2, gsw/2,gsw/2, false, $fn=4);
+                cylinder(sthick+0.2, gsw/2,gsw/2, false, $fn=4);
         }
       }
     }
