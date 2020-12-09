@@ -1,5 +1,5 @@
-doback=0;
-docover=4;
+doback=1;
+docover=1;
 
 interlace = false;
 
@@ -72,7 +72,7 @@ module coverconnect()
 
 module ledstrip(l = 250, h=strip-2)
 {
-    bo = -bwidth/2+thick+1.8;
+    bo = -bwidth/2+sthick+1.8;
     translate([bo,-l,0]) cube([0.2,l,h]);
     loff = 50/3;
     for (ld = [loff/2:loff:l]) {
@@ -86,10 +86,11 @@ module ledholder(l = 250)
     t = 1.6;
     s = strip;
     f = 2;
-    tr = 6;
-    th = 8;
+    tr = 9;
+    th = 11;
+    tmh = 15;
     b2 = 20/2;
-    b3 = b2+th;
+    b3 = b2+8;
 
     bh = bwidth/2-sthick-7;
     bhr = 4/2;
@@ -99,8 +100,8 @@ module ledholder(l = 250)
         rotate([90,0,0]) linear_extrude(height=l, convexity=5) polygon([
             [-b1, s],[-b1,-f],[-b3,-f],[-b2,tr],
             [b2,tr],[b3,-f],[b1,-f],[b1,s],
-            [b1-t,s],[b1-t,0],[b3,0],[b3-th,th],[0,s],
-            [-(b3-th),th],[-b3,0],[-(b1-t),0],[-(b1-t), s]
+            [b1-t,s],[b1-t,0],[b3,0],[b2,th],[0,tmh],
+            [-(b2),th],[-b3,0],[-(b1-t),0],[-(b1-t), s]
         ]);
 
         for (h = [-hoff:-l+hoff*2:-l+hoff]) {
@@ -113,7 +114,7 @@ module ledholder(l = 250)
         translate([-(b3-1),-l+3,0]) rotate([0,-45,0]) cylinder(4,2,2,true,$fn=4);
         
         // Mating hole top near (glue)
-        translate([ 4,-l-0.1,8.2]) rotate([-90,0,0])
+        translate([ 4,-l-0.1,tmh-3.8]) rotate([-90,0,0])
             cylinder(2.2, 2.2, 0, false, $fn=4);
         
         // Mating holes sides near (glue)
@@ -122,7 +123,7 @@ module ledholder(l = 250)
             cylinder(t/2+0.1,5,5,false,$fn=4);
         
         // Mating hole top far
-        translate([ 4,0.1,8.2]) rotate([90,0,0])
+        translate([ 4,0.1,tmh-3.8]) rotate([90,0,0])
             cylinder(2.2, 2.2, 0, false, $fn=4);
         
         // Mating holes sides far
@@ -154,7 +155,7 @@ module ledholder(l = 250)
     }
     
     // Mating pin top near (glue)
-    translate([-4,-l,8.2]) rotate([90,0,0]) cylinder(2, 2, 0, false, $fn=4);
+    translate([-4,-l,tmh-3.8]) rotate([90,0,0]) cylinder(2, 2, 0, false, $fn=4);
     
     // Mating pins sides near (glue)
     translate([ bh+1,-l,-f]) cylinder(f,2,2,false,$fn=4);
@@ -162,12 +163,22 @@ module ledholder(l = 250)
         cylinder(t/2,4.9,4.9,false,$fn=4);
 
     // Mating pin top far
-    translate([-4,0,8.2]) rotate([-90,0,0]) cylinder(2, 2, 0, false, $fn=4);
+    translate([-4,0,tmh-3.8]) rotate([-90,0,0]) cylinder(2, 2, 0, false, $fn=4);
     
     // Mating pins sides far
     translate([ bh-1,0,-f]) cylinder(f,2,2,false,$fn=4);
     translate([-b1,0,6]) rotate([0,90,0]) cylinder(t,2,2,false,$fn=4);
-
+    
+    // Connector holder
+    difference() {
+        translate([0,-l+10,0]) rotate([90,0,0])
+          linear_extrude(height=1, convexity=5) polygon([
+            [-b3+1,tr-8.2],[b3-1,tr-8.2],[b2+0.01,tr+0.01],[-b2-0.01,tr+0.01]
+        ]);
+        for (x=[-8,-4,0,4,8]) {
+            translate([x,-l+10+0.1,tr-5]) rotate([90,0,0]) cylinder(1.2,0.5,0.5,$fn=20);
+        }
+    }
 }
 
 module stripholder(b, be, s, h) {
