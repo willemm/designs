@@ -34,7 +34,14 @@ s2 = sqrt(2);
 
 numbl = ceil(length/offs)+1;
 
-if (doback) {
+if (false) {
+    *coverconnect();
+    *connectorholder();
+    *intersection() {
+        ledholder();
+        translate([0,-250,10]) cube([80,50,40],true);
+    }
+} else if (doback) {
     translate([0,250,-20]) ledholder();
     if (doback >= 2) {
         color("lightblue") translate([0,250,-19.9]) {
@@ -45,9 +52,7 @@ if (doback) {
     if (doback >= 3) {
         blobcover(docover);
     }
-} else if (false) {
-    coverconnect();
-} else {
+} else  {
     if (docover == 100) {
         blobcover(1);
         translate([0,0,0]) blobcover(2);
@@ -129,6 +134,9 @@ module ledholder(l = 250)
         // Mating holes sides far
         translate([-bh+1,0,-f-0.1]) cylinder(f+0.2,2,2,false,$fn=4);
         translate([ b1+0.1,0,6]) rotate([0,-90,0]) cylinder(t+0.2,2,2,false,$fn=4);
+        
+        // Connector holder slot
+        translate([0,-l+7-2/2,tr-4.6/2]) cube([32,2,4.6-0.001], true);
     }
     // Cover holding pins
     for (h = [-holeoff/2:-holeoff:-l]) {
@@ -171,14 +179,42 @@ module ledholder(l = 250)
     
     // Connector holder
     difference() {
-        translate([0,-l+10,0]) rotate([90,0,0])
+        translate([0,-l+11,0]) rotate([90,0,0])
           linear_extrude(height=1, convexity=5) polygon([
-            [-b3+1,tr-8.2],[b3-1,tr-8.2],[b2+0.01,tr+0.01],[-b2-0.01,tr+0.01]
+            [-b3,-f],[-b2,-f],
+            [-b2,tr-8],[b2,tr-8],
+            [b2,-f],[b3,-f],
+            [b2+0.01,tr+0.01],[-b2-0.01,tr+0.01]
         ]);
-        for (x=[-8,-4,0,4,8]) {
-            translate([x,-l+10+0.1,tr-5]) rotate([90,0,0]) cylinder(1.2,0.5,0.5,$fn=20);
+        for (x=[-2:2]) {
+            translate([x*3.96,-l+11+0.1,tr-5.5]) rotate([90,45,0]) cylinder(1.2,s2/2,s2/2,$fn=4);
         }
     }
+    *translate([0,-l+7,4.4]) rotate([90,0,0]) connectorholder();
+}
+
+module connectorholder()
+{
+    lw1 = 11.45;
+    lw2 = 14.8;
+    lh = 4.6;
+    // Connector lip holder
+    
+    linear_extrude(height=2, convexity=5) polygon([
+        [-7,lh-1.5], [-8.5,lh],
+        [-lw1,lh], [-lw2,0],
+        [-lw2+1.3,0], [-lw2+1.45,0.8], [-lw2+2.5,1.7],
+        [-5,1.2], [-5,0.8], [-lw2+2.5,0.8], [-lw2+1.5,0],
+        [-lw2+1.5,-0.8], [-10,0],
+
+        [ 10,0], [ lw2-1.5,-0.8],
+        [ lw2-1.5,0], [ lw2-2.5,0.8], [ 5,0.8], [ 5,1.2],
+        [ lw2-2.5,1.7], [ lw2-1.45,0.8], [ lw2-1.3,0],
+        [ lw2,0], [ lw1,lh],
+        [ 8.5,lh], [ 7,lh-1.5]
+
+    ]);
+
 }
 
 module stripholder(b, be, s, h) {
