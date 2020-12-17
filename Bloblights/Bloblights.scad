@@ -1,3 +1,4 @@
+dopow=1;
 doback=1;
 docover=1;
 
@@ -36,10 +37,19 @@ numbl = ceil(length/offs)+1;
 
 if (false) {
     *coverconnect();
-    *connectorholder();
+    connectorholder();
     *intersection() {
         ledholder();
         translate([0,-250,10]) cube([80,50,40],true);
+    }
+} else if (dopow) {
+    if (dopow == 1) {
+        rotate([90,0,-35]) powerblock_back();
+    } else if (dopow == 2) {
+        powerblock_front();
+    } else {
+        powerblock_back();
+        powerblock_front();
     }
 } else if (doback) {
     translate([0,250,-20]) ledholder();
@@ -63,6 +73,151 @@ if (false) {
     } else {
         blobcover(docover);
     }
+}
+
+module powerblock_back()
+{
+    thick = 2;
+    nutthick = 2.6;
+    nutwall = 1.4;
+    nutbot = 2;
+    nutsz = 5.4;
+    
+    pb_len = 200;
+    pb_wid = 58;
+    pb_hei = 40;
+    
+    marg_left = 10;
+    marg_right = 30;
+    
+    mod_len = 28;
+    mod_wid = 62;
+    mod_hei = 55;
+    
+    mod_off = 30;
+    
+    box_len = 200+marg_left+marg_right+mod_len;
+    box_wid = 66;
+    box_hei = 55;
+    
+    holex = 180;
+    holey = 40;
+    holed = 3;
+    
+    shx = 220;
+    shy = 45;
+    sho = -15;
+    shd = 4;
+    
+    ribthick = thick+nutthick+nutwall+nutbot;
+    pb_off = (marg_left - marg_right);
+    
+    modhh = 19+thick;
+    modrh = 24+thick;
+    modrt = 4;
+    modho = 2.54*15;
+    modhs = 3;
+    modstemd = 3;
+    modsteml = 5;
+    
+    modof = box_len/2-mod_len;
+    
+    difference() {
+        union() {
+            // Bottom
+            translate([0,0,thick/2]) cube([box_len, box_wid, thick], true);
+            
+            // Ribs for psu
+            translate([pb_off-holex/2,0,ribthick/2])
+                cube([nutsz+4, box_wid, ribthick], true);
+            translate([pb_off+holex/2,0,ribthick/2])
+                cube([nutsz+4, box_wid, ribthick], true);
+            
+            // Rib for module
+            translate([modof-modrt/2, 0, modrh/2])
+                cube([modrt, box_wid, modrh], true);
+            
+            // Stems for holding module
+            intersection() {
+                union() {
+                    translate([modof-0.001, -modho/2, modhh]) rotate([0,90,0])
+                        cylinder(modsteml, modstemd+modsteml, modstemd, false, $fn=60);
+                    translate([modof-0.001, +modho/2, modhh]) rotate([0,90,0])
+                        cylinder(modsteml, modstemd+modsteml, modstemd, false, $fn=60);
+                }
+                translate([modof+5.8/2, 0, modrh/2])
+                    cube([6, box_wid, modrh], true);
+            }
+            // Offset feet screws
+            for (x=[sho-shx/2,sho+shx/2], y=[-shy/2,shy/2]) {
+                translate([x,y,0.001]) rotate([180,0,0])
+                    cylinder(2, shd/2+4,shd/2+2, false, $fn=60);
+            }
+        }
+        // Holes for nuts psu
+        translate([pb_off-holex/2,+holey/2,ribthick-nutwall-nutthick/2])
+            cube([nutsz+4.1, nutsz+0.2, nutthick], true);
+        translate([pb_off-holex/2,+holey/2,1])
+            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=60);
+        
+        translate([pb_off+holex/2,-holey/2,ribthick-nutwall-nutthick/2])
+            cube([nutsz+4.1, nutsz+0.2, nutthick], true);
+        translate([pb_off+holex/2,-holey/2,1])
+            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=60);
+        
+        // Holes for nuts module
+        translate([modof-modrt-0.1, -modho/2, modhh]) rotate([0,90,0])
+            cylinder(modrt+modsteml+0.2, modhs/2, modhs/2, false, $fn=60);
+        translate([modof-modrt-0.1, -modho/2, modhh]) rotate([0,90,0])
+            cylinder(5, nutsz/s2+0.2, nutsz/s2+0.2, false, $fn=4);
+
+        translate([modof-modrt-0.1, +modho/2, modhh]) rotate([0,90,0])
+            cylinder(modrt+modsteml+0.2, modhs/2, modhs/2, false, $fn=60);
+        translate([modof-modrt-0.1, +modho/2, modhh]) rotate([0,90,0])
+            cylinder(5, nutsz/s2+0.2, nutsz/s2+0.2, false, $fn=4);
+            
+        // Holes for screws
+        for (x=[sho-shx/2,sho+shx/2], y=[-shy/2,shy/2]) {
+            translate([x,y,thick+0.1]) rotate([180,0,0])
+                cylinder(thick+2.2, shd/2,shd/2, false, $fn=60);
+        }
+        
+        // Holes for cover mount nuts
+        translate([pb_off+holex/2,-box_wid/2+1+nutthick/2,ribthick-nutwall-nutthick/2])
+            cube([nutsz+0.2, nutthick, nutsz+2.1], true);
+        translate([pb_off+holex/2,-box_wid/2-0.001,4.5]) rotate([-90,0,0])
+            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=60);
+
+        translate([pb_off-holex/2,-box_wid/2+1+nutthick/2,ribthick-nutwall-nutthick/2])
+            cube([nutsz+0.2, nutthick, nutsz+2.1], true);
+        translate([pb_off-holex/2,-box_wid/2-0.001,4.5]) rotate([-90,0,0])
+            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=60);
+
+        // Ventilation holes
+        for (x = [-15:15], y = [-5:5]) if ((x+y)%2) {
+            translate([x*5+pb_off,y*5,-0.01])
+                cylinder(thick+0.2, 2, 2, false, $fn=60);
+        }
+    }
+    // Sacrifical bridge layer for cover mount nut holes
+    #translate([pb_off+holex/2,-box_wid/2+3+nutthick/2+0.1,ribthick-nutwall-nutthick/2])
+        cube([nutsz+0.2, 0.2, nutsz-0.1], true);
+    #translate([pb_off-holex/2,-box_wid/2+3+nutthick/2+0.1,ribthick-nutwall-nutthick/2])
+        cube([nutsz+0.2, 0.2, nutsz-0.1], true);
+    
+    // Pins for cover holes
+    translate([pb_off+holex/2,+box_wid/2,ribthick-nutwall-nutthick/2])
+        rotate([-90,0,0]) cylinder(3, holed/2, holed/2, false, $fn=60);
+    translate([pb_off+holex/2,+box_wid/2+3,ribthick-nutwall-nutthick/2])
+        rotate([-90,0,0]) cylinder(1, holed/2, holed/4, false, $fn=60);
+    translate([pb_off-holex/2,+box_wid/2,ribthick-nutwall-nutthick/2])
+        rotate([-90,0,0]) cylinder(3, holed/2, holed/2, false, $fn=60);
+    translate([pb_off-holex/2,+box_wid/2+3,ribthick-nutwall-nutthick/2])
+        rotate([-90,0,0]) cylinder(1, holed/2, holed/4, false, $fn=60);
+}
+
+module powerblock_front()
+{
 }
 
 module coverconnect()
@@ -90,7 +245,7 @@ module ledholder(l = 250)
     b1 = bwidth/2-sthick-0.1;
     t = 1.6;
     s = strip;
-    f = 2;
+    f = 2.2;
     tr = 9;
     th = 11;
     tmh = 15;
@@ -102,16 +257,24 @@ module ledholder(l = 250)
     
     hoff = 50/6+25;
     difference() {
-        rotate([90,0,0]) linear_extrude(height=l, convexity=5) polygon([
+        union() {
+          rotate([90,0,0]) linear_extrude(height=l, convexity=5) polygon([
             [-b1, s],[-b1,-f],[-b3,-f],[-b2,tr],
             [b2,tr],[b3,-f],[b1,-f],[b1,s],
             [b1-t,s],[b1-t,0],[b3,0],[b2,th],[0,tmh],
             [-(b2),th],[-b3,0],[-(b1-t),0],[-(b1-t), s]
-        ]);
+          ]);
+          translate([0,10-l,0]) rotate([90,0,0]) linear_extrude(height=10, convexity=5) polygon([
+            [-b3,-f],[-b2,tr+0.1],[-b2,tr-4]
+          ]);
+          translate([0,10-l,0]) rotate([90,0,0]) linear_extrude(height=10, convexity=5) polygon([
+            [ b3,-f],[ b2,tr+0.1],[ b2,tr-4]
+          ]);
+        }
 
         for (h = [-hoff:-l+hoff*2:-l+hoff]) {
-            translate([ bh,h,-t-0.5]) cylinder(t+1, bhr, bhr, false, $fn=20);
-            translate([-bh,h,-t-0.5]) cylinder(t+1, bhr, bhr, false, $fn=20);
+            translate([ bh,h,-f-0.5]) cylinder(f+1, bhr, bhr, false, $fn=20);
+            translate([-bh,h,-f-0.5]) cylinder(f+1, bhr, bhr, false, $fn=20);
         }
         
         // Holes for connecting led strip
@@ -136,7 +299,9 @@ module ledholder(l = 250)
         translate([ b1+0.1,0,6]) rotate([0,-90,0]) cylinder(t+0.2,2,2,false,$fn=4);
         
         // Connector holder slot
-        translate([0,-l+7-2/2,tr-4.6/2]) cube([32,2,4.6-0.001], true);
+        translate([-8,-l+7-2/2,tr-4.8/2]) cube([50,2.2,4.8-0.001], true);
+        translate([0,-l+7-2/2,tr-6/2]) cube([23,2.2,6-0.001], true);
+        // #translate([0,-l+7-2/2,tr-4.8/2]) cube([22,2.2,4.8-0.001], true);
     }
     // Cover holding pins
     for (h = [-holeoff/2:-holeoff:-l]) {
@@ -182,15 +347,15 @@ module ledholder(l = 250)
         translate([0,-l+11,0]) rotate([90,0,0])
           linear_extrude(height=1, convexity=5) polygon([
             [-b3,-f],[-b2,-f],
-            [-b2,tr-8],[b2,tr-8],
+            [-b2,tr-8.4],[b2,tr-8.4],
             [b2,-f],[b3,-f],
             [b2+0.01,tr+0.01],[-b2-0.01,tr+0.01]
         ]);
         for (x=[-2:2]) {
-            translate([x*3.96,-l+11+0.1,tr-5.5]) rotate([90,45,0]) cylinder(1.2,s2/2,s2/2,$fn=4);
+            translate([x*3.96,-l+11-0.5,tr-6]) cube([1.2,1.2,1.2],true);
         }
     }
-    *translate([0,-l+7,4.4]) rotate([90,0,0]) connectorholder();
+    *#translate([0,-l+7,4.4]) rotate([90,0,0]) connectorholder();
 }
 
 module connectorholder()
@@ -198,20 +363,22 @@ module connectorholder()
     lw1 = 11.45;
     lw2 = 14.8;
     lh = 4.6;
+    lw3 = 11.5;
     // Connector lip holder
     
     linear_extrude(height=2, convexity=5) polygon([
-        [-7,lh-1.5], [-8.5,lh],
+        //[-7,lh-1.5],
+        [-8.5,lh],
         [-lw1,lh], [-lw2,0],
-        [-lw2+1.3,0], [-lw2+1.45,0.8], [-lw2+2.5,1.7],
-        [-5,1.2], [-5,0.8], [-lw2+2.5,0.8], [-lw2+1.5,0],
-        [-lw2+1.5,-0.8], [-10,0],
+        [-lw3-0.5,0], [-lw3,1], [-10,1.8],
+        [-5,1.2], [-5,0.8], [-10,0.8], [-lw3+0.1,0],
+        [-lw3+0.1,-0.8], [-10,0],
 
-        [ 10,0], [ lw2-1.5,-0.8],
-        [ lw2-1.5,0], [ lw2-2.5,0.8], [ 5,0.8], [ 5,1.2],
-        [ lw2-2.5,1.7], [ lw2-1.45,0.8], [ lw2-1.3,0],
+        [ 10,0], [ lw3-0.1,-0.8],
+        [ lw3-0.1,0], [ 10,0.8], [ 5,0.8], [ 5,1.2],
+        [ 10,1.7], [ lw3,0.8], [ lw3+0.5,0],
         [ lw2,0], [ lw1,lh],
-        [ 8.5,lh], [ 7,lh-1.5]
+        [ 8.5,lh]//, [ 7,lh-1.5]
 
     ]);
 
