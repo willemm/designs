@@ -78,6 +78,9 @@ if (false) {
 module powerblock_back()
 {
     thick = 2;
+    sidethick = 8;
+    sidewid = 1.2;
+    
     nutthick = 2.6;
     nutwall = 1.4;
     nutbot = 2;
@@ -124,6 +127,22 @@ module powerblock_back()
         union() {
             // Bottom
             translate([0,0,thick/2]) cube([box_len, box_wid, thick], true);
+            // Sides
+            translate([0,+(box_wid/2-sidewid/2),sidethick/2])
+                cube([box_len, sidewid, sidethick], true);
+            translate([0,-(box_wid/2-sidewid/2),sidethick/2])
+                cube([box_len, sidewid, sidethick], true);
+            translate([+(box_len/2-sidewid/2),0,sidethick/2])
+                cube([sidewid, box_wid, sidethick], true);
+            translate([-(box_len/2-sidewid/2),0,sidethick/2])
+                cube([sidewid, box_wid, sidethick], true);
+            
+            // Print supports for "upper" side
+            translate([-box_len/2,+box_wid/2-sidewid,0])
+                rotate([0,90,0]) linear_extrude(height=box_len)
+                polygon([
+                [-sidethick,0],[0,-sidethick+2],[0,0]
+            ]);
             
             // Ribs for psu
             translate([pb_off-holex/2,0,ribthick/2])
@@ -156,6 +175,17 @@ module powerblock_back()
                 linear_extrude(height=nutthick+2.4) polygon([
                 [8,-2],[8,2],[1,9],[1,-9]
             ]);
+            
+            // Power cord hole
+            translate([-box_len/2,15,thick+3.5]) rotate([0,90,0]) {
+                cylinder(sidewid,5,5,false,$fn=30);
+            }
+
+            // Led lead holes
+            for (y = [-15,15]) {
+                translate([box_len/2,y,thick+3.5]) rotate([0,-90,0])
+                    cylinder(sidewid,5,5,false,$fn=30);
+            }
 
         }
         // Holes for nuts psu
@@ -199,26 +229,41 @@ module powerblock_back()
         
         // End cap nut
         translate([box_len/2+0.1,0,4.5]) rotate([0,-90,0]) rotate([0,0,30])
-            cylinder(nutthick+3, holed/2, holed/2, false, $fn=30);
+            cylinder(10, holed/2, holed/2, false, $fn=30);
         translate([box_len/2-(nutthick+2.4)/2,0,4.5])
             cube([nutthick, nutsz+0.2, nutsz+2.1], true);
 
+        // Power cord hole
+        translate([-box_len/2-0.01,15,thick+3.5]) rotate([0,90,0]) {
+            cylinder(10,3.5,3.5,false,$fn=30);
+            // translate([-3.5,0,3.5]) cube([7,7,7], true);
+        }
+        // Led lead holes
+        for (y = [-15,15]) {
+            translate([box_len/2+0.01,y,thick+3.5]) rotate([0,-90,0])
+                cylinder(10,3.5,3.5,false,$fn=30);
+        }
+        
         // Ventilation holes
         for (x = [-17:17], y = [-5:5]) if ((x+y)%2) {
             translate([x*5+pb_off,y*5,-0.01])
-                cylinder(thick+0.2, 2, 2, false, $fn=20);
+                cylinder(sidethick+0.2, 2, 2, false, $fn=20);
         }
         // Ventilation holes II
         for (x = [26:29], y = [-5:5]) if ((x+y)%2) {
             translate([x*5+pb_off,y*5,-0.01])
-                cylinder(thick+0.2, 2, 2, false, $fn=20);
+                cylinder(sidethick+0.2, 2, 2, false, $fn=20);
         }
     }
     // Sacrifical bridge layer for cover mount nut holes
-    #translate([pb_off+holex/2,-box_wid/2+3+nutthick/2+0.1,ribthick-nutwall-nutthick/2])
+    #translate([pb_off+holex/2, -box_wid/2+3+nutthick/2+0.1, ribthick-nutwall-nutthick/2])
         cube([nutsz+0.2, 0.2, nutsz-0.1], true);
-    #translate([pb_off-holex/2,-box_wid/2+3+nutthick/2+0.1,ribthick-nutwall-nutthick/2])
+    #translate([pb_off-holex/2, -box_wid/2+3+nutthick/2+0.1, ribthick-nutwall-nutthick/2])
         cube([nutsz+0.2, 0.2, nutsz-0.1], true);
+    /*
+    *#translate([-box_len/2+sidewid/2,15,sidethick-0.4])
+        cube([sidewid,7.001,0.8], true);
+    */
     
     // Pins for cover holes
     translate([pb_off+holex/2,+box_wid/2,ribthick-nutwall-nutthick/2])
