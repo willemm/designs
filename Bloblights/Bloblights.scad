@@ -90,17 +90,15 @@ module powerblock_back()
     marg_left = 10;
     marg_right = 30;
     
-    mod_len = 28;
+    mod_len = 30;
     mod_wid = 62;
     mod_hei = 55;
     
-    mod_off = 30;
-    
-    box_len = 200+marg_left+marg_right+mod_len;
+    box_len = 268; // 200+marg_left+marg_right+mod_len;
     box_wid = 66;
     box_hei = 55;
     
-    holex = 180;
+    holex = 190;
     holey = 40;
     holed = 3;
     
@@ -141,9 +139,9 @@ module powerblock_back()
             intersection() {
                 union() {
                     translate([modof-0.001, -modho/2, modhh]) rotate([0,90,0])
-                        cylinder(modsteml, modstemd+modsteml, modstemd, false, $fn=60);
+                        cylinder(modsteml, modstemd+modsteml, modstemd, false, $fn=30);
                     translate([modof-0.001, +modho/2, modhh]) rotate([0,90,0])
-                        cylinder(modsteml, modstemd+modsteml, modstemd, false, $fn=60);
+                        cylinder(modsteml, modstemd+modsteml, modstemd, false, $fn=30);
                 }
                 translate([modof+5.8/2, 0, modrh/2])
                     cube([6, box_wid, modrh], true);
@@ -151,8 +149,14 @@ module powerblock_back()
             // Offset feet screws
             for (x=[sho-shx/2,sho+shx/2], y=[-shy/2,shy/2]) {
                 translate([x,y,0.001]) rotate([180,0,0])
-                    cylinder(2, shd/2+4,shd/2+2, false, $fn=60);
+                    cylinder(2, shd/2+4,shd/2+2, false, $fn=30);
             }
+            // End cap nut
+            translate([box_len/2,0,0]) rotate([0,-90,0])
+                linear_extrude(height=nutthick+2.4) polygon([
+                [8,-2],[8,2],[1,9],[1,-9]
+            ]);
+
         }
         // Holes for nuts psu
         translate([pb_off-holex/2,+holey/2,ribthick-nutwall-nutthick/2])
@@ -186,17 +190,28 @@ module powerblock_back()
         translate([pb_off+holex/2,-box_wid/2+1+nutthick/2,ribthick-nutwall-nutthick/2])
             cube([nutsz+0.2, nutthick, nutsz+2.1], true);
         translate([pb_off+holex/2,-box_wid/2-0.001,4.5]) rotate([-90,0,0])
-            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=60);
+            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=30);
 
         translate([pb_off-holex/2,-box_wid/2+1+nutthick/2,ribthick-nutwall-nutthick/2])
             cube([nutsz+0.2, nutthick, nutsz+2.1], true);
         translate([pb_off-holex/2,-box_wid/2-0.001,4.5]) rotate([-90,0,0])
-            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=60);
+            cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=30);
+        
+        // End cap nut
+        translate([box_len/2+0.1,0,4.5]) rotate([0,-90,0]) rotate([0,0,30])
+            cylinder(nutthick+3, holed/2, holed/2, false, $fn=30);
+        translate([box_len/2-(nutthick+2.4)/2,0,4.5])
+            cube([nutthick, nutsz+0.2, nutsz+2.1], true);
 
         // Ventilation holes
-        for (x = [-15:15], y = [-5:5]) if ((x+y)%2) {
+        for (x = [-17:17], y = [-5:5]) if ((x+y)%2) {
             translate([x*5+pb_off,y*5,-0.01])
-                cylinder(thick+0.2, 2, 2, false, $fn=60);
+                cylinder(thick+0.2, 2, 2, false, $fn=20);
+        }
+        // Ventilation holes II
+        for (x = [26:29], y = [-5:5]) if ((x+y)%2) {
+            translate([x*5+pb_off,y*5,-0.01])
+                cylinder(thick+0.2, 2, 2, false, $fn=20);
         }
     }
     // Sacrifical bridge layer for cover mount nut holes
