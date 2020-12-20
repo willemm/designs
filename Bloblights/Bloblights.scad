@@ -1,4 +1,4 @@
-dopow=1;
+dopow=4;
 doback=1;
 docover=1;
 
@@ -46,10 +46,13 @@ if (false) {
     if (dopow == 1) {
         rotate([90,0,-35]) powerblock_back();
     } else if (dopow == 2) {
-        powerblock_front();
+        powerblock_left();
+    } else if (dopow == 2) {
+        powerblock_right();
     } else {
         powerblock_back();
-        powerblock_front();
+        powerblock_left();
+        powerblock_right();
     }
 } else if (doback) {
     translate([0,250,-20]) ledholder();
@@ -73,6 +76,103 @@ if (false) {
     } else {
         blobcover(docover);
     }
+}
+
+module powerblock_left()
+{
+    side_off = 50;
+    box_len = 268-side_off;
+    box_wid = 66;
+    box_hei = 50;
+    thick = 1.2;
+    tol=0.1;
+    
+    difference() {
+        union() {
+            translate([-side_off/2-thick/2-tol/2,
+                    -(box_wid/2+thick/2+tol),box_hei/2+thick/2])
+                cube([box_len+thick+tol,thick,box_hei+thick],true);
+            translate([-side_off/2-thick/2-tol/2,
+                    +(box_wid/2+thick/2+tol),box_hei/2+thick/2])
+                cube([box_len+thick+tol,thick,box_hei+thick],true);
+            translate([-side_off/2-(box_len/2+thick/2+tol),0,box_hei/2])
+                cube([thick,box_wid+thick*2+tol*2,box_hei],true);
+            translate([-side_off/2-thick/2-tol/2,0,box_hei+thick/2])
+                cube([box_len+thick+tol,box_wid+thick*2+tol*2,thick],true);
+            
+            // Connecting bridge to keep it on the pins
+            translate([-side_off/2+box_len/2-0.6,0,10])
+                cube([1.2,box_wid+thick,3], true);
+            translate([-side_off/2+box_len/2-0.6,-box_wid/2+0.5,box_hei/2+5])
+                cube([1.2,2.5,box_hei-8], true);
+            translate([-side_off/2+box_len/2-0.6,box_wid/2-0.5,box_hei/2+5])
+                cube([1.2,2.5,box_hei-8], true);
+            translate([-side_off/2+box_len/2-0.6,0,box_hei-0.5])
+                cube([1.2,box_wid+thick,2], true);
+        }
+        translate([-side_off/2-box_len/2,-box_wid/2,-0.01])
+            linear_extrude(height=box_hei+thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+            ]);
+        mirror([0,1,0])
+        translate([-side_off/2-box_len/2,-box_wid/2,-0.01])
+            linear_extrude(height=box_hei+thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+            ]);
+        translate([-side_off/2-box_len/2-thick-0.01,-box_wid/2,box_hei])
+            rotate([0,90,0]) linear_extrude(height=box_len+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+        mirror([0,1,0])
+        translate([-side_off/2-box_len/2-thick-0.01,-box_wid/2,box_hei])
+            rotate([0,90,0]) linear_extrude(height=box_len+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+        translate([-side_off/2-box_len/2,-box_wid/2-thick-0.01,box_hei])
+            rotate([-90,0,0]) linear_extrude(height=box_wid+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+        // Ventilation holes down
+        for (x=[-21:13],z=[2:4]) if ((x+z)%2) {
+            translate([x*5,-box_wid/2-thick-tol-0.01,z*5]) rotate([-90,0,0])
+                cylinder(thick+0.02, 2, 2, false, $fn=30);
+        }
+        // Ventilation holes up
+        for (x=[-21:13],z=[2:8]) if ((x+z)%2) {
+            translate([x*5,box_wid/2+tol-0.01,z*5]) rotate([-90,0,0])
+                cylinder(thick+0.02, 2, 2, false, $fn=30);
+        }
+        
+        // Screw holes
+        for (x=[-115,75]) {
+            translate([x,-box_wid/2-tol-thick/2,4.5]) rotate([-90,0,0])
+                cylinder(thick+5.02, 1.5, 1.5, true, $fn=30);
+        }
+        // Pin holes
+        for (x=[-115,75]) {
+            translate([x,box_wid/2+tol-thick/2,5.3]) rotate([-90,0,0])
+                cylinder(thick+5.02, 1.6, 1.6, true, $fn=30);
+        }
+        // Power cord hole
+        translate([-side_off/2-box_len/2-thick-tol-0.01,15,thick+4]) rotate([0,90,0]) {
+            cylinder(thick+0.02,4,4,false,$fn=30);
+            translate([4,0,thick/2+0.01]) cube([8,8,thick+0.02], true);
+        }
+    }
+    
+    
+}
+
+module powerblock_right()
+{
 }
 
 module powerblock_back()
@@ -274,10 +374,6 @@ module powerblock_back()
         rotate([-90,0,0]) cylinder(3, holed/2, holed/2, false, $fn=60);
     translate([pb_off-holex/2,+box_wid/2+3,ribthick-nutwall-nutthick/2])
         rotate([-90,0,0]) cylinder(1, holed/2, holed/4, false, $fn=60);
-}
-
-module powerblock_front()
-{
 }
 
 module coverconnect()
