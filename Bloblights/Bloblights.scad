@@ -47,12 +47,13 @@ if (false) {
         rotate([90,0,-35]) powerblock_back();
     } else if (dopow == 2) {
         powerblock_left();
-    } else if (dopow == 2) {
+    } else if (dopow == 3) {
         powerblock_right();
     } else {
+        *color("lightblue") translate([-20,0,28]) cube([200,58,40],true);
         powerblock_back();
         powerblock_left();
-        powerblock_right();
+        translate([0,0,0]) powerblock_right();
     }
 } else if (doback) {
     translate([0,250,-20]) ledholder();
@@ -162,9 +163,9 @@ module powerblock_left()
                 cylinder(thick+5.02, 1.6, 1.6, true, $fn=30);
         }
         // Power cord hole
-        translate([-side_off/2-box_len/2-thick-tol-0.01,15,thick+4]) rotate([0,90,0]) {
-            cylinder(thick+0.02,4,4,false,$fn=30);
-            translate([4,0,thick/2+0.01]) cube([8,8,thick+0.02], true);
+        translate([-side_off/2-box_len/2-thick-tol-0.01,15,thick+3]) rotate([0,90,0]) {
+            cylinder(thick+0.02,5,5,false,$fn=30);
+            translate([5,0,thick/2+0.01]) cube([10,10,thick+0.02], true);
         }
     }
     
@@ -173,6 +174,146 @@ module powerblock_left()
 
 module powerblock_right()
 {
+    side_off = 218.1;
+    box_len = 268-side_off;
+    box_wid = 66;
+    box_hei = 60;
+    thick = 1.2;
+    tol=0.1;
+    schn = 10;
+    
+    difference() {
+        union() {
+            translate([side_off/2+thick/2+tol/2,
+                    -(box_wid/2+thick/2+tol),box_hei/2+thick/2])
+                cube([box_len+thick+tol,thick,box_hei+thick],true);
+            translate([side_off/2+thick/2+tol/2,
+                    +(box_wid/2+thick/2+tol),box_hei/2+thick/2])
+                cube([box_len+thick+tol,thick,box_hei+thick],true);
+            translate([side_off/2+(box_len/2+thick/2+tol),0,box_hei/2])
+                cube([thick,box_wid+thick*2+tol*2,box_hei],true);
+            translate([side_off/2+thick/2+tol/2,0,box_hei+thick/2])
+                cube([box_len+thick+tol,box_wid+thick*2+tol*2,thick],true);
+            
+            translate([side_off/2-box_len/2,-box_wid/2-thick-0.01,
+                box_hei])
+                rotate([-90,0,0]) linear_extrude(height=box_wid+2*thick+0.02) 
+                    polygon([
+                        [0,0],
+                        [0,schn+2.9],[schn+1,0]
+                    ]);
+            
+            // Edge against bottom
+            translate([side_off/2+thick/2+tol/2+10,+(box_wid/2),9])
+                cube([30,thick*2,1.8],true);
+            translate([side_off/2+thick/2+tol/2+10,-(box_wid/2),9])
+                cube([30,thick*2,1.8],true);
+            
+            // Lip edges
+            translate([side_off/2-box_len/2,-box_wid/2-thick-0.01,8.1])
+                linear_extrude(height=45) 
+                    polygon([
+                        [0,0],
+                        [0,4.4],[1,4.4],[5.4,0]
+                    ]);
+            mirror([0,1,0])
+            translate([side_off/2-box_len/2,-box_wid/2-thick-0.01,8.1])
+                linear_extrude(height=45) 
+                    polygon([
+                        [0,0],
+                        [0,4.4],[1,4.4],[5.4,0]
+                    ]);
+
+            // Lips    
+            translate([side_off/2-box_len/2-2,0,47.7])
+                cube([4,box_wid-4,1.2],true);
+            translate([side_off/2-box_len/2,-box_wid/2+3.2,0])
+                rotate([90,0,0]) linear_extrude(height=1.2) polygon([
+                    [-5,12],[-10,17],[-10,43.3],[-5,48.3],
+                    [0,48.3],[0,12]
+                ]);
+                //cube([10,1.2,36.3],true);
+            translate([side_off/2-box_len/2,box_wid/2-2,0])
+                rotate([90,0,0]) linear_extrude(height=1.2) polygon([
+                    [-5,12],[-10,17],[-10,43.3],[-5,48.3],
+                    [0,48.3],[0,12]
+                ]);
+        }
+        translate([side_off/2+box_len/2,-box_wid/2,-0.01])
+            linear_extrude(height=box_hei+thick+0.02) polygon([
+                [+thick+tol+1,-thick-tol-1],
+                [+thick+tol+1,-tol+1],[+tol-1,-thick-tol-1]
+            ]);
+        mirror([0,1,0])
+        translate([side_off/2+box_len/2,-box_wid/2,-0.01])
+            linear_extrude(height=box_hei+thick+0.02) polygon([
+                [+thick+tol+1,-thick-tol-1],
+                [+thick+tol+1,-tol+1],[+tol-1,-thick-tol-1]
+            ]);
+        translate([side_off/2-box_len/2-thick-0.01,-box_wid/2,box_hei])
+            rotate([0,90,0]) linear_extrude(height=box_len+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+        mirror([0,1,0])
+        translate([side_off/2-box_len/2-thick-0.01,-box_wid/2,box_hei])
+            rotate([0,90,0]) linear_extrude(height=box_len+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+        translate([side_off/2+box_len/2,-box_wid/2-thick-0.01,box_hei])
+            rotate([-90,0,0]) linear_extrude(height=box_wid+2*thick+0.02) polygon([
+                [+thick+tol+1,-thick-tol-1],
+                [+thick+tol+1,-tol+1],[+tol-1,-thick-tol-1]
+
+            ]);
+        translate([side_off/2-box_len/2,-box_wid/2-thick*2-0.01,box_hei+thick])
+            rotate([-90,0,0]) linear_extrude(height=box_wid+2*thick*2+0.02) polygon([
+                [-1,-1],
+                [-1,schn+1],[schn+1,-1]
+
+            ]);
+        translate([side_off/2-box_len/2-thick-0.01,-box_wid/2,box_hei-schn-1.7])
+            rotate([0,45,0]) linear_extrude(height=box_len+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+        mirror([0,1,0])
+        translate([side_off/2-box_len/2-thick-0.01,-box_wid/2,box_hei-schn-1.7])
+            rotate([0,45,0]) linear_extrude(height=box_len+2*thick+0.02) polygon([
+                [-thick-tol-1,-thick-tol-1],
+                [-thick-tol-1,-tol+1],[-tol+1,-thick-tol-1]
+
+            ]);
+            
+        // Screw hole
+        translate([side_off/2+box_len/2+thick+tol+0.01,0,4.5]) rotate([0,-90,0])
+            cylinder(thick+0.02, 1.5, 1.5, false, $fn=30);
+
+        // Power cord holes
+        translate([side_off/2+box_len/2+tol-0.01,15,thick+3]) rotate([0,90,0]) {
+            cylinder(thick+0.02,5,5,false,$fn=30);
+            translate([5,0,thick/2+0.01]) cube([10,10,thick+0.02], true);
+        }
+        translate([side_off/2+box_len/2+tol-0.01,-15,thick+3]) rotate([0,90,0]) {
+            cylinder(thick+0.02,5,5,false,$fn=30);
+            translate([5,0,thick/2+0.01]) cube([10,10,thick+0.02], true);
+        }
+
+        // Ventilation holes down
+        for (x=[21:25],z=[3:5]) if ((x+z)%2) {
+            translate([x*5+2,-box_wid/2-thick-tol-0.01,z*5-3]) rotate([-90,0,0])
+                cylinder(thick+0.02, 2, 2, false, $fn=30);
+        }
+        // Ventilation holes up
+        for (x=[21:25],z=[3:11]) if ((x+z)%2) {
+            translate([x*5+2,box_wid/2+tol-0.01,z*5-3]) rotate([-90,0,0])
+                cylinder(thick+0.02, 2, 2, false, $fn=30);
+        }
+    }
 }
 
 module powerblock_back()
@@ -328,7 +469,7 @@ module powerblock_back()
             cylinder(8, holed/2+0.2, holed/2+0.2, false, $fn=30);
         
         // End cap nut
-        translate([box_len/2+0.1,0,4.5]) rotate([0,-90,0]) rotate([0,0,30])
+        translate([box_len/2+0.1,0,4.5]) rotate([0,-90,0])
             cylinder(10, holed/2, holed/2, false, $fn=30);
         translate([box_len/2-(nutthick+2.4)/2,0,4.5])
             cube([nutthick, nutsz+0.2, nutsz+2.1], true);
