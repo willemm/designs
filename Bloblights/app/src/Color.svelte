@@ -41,8 +41,9 @@
     }
     function handleMousemove(event)
     {
-      const x = event.clientX - 40 -(canvas.width-1)/2
-      const y = event.clientY - 40 -(canvas.height-1)/2
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left - (canvas.width-1)/2
+      const y = event.clientY - rect.top  - (canvas.height-1)/2
       color.sat = Math.min(1,Math.sqrt(x*x + y*y) / (w/2))*256 >>> 0
       color.hue = (Math.atan(x/y)+(y<0)*Math.PI+Math.PI/2)*180/Math.PI >>> 0
     }
