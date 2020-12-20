@@ -11,10 +11,10 @@ ESP8266WebServer server(80);
 const char *ssid = "Airy";
 const char *password = "Landryssa";
 
-const int pins[] = [
+const int pins[] = {
   5,4,0,2,
   14,12,13,15
-];
+};
 
 const int numsets = 2;
 
@@ -59,7 +59,7 @@ void setup() {
   server.begin();
 }
 
-struct rgbw hsv2rgb(struct hsv color)
+struct rgbw hsv2rgbw(struct hsv color)
 {
   double H = color.hue, S = ((double)color.sat)/255, V = ((double)color.val)/255;
   /*
@@ -87,7 +87,7 @@ struct rgbw hsv2rgb(struct hsv color)
   rgbw[(io+1)%3] = (((X1+m)));
   rgbw[(io+2)%3] = (m);
   rgbw[3] = ((1-S)*(1-S)*V);
-  return {.red=rgbw[0], .green=rgbw[1], .blue=rgbw[2], .white=rgbw[3]);
+  return {.red=rgbw[0], .green=rgbw[1], .blue=rgbw[2], .white=rgbw[3]};
 }
 
 void writecolor(int pin, struct rgbw color)
@@ -99,6 +99,7 @@ void writecolor(int pin, struct rgbw color)
   analogWrite(pins[pin*4+3], (uint16_t)(color.white * scale));
 }
 
+unsigned long setcolor = 0;
 unsigned long tick = 0;
 unsigned long ctick = 0;
 
