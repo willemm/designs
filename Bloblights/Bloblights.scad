@@ -1,6 +1,6 @@
 dopow=0;
 doback=0;
-docover=1;
+docover=3;
 
 interlace = false;
 
@@ -787,8 +787,7 @@ module blobcover(covernumber)
           } else {
             blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, pe2, pe3);
           }
-        } else if (!doend) {
-          /*
+        } else if (!doend && overlap) {
           // Straight cut but with a small lip
           if (covernumber%2) {
             // Lip is on the outside, so cut out the inside
@@ -812,7 +811,6 @@ module blobcover(covernumber)
             translate([-bwidth/2-0.001,pend-overlap*0.5,-22])
                 cube([bwidth+0.002, overlap*2, 25]);
           }
-          */
         }
 
         // Hollow out the inside
