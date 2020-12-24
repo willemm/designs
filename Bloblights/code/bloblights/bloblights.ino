@@ -4,7 +4,7 @@
 #include <ArduinoJson.h>
 #include <math.h>
 
-#define SERIALOUT
+// #define SERIALOUT
 
 ESP8266WebServer server(80);
 
@@ -12,8 +12,8 @@ const char *ssid = "Airy";
 const char *password = "Landryssa";
 
 const int pins[] = {
-  5,4,0,2,
-  14,12,13,15
+  4,5,0,2,
+  12,14,13,15
 };
 
 const int numsets = 2;
@@ -28,11 +28,22 @@ struct rgbw {
   double red, green, blue, white;
 };
 
+unsigned long setcolor = 0;
+unsigned long tick = 0;
+unsigned long ctick = 0;
+
 void setup() {
   for (int i = 0; i < 8; i++) {
     pinMode(pins[i], OUTPUT);
     digitalWrite(pins[i], LOW);
   }
+  setcolor = 25;
+  colors[0].hue = 60;
+  colors[0].sat = 32;
+  colors[0].val = 128;
+  colors[1].hue = 60;
+  colors[1].sat = 32;
+  colors[1].val = 128;
   // put your setup code here, to run once:
 #ifdef SERIALOUT
   Serial.begin(74880);
@@ -61,7 +72,7 @@ void setup() {
 
 struct rgbw hsv2rgbw(struct hsv color)
 {
-  double H = color.hue, S = ((double)color.sat)/255, V = ((double)color.val)/255;
+  double H = color.hue, S = ((double)color.sat)/256, V = ((double)color.val)/255;
   /*
   Serial.print("H="); Serial.print(H);
   Serial.print(" S="); Serial.print(S);
@@ -98,10 +109,6 @@ void writecolor(int pin, struct rgbw color)
   analogWrite(pins[pin*4+2], (uint16_t)(color.blue  * scale));
   analogWrite(pins[pin*4+3], (uint16_t)(color.white * scale));
 }
-
-unsigned long setcolor = 0;
-unsigned long tick = 0;
-unsigned long ctick = 0;
 
 void loop() {
     ota_check();

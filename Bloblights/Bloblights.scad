@@ -1,10 +1,10 @@
-dopow=4;
-doback=1;
+dopow=0;
+doback=0;
 docover=1;
 
 interlace = false;
 
-overlap = 2;
+overlap = 0;
 
 numparts = 14;
 length = 2500;
@@ -69,11 +69,13 @@ if (false) {
 } else  {
     if (docover == 100) {
         blobcover(1);
-        translate([0,0,0]) blobcover(2);
+        translate([0,-0.1,0]) blobcover(0);
         
+        /*
         gshi = 21.5 - 0.8 - 1.25;
         #translate([-bwidth/2,partlength,-gshi]) rotate([0, 90,0]) coverconnect();
         #translate([ bwidth/2,partlength,-gshi]) rotate([0,-90,0]) coverconnect();
+        */
     } else {
         blobcover(docover);
     }
@@ -707,7 +709,7 @@ module blobcover(covernumber)
     fns   = rands(10, 15, numbl, seed+5);
     
     docap = ((covernumber == 0) ? 1 : ((covernumber == numparts+1) ? -1 : 0));
-    doend = (covernumber == 1 || covernumber == numparts);
+    doend = ((covernumber == 1) ? 1 : ((covernumber == numparts) ? -1 : 0));
     
     ps = max(0, floor(numbl*pstart/length)-4+4*(covernumber%2)+docap*4-(interlace?0:4));
     pe = min(numbl-1, floor(numbl*pend/length)-1+4*(covernumber%2)+docap*4+(interlace?0:4));
@@ -739,6 +741,10 @@ module blobcover(covernumber)
             translate([-bwidth,-40-cof,-22]) cube([bwidth*2, 40, 60]);
         }
         blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe, -thick);
+        for (x=[-1,1], y=[-10,-14,-18]) {
+          translate([x*(bwidth/2-sthick/2),-cof+0.01,y]) rotate([90,45,0])
+            cylinder(thick+0.02,sthick/2-0.1,sthick/2-0.3, $fn=4);
+        }
       }
     } else if (docap == -1) {
       // Butt end, with different side for gluing endcap on
@@ -753,6 +759,11 @@ module blobcover(covernumber)
             translate([-bwidth,length+cof,-22]) cube([bwidth*2, 40, 60]);
         }
         blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, ps, pe, -thick);
+        for (x=[-1,1], y=[-10,-14,-18]) {
+          translate([x*(bwidth/2-sthick/2),length+cof-0.01,y])
+            rotate([-90,45,0])
+            cylinder(thick+0.02,sthick/2-0.1,sthick/2-0.3, $fn=4);
+        }
       }
     } else {
       difference() {
@@ -777,6 +788,7 @@ module blobcover(covernumber)
             blobset(xpts, ypts, zpts, sizes, numbl, rots, fns, offs, pe2, pe3);
           }
         } else if (!doend) {
+          /*
           // Straight cut but with a small lip
           if (covernumber%2) {
             // Lip is on the outside, so cut out the inside
@@ -800,6 +812,7 @@ module blobcover(covernumber)
             translate([-bwidth/2-0.001,pend-overlap*0.5,-22])
                 cube([bwidth+0.002, overlap*2, 25]);
           }
+          */
         }
 
         // Hollow out the inside
@@ -815,9 +828,12 @@ module blobcover(covernumber)
                 cylinder(sthick+0.2, holerad+0.1, holerad-sthick+0.1, false, $fn=4);
         }
         
+        /*
         gshi = 21.5 - 0.8;
         gsw = 2.5;
         gsl = 10;
+        
+        
         // Room for glue strip, with holes
         if (covernumber%2) {
             translate([-bwidth/2-0.001,pend-gsl,-gshi])
@@ -840,7 +856,21 @@ module blobcover(covernumber)
             translate([ b1,pstart+gsl,-gshi+gsw/2]) rotate([0, 90,0])
                 cylinder(sthick+0.2, gsw/2,gsw/2, false, $fn=4);
         }
+        */
       }
+      if (doend == 1) {
+        for (x=[-1,1], y=[-10,-14,-18]) {
+          translate([x*(bwidth/2-sthick/2),-cof,y]) rotate([90,45,0])
+            cylinder(thick,sthick/2-0.2,sthick/2-0.4, $fn=4);
+        }
+      }
+      if (doend == -1) {
+        for (x=[-1,1], y=[-10,-14,-18]) {
+          translate([x*(bwidth/2-sthick/2),length+cof,y]) rotate([-90,45,0])
+            cylinder(thick,sthick/2-0.2,sthick/2-0.4, $fn=4);
+        }
+      }
+
     }
 }
 
