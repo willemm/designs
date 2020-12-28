@@ -16,6 +16,13 @@ const int pins[] = {
   12,14,13,15
 };
 
+const double gammacorrection[] = {
+  1.2,
+  2.5,
+  2.8,
+  1.2
+};
+
 const int numsets = 2;
 
 struct hsv {
@@ -38,10 +45,10 @@ void setup() {
     digitalWrite(pins[i], LOW);
   }
   setcolor = 25;
-  colors[0].hue = 60;
+  colors[0].hue = 30;
   colors[0].sat = 32;
   colors[0].val = 128;
-  colors[1].hue = 60;
+  colors[1].hue = 30;
   colors[1].sat = 32;
   colors[1].val = 128;
   // put your setup code here, to run once:
@@ -104,10 +111,10 @@ struct rgbw hsv2rgbw(struct hsv color)
 void writecolor(int pin, struct rgbw color)
 {
   const int scale = 1023;
-  analogWrite(pins[pin*4  ], (uint16_t)(color.red   * scale));
-  analogWrite(pins[pin*4+1], (uint16_t)(color.green * scale));
-  analogWrite(pins[pin*4+2], (uint16_t)(color.blue  * scale));
-  analogWrite(pins[pin*4+3], (uint16_t)(color.white * scale));
+  analogWrite(pins[pin*4  ], (uint16_t)(pow(color.red   ,gammacorrection[0]) * scale));
+  analogWrite(pins[pin*4+1], (uint16_t)(pow(color.green ,gammacorrection[1]) * scale));
+  analogWrite(pins[pin*4+2], (uint16_t)(pow(color.blue  ,gammacorrection[2]) * scale));
+  analogWrite(pins[pin*4+3], (uint16_t)(pow(color.white ,gammacorrection[3]) * scale));
 }
 
 void loop() {
@@ -137,6 +144,14 @@ void loop() {
         writecolor(s, hsv2rgbw(curcolors[s]));
       }
     }
+}
+
+void set_off()
+{
+  for (int i = 0; i < numsets; i++) {
+    colors[i].val = 0;
+  }
+  setcolor = 1;
 }
 
 void handle_set()

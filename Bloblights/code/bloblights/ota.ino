@@ -31,6 +31,7 @@ void ota_do_setup()
       // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
       Serial.println("Start updating " + type);
 #endif
+      set_off();
     });
   ArduinoOTA.onEnd([]() {
 #ifdef SERIALOUT
@@ -51,6 +52,7 @@ void ota_do_setup()
       else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
       else if (error == OTA_END_ERROR) Serial.println("End Failed");
 #endif
+      set_off();
     });
 
   ArduinoOTA.begin();
