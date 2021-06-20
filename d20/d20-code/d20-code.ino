@@ -20,8 +20,20 @@ const int joyX = 14;
 const int joyY = 12;
 const int joyIN = A0;
 
+
+const int numsets = 6;
+struct hsv {
+  int hue, sat, val;
+} colors[numsets];
+struct hsv curcolors[numsets];
+unsigned long setcolor = 0;
+
+unsigned long tick = 0;
+unsigned long ctick = 0;
+
 void setup()
 {
+    set_initial();
     pinMode(joyGnd, OUTPUT);
     pinMode(joyX, OUTPUT);
     pinMode(joyY, OUTPUT);
@@ -66,15 +78,6 @@ void setup()
     server.begin();
 }
 
-const int numsets = 6;
-struct hsv {
-  int hue, sat, val;
-} colors[numsets];
-struct hsv curcolors[numsets];
-unsigned long setcolor = 0;
-
-unsigned long tick = 0;
-unsigned long ctick = 0;
 
 void loop()
 {
@@ -263,4 +266,14 @@ void handle_get()
     json[i]["val"] = colors[i].val;
   }
   server.send(200, "application/json", json.as<String>());
+}
+
+void set_initial()
+{
+  for (int i = 0; i < numsets; i++) {
+    colors[i].hue = 354;
+    colors[i].sat = 200;
+    colors[i].val = 255;
+  }
+  setcolor = 50;
 }

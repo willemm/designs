@@ -30,7 +30,11 @@ kext = off*2;
 kwid = off*(xside*2+xextra);
 khei = off*(yside*2*s3/2+yextra);
 
+skiptri = 2;
 
+scrx = -kwid/2-kext+25;
+scry = -khei/2+57;
+scrz = 7-mpthick;
 
 if (doobs == 1) {
     rotate([0,180,0]) keyplaneleft();
@@ -53,16 +57,17 @@ if (doobs == 1) {
 } else if (doobs == 10) {
     coverconnector();
 } else {
-    color("green") translate([0,0,-1.1]) {
-        translate([ 0,0,0]) keyplaneleft();
+    *keycover();
+    *color("green") translate([0,0,-1.1]) {
+        *translate([ 0,0,0]) keyplaneleft();
         translate([-0,0,0]) keyplaneright();
     }
-    *color("lightgreen") translate([0,0,-1.05]) {
-        keyholderleft();
+    color("lightgreen") translate([0,0,-1.05]) {
+        *keyholderleft();
         keyholderright();
     }
-    color("lightblue") translate([0,0, mpthick-0.9]) {
-        translate([ 0,0,0]) keycoverleft();
+    *color("lightblue") translate([0,0, mpthick-0.9]) {
+        *translate([ 0,0,0]) keycoverleft();
         translate([-0,0,0]) keycoverright();
     }
     *color("blue") {
@@ -74,9 +79,28 @@ if (doobs == 1) {
         mirror([0,1,0]) coverconnector();
     }
 
+    color("yellow") translate([scrx,scry,scrz]) screen();
     *keycaps();
     *wires();
     *bolts();
+}
+
+module screen()
+{
+    hlx = 40;
+    hly = 84.7;
+    hld = 3;
+    difference() {
+        union() {
+            translate([0,0,-3.3/2]) cube([37,79,3.3], true);
+            translate([0,0,-3.3+1.6/2]) cube([46,91,1.6], true);
+            translate([0,0,-5/2]) cube([30,70,5], true);
+            translate([0,-40,-3.3-6.2/2]) cube([23,8,6.2], true);
+        }
+        for (x=[-1,1], y=[-1,1]) {
+            translate([x*hlx/2,y*hly/2,-5]) cylinder(5,hld/2,hld/2,$fn=32);
+        }
+    }
 }
 
 module coverconnector()
@@ -273,6 +297,7 @@ module keycoverright()
         translate([-kext/2-tol,-(khei/2)-1.2,-conhi/2-2])
             rotate([-90,0,0]) cylinder(1.2,conhi/2,conhi/2,$fn=4);
     }
+    
     translate([-kext/2-tol, (khei/2-5),chi+0.5]) rotate([0,0,0])
         cylinder(1,1,1, true, $fn=4);
     difference() {
@@ -356,32 +381,8 @@ module keycover()
     tothi = hi+dpt+thick;
     bevel = 8;
     translate([0,0,hi]) difference() {
-        translate([-kext/2,0,0]) intersection() {
-          union() {
-            translate([0,0,thick/2]) cube([kw,kh,thick], true);
-            translate([-(kw-thick)/2, 0, (-hi-dpt)/2])
-              cube([thick, kh, hi+dpt], true);
-            translate([ (kw-thick)/2, 0, (-hi-dpt)/2])
-              cube([thick, kh, hi+dpt], true);
-            translate([0, -(kh-thick)/2, (-hi-dpt)/2])
-              cube([kw, thick, hi+dpt], true);
-            translate([0,  (kh-thick)/2, (-hi-dpt)/2])
-              cube([kw, thick, hi+dpt], true);
-            
-            translate([-(kw-thick-1)/2, 0, -hi/2]) cube([thick+1, kh, hi], true);
-            translate([ (kw-thick-1)/2, 0, -hi/2]) cube([thick+1, kh, hi], true);
-            translate([0, -(kh-thick-1)/2, -hi/2]) cube([kw, thick+1, hi], true);
-            translate([0,  (kh-thick-1)/2, -hi/2]) cube([kw, thick+1, hi], true);
-              
-            translate([-(kw-thick-1)/2, 0, 0]) rotate([0,45,0])
-              cube([bevel/s2, kh, bevel/s2], true);
-            translate([ (kw-thick-1)/2, 0, 0]) rotate([0,45,0])
-              cube([bevel/s2, kh, bevel/s2], true);
-            translate([0, -(kh-thick-1)/2, 0]) rotate([45,0,0])
-              cube([kw, bevel/s2, bevel/s2], true);
-            translate([0,  (kh-thick-1)/2, 0]) rotate([45,0,0])
-              cube([kw, bevel/s2, bevel/s2], true);
-
+        translate([-kext/2,0,0]) union() {
+            translate([0,0,-dpt-hi]) keycover_box();
             // Bolthole cubes
             for ( x = [-(kwid/2-boltoff+kext/2),(kwid/2-boltoff+kext/2),
                        -off/2,off/2],
@@ -390,17 +391,6 @@ module keycover()
                     cube([10,10,hi],true);
 
             }
-          }
-          
-          translate([0,0,-(hi+dpt-thick+bevel/2)/2]) rotate([45,0,0])
-            cube([kw+0.1,(kh+tothi-bevel/2)/s2,(kh+tothi-bevel/2)/s2],true);
-          translate([0,0,-(hi+dpt-thick+bevel/2)/2]) rotate([0,45,0])
-            cube([(kw+tothi-bevel/2)/s2,kh+0.1,(kw+tothi-bevel/2)/s2],true);
-          translate([0,0,-(hi+dpt-thick)/2]) rotate([0,0,45])
-            cube([(kw+kh-2)/s2,(kw+kh-2)/s2,tothi+0.1],true);
-          
-          // Slice a bit off the top because maths is hard
-          translate([0,0,-(dpt+hi)/2]) cube([kw,kh,(dpt+hi+ythick*2)], true);
         }
         
         // Main hex keys
@@ -413,7 +403,7 @@ module keycover()
         // Side triangle keys
         o = 5;
         d = 22;
-        for (col = [-yside:2:yside]) {
+        for (col = [-yside+skiptri*2:2:yside]) {
             xcol = off*s3*((floor((col+2)/4))*1.5+smallkeyoff)-7+14*(floor(col/2+yside)%2);
             translate([-kwid/2-off*s3/2, xcol, -hi])
                 linear_extrude(height=thick+hi+0.1)
@@ -422,6 +412,10 @@ module keycover()
                     [sin(a-o)*d/s3, cos(a-o)*d/s3],
                     [sin(a+o)*d/s3, cos(a+o)*d/s3]]]);
         }
+        
+        // Screen
+        translate([scrx,scry,0]) cube([29,67,3], true);
+        
         // Bolt holes
         for ( x = [-(kwid/2-boltoff)-kext,(kwid/2-boltoff),
                    -off/2-kext/2,off/2-kext/2],
@@ -467,6 +461,56 @@ module keycover()
         translate([x,y,hi-4]) scale([1,2,1]) cylinder(1,0.2,1,false,$fn=60);
     }
 }
+
+module keycover_box()
+{
+    thick = 2;
+    ythick = 1;
+    dia=off+1;
+    hi=coverhi-mpthick;
+    dpt=20;
+    
+    kw = kwid+thick*2+0.2+kext;
+    kh = khei+thick*2+0.2;
+    tothi = hi+dpt+thick;
+    bevel = 6;
+    hbev = 1;
+    ibev = 5;
+    o1 = thick*2;
+    o2 = thick*2 + thick;
+    o3 = thick*2 + thick + ibev;
+    polyhedron(
+        points=concat(
+            brect(kw-o3,kh-o3,dpt+hi,0),
+            brect(kw-o2,kh-o2,dpt+hi-ibev/2,0),
+            brect(kw-o2,kh-o2,dpt,0),
+            brect(kw-o1,kh-o1,dpt,0),
+            brect(kw-o1,kh-o1,0,0),
+            brect(kw,kh,0,hbev),
+            brect(kw,kh,hi+dpt+thick/2-bevel/2,hbev),
+            brect(kw-bevel,kh-bevel,hi+dpt+thick/2,0)
+        ),
+        faces=concat(
+            topface(8,0),
+            nquads(8,0),
+            nquads(8,8),
+            nquads(8,16),
+            nquads(8,24),
+            nquads(8,32),
+            nquads(8,40),
+            nquads(8,48),
+            botface(8,56)
+        ),
+        convexity=4
+    );
+}
+
+function brect(w,h,z,b) = [
+    [ w/2,-h/2+b,z], [ w/2-b,-h/2,z],
+    [-w/2+b,-h/2,z], [-w/2,-h/2+b,z],
+    [-w/2, h/2-b,z], [-w/2+b, h/2,z],
+    [ w/2-b, h/2,z], [ w/2, h/2-b,z]
+    ];
 
 module trikeycap(thick=2, dia=20)
 {
@@ -629,7 +673,7 @@ module keyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
             }
             
             // Triangle keys
-            for (col = [-yside:2:yside]) {
+            for (col = [-yside+skiptri*2:2:yside]) {
                 xcol = off*s3*((floor((col+2)/4))*1.5+smallkeyoff)-7+14*(floor(col/2+yside)%2);
                 translate([-kwid/2-off*s3/2, xcol, (tkthick)/2+0.2])
                     cube([12, 14, tkthick+0.4], true);
@@ -647,7 +691,7 @@ module keyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
         }
         
         // Side triangle keys
-        for (col = [-yside:2:yside]) {
+        for (col = [-yside+skiptri*2:2:yside]) {
             xcol = off*s3*((floor((col+2)/4))*1.5+smallkeyoff)-7+14*(floor(col/2+yside)%2);
             translate([-kwid/2-off*s3/2, xcol, 0]) {
                 translate([0,0,(tkthick)/2-0.001])
