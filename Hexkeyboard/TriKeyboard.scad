@@ -5,20 +5,20 @@ s3 = sqrt(3);
 s2 = sqrt(2);
 off = 22;
 
-rnd = 36;
+rnd = 120;
 
 boltoff = 5.5;
 ribthick = 2;
 coverhi = 7;
 mpthick = 1;
 
-textra = 62;
+textra = 58;
   
-cdia = 36;
+cdia = 34;
 kdia = off*(tside*2)+textra-cdia*2;
 
 kext = 0;
-
+sholes = 1; // Turn on speaker holes
 
 screendia = 35.6;
 screentab1 = 14.5;
@@ -28,19 +28,29 @@ screentabo = 3;
 
 speakerdia = 48.5;
 
-tkeycaps();
+translate([0,0,0]) tkeycaps();
 color("lightblue") tkeycover();
 color("green") translate([0,0,-1.1]) tkeyplane();
 color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
-rotate([0,0,120]) speaker();
-rotate([0,0,240]) speaker();
+*rotate([0,0,120]) speaker();
+*rotate([0,0,240]) speaker();
 
-*color("blue") translate([-50,-kdia/2, -4]) ampboard();
+*color("teal") translate([6,-kdia/2-cdia+2.1 +6, coverhi-1.1])
+    rotate([-90,0,0]) ampboard();
+
+color("teal") translate([21*s3,kdia+cdia-2.1 -31, coverhi-12])
+    rotate([180,0,-60]) ampboard();
 
 module ampboard()
 {
-    translate([0,-29.9/2,-1.6/2]) cube([30.2, 29.9, 1.6], true);
+    translate([0,29.9/2,1.6/2]) cube([30.2, 29.9, 1.6], true);
+    translate([-6, 4.5, 3]) cylinder(2, 8, 8, false, $fn=32);
+    translate([-6, 4.5, 1.6]) cylinder(1.5, 5, 5, false, $fn=32);
+    translate([9.9,25.7,11.6/2]) cube([10, 7.8, 11.6], true);
+    translate([-0.6,25.7,11.6/2]) cube([10, 7.8, 11.6], true);
+    translate([-13.6, 20.7, 5]) cube([2.5, 18, 10], true);
+    translate([-2.8, 17.5, 0]) cylinder(13.7, 2.6, 2.6, $fn=32);
 }
 
 module speaker()
@@ -108,7 +118,7 @@ module tkeycover()
     ythick = 1;
     dia=off+1;
     hi=coverhi-mpthick;
-    dpt=20;
+    dpt=22;
     srd = (screendia+0.4)/2;
 
     
@@ -116,7 +126,7 @@ module tkeycover()
     bevel = 8;
     translate([0,0,hi]) difference() {
         translate([-kext/2,0,0]) union() {
-            translate([0,0,-dpt-hi]) tkeycover_box();
+            translate([0,0,-dpt-hi]) tkeycover_box(dpt);
             // Screen
             translate([0,kdia,ythick-2.4]) cylinder(1.5, srd+1, srd+2, false, $fn=rnd);
             // Speakers
@@ -142,8 +152,9 @@ module tkeycover()
             [-tb1,th1],[tb1,th1],[tb2,th2],[-tb2,th2]
         ]);
         
+        
         // Speakers cutout
-        for (a=[120,240]) rotate([0,0,a]) {
+        if (sholes) for (a=[120,240]) rotate([0,0,a]) {
             translate([0,kdia, -3.01]) {
                 cylinder(3.01, 24.5, 24.5, false);
             }
@@ -158,21 +169,20 @@ module tkeycover()
     }
 }
 
-module tkeycover_box()
+module tkeycover_box(dpt=20)
 {
     thick = 2;
     ythick = 1;
     dia=off+1;
     hi=coverhi-mpthick;
-    dpt=20;
     
-    tothi = hi+dpt+thick;
+    // tothi = hi+dpt+thick;
     bevel = 6;
     hbev = 1;
     ibev = 4;
-    o1 = thick*2;
-    o2 = thick*2 + thick;
-    o3 = thick*2 + thick + ibev;
+    o1 = thick;
+    o2 = thick + thick;
+    o3 = thick + thick + ibev;
     
     ang = 360/rnd;
     nsd = 360/ang + 3;
@@ -184,8 +194,8 @@ module tkeycover_box()
             rounded_poly(kdia, dpt, cdia-o1,ang),
             rounded_poly(kdia, 0  , cdia-o1,ang),
             rounded_poly(kdia, 0, cdia,ang),
-            rounded_poly(kdia, hi+dpt+thick/2-bevel,cdia,ang),
-            rounded_poly(kdia,hi+dpt+thick/2,cdia-bevel,ang)
+            rounded_poly(kdia, hi+dpt+ythick-bevel,cdia,ang),
+            rounded_poly(kdia,hi+dpt+ythick,cdia-bevel,ang)
         ),
         faces=topnquadbot(nsd, 8),
         convexity=4
@@ -328,8 +338,8 @@ module tkeyplane_box(thick=2, off=2)
     nsd = 360/ang + 3;
     polyhedron(
         points=concat(
-            rounded_poly(kdia, 0, cdia-off*2-0.1, ang),
-            rounded_poly(kdia, thick, cdia-off*2-0.1, ang)
+            rounded_poly(kdia, 0, cdia-off-0.1, ang),
+            rounded_poly(kdia, thick, cdia-off-0.1, ang)
         ),
         faces=topnquadbot(nsd, 2),
         convexity=4
