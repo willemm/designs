@@ -2,6 +2,7 @@ use <Keyboard.scad>;
 
 tside=2;
 s3 = sqrt(3);
+s2 = sqrt(2);
 off = 22;
 
 rnd = 36;
@@ -30,9 +31,10 @@ speakerdia = 48.5;
 tkeycaps();
 color("lightblue") tkeycover();
 color("green") translate([0,0,-1.1]) tkeyplane();
-color("lightgreen") translate([0,kdia,coverhi-0.5]) roundscreen();
+color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
 rotate([0,0,120]) speaker();
-*rotate([0,0,240]) speaker();
+rotate([0,0,240]) speaker();
 
 *color("blue") translate([-50,-kdia/2, -4]) ampboard();
 
@@ -148,7 +150,7 @@ module tkeycover()
             translate([0, kdia, -0.01])
                 cylinder(1.02, 1, 1, false, $fn=24);
 
-            for (d=[1:7], an=[360/(d*6)+30:360/(d*6):360+30]) {
+            for (d=[1:6], an=[360/(d*6)+30:360/(d*6):360+30]) {
                 translate([sin(an)*d*3, kdia+cos(an)*d*3, -0.01])
                 cylinder(1.02, 1, 1, false, $fn=24);
             }
@@ -205,11 +207,7 @@ module tkeyplane()
     
     difference() {
         union() {
-            translate([0,0,-thick]) tkeyplane_box();
-            *for (x=[-1,1], y=[-1,1]) {
-                translate([x*pinx, y*piny+kdia, thick-0.1])
-                    cylinder(4-pinl, 2, 2, false, $fn=32);
-            }
+            translate([0,0,-thick]) tkeyplane_box(thick, thick);
                 
             // horizontal ribs
             for (col = [-tside-0.5:tside+0.5]) {
@@ -245,27 +243,93 @@ module tkeyplane()
             translate([0, kdia, -8.01]) {
                 cylinder(8.02, 22.5, 22.5, false);
                 rotate([0,0,270-a*1.5]) translate([0, 21, 6])
-                    cube([23, 4, 8], true);
+                    cube([23, 7, 8], true);
+            }
+        }
+    }
+}
+
+module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
+{
+    tkthick = 3.8;
+    lcl = 7;
+    lch = 5;
+    lct = 1.2;
+
+    // Screen pins
+    pind = 3.5;
+    pinl = 2.4;
+    pinx = (30-pind)/2;
+    piny = (22.1-pind)/2;
+    
+    translate([0,0,0]) difference() {
+        union() {
+            translate([0,0,0]) tkeyplane_box(thick, 2);
+            // Screen pins
+            for (x=[-1,1], y=[-1,1]) {
+                translate([x*pinx, y*piny+kdia, thick-0.2])
+                    cylinder(5-pinl, 2.8, 2.5, false, $fn=32);
+            }
+
+            // Normal hex keys
+            for (col = [-tside:tside], row = [-(tside-abs(col)/2):(tside-abs(col)/2)]) {
+                translate([off*row, off*col*s3/2, 1]) {
+                    cube([18,18,2], true);
+                    translate([0,7+lct,0]) rotate([90,0,0])
+                      linear_extrude(height=lct) polygon([
+                        [-5,0],[-3,lch],[3,lch],[5,0]
+                      ]);
+                    // translate([0,(14+lct)/2,lch/2]) cube([lcl,lct,lch], true);
+                }
+            }
+
+            // Speakers
+            for (a=[120,240]) rotate([0,0,a]) {
+                translate([0,kdia, 0])
+                    cylinder(2.9, 26, 25, false, $fn=rnd);
+            }
+        }
+        
+        // Normal hex keys
+        for (col = [-tside:tside], row = [-(tside-abs(col)/2):(tside-abs(col)/2)]) {
+            translate([off*row, off*col*s3/2, thick/2-0.01/2])
+                cube([16,16,thick+0.01], true);
+            translate([off*row, off*col*s3/2 ,0.999])
+                rotate([0,0,45]) cylinder(1.002,16/s2,(16-2)/s2, $fn=4);
+
+        }
+
+        // Screen connector
+        translate([0,kdia+10,thick/2]) cube([21, 18, 1.01], true);
+        // Screen pins
+        for (x=[-1,1], y=[-1,1]) {
+            translate([x*pinx, y*piny+kdia, -0.01])
+                cylinder(1.52, 1.25, 1.25, false, $fn=32);
+            translate([x*pinx, y*piny+kdia, 1.5])
+                cylinder(2, 1.8, 1.8, false, $fn=32);
+        }
+        // Speakers
+        for (a=[120,240]) rotate([0,0,a]) {
+            translate([0, kdia, -0.01]) {
+                cylinder(3.01, 23, 23, false, $fn=rnd);
+                rotate([0,0,270-a*1.5]) translate([0, 21, 1.5])
+                    cube([23, 7, 3.01], true);
+                rotate([0,0,270-a*1.5]) translate([0, 21, 2.11])
+                    cube([23, 10, 2.2], true);
             }
         }
     }
 
-
 }
 
-module tkeyplane_box()
+module tkeyplane_box(thick=2, off=2)
 {
-    thick = 2;
-    kthick = 1.4;
-    rh = 6;
-    skthick = 1.6;
-
     ang = 10;
     nsd = 360/ang + 3;
     polyhedron(
         points=concat(
-            rounded_poly(kdia, 0, cdia-thick*2-0.1, ang),
-            rounded_poly(kdia, thick, cdia-thick*2-0.1, ang)
+            rounded_poly(kdia, 0, cdia-off*2-0.1, ang),
+            rounded_poly(kdia, thick, cdia-off*2-0.1, ang)
         ),
         faces=topnquadbot(nsd, 2),
         convexity=4
