@@ -7,7 +7,10 @@ off = 22;
 
 rnd = 120;
 
-boltoff = 5.5;
+boltoff = 6.5;
+boltspa = 45;
+ampboltspa = 28;
+
 ribthick = 2;
 coverhi = 7;
 mpthick = 1;
@@ -33,14 +36,16 @@ color("lightblue") tkeycover();
 color("green") translate([0,0,-1.1]) tkeyplane();
 color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
-*rotate([0,0,120]) speaker();
-*rotate([0,0,240]) speaker();
+rotate([0,0,120]) speaker();
+rotate([0,0,240]) speaker();
+color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
+    rotate([180,0,-60]) ampboard();
 
+/*
 *color("teal") translate([6,-kdia/2-cdia+2.1 +6, coverhi-1.1])
     rotate([-90,0,0]) ampboard();
+    */
 
-color("teal") translate([21*s3,kdia+cdia-2.1 -31, coverhi-12])
-    rotate([180,0,-60]) ampboard();
 
 module ampboard()
 {
@@ -134,8 +139,34 @@ module tkeycover()
                 translate([0,kdia, -2])
                     cylinder(2, 26, 27, false, $fn=rnd);
             }
+
+            // Bolt hole cubes
+            // Backside
+            for (x=[-boltspa,boltspa]) translate([x, -kdia/2-cdia+thick+6.99, -hi/2+0.01]) tbolt_cube(10,10.02,hi+0.02,4);
+            // Side with amp
+            rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
+                translate([x, -kdia/2-cdia+thick+6.99, -hi/2+0.01]) tbolt_cube(10,10.01,hi+0.01,4);
+            // Third side
+            rotate([0,0,240]) for (x=[-boltspa,boltspa])
+                translate([x, -kdia/2-cdia+thick+6.99, -hi/2+0.01]) tbolt_cube(10,10.01,hi+0.01,4);
         }
         
+        // Bolt holes
+        // Backside
+        for (x=[-boltspa,boltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -6.01]) cylinder(hi, 2.1, 2.1, $fn=32);
+            translate([x, -kdia/2-cdia+thick+boltoff+0.5, -3]) cube([6, 10, 2.5], true);
+        }
+        // Side with amp
+        rotate([0,0,120]) for (x=[-boltspa,ampboltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -6.01]) cylinder(hi, 2.1, 2.1, $fn=32);
+            translate([x, -kdia/2-cdia+thick+boltoff+0.5, -3]) cube([6, 10, 2.5], true);
+        }
+        // Third side
+        rotate([0,0,240]) for (x=[-boltspa,boltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -6.01]) cylinder(hi, 2.1, 2.1, $fn=32);
+            translate([x, -kdia/2-cdia+thick+boltoff+0.5, -3]) cube([6, 10, 2.5], true);
+        }
         // Main hex keys
         for (col = [-tside:tside], row = [-(tside-abs(col)/2):(tside-abs(col)/2)]) {
             translate([off*row, off*col*s3/2, -hi-0.1])
@@ -166,6 +197,26 @@ module tkeycover()
                 cylinder(1.02, 1, 1, false, $fn=24);
             }
         }
+        
+        // Amp cutout
+        translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4-hi]) rotate([180,0,-60]) {
+            translate([-6, 4.5, 2.5]) cylinder(3, 9, 9, false, $fn=32);
+            translate([-6, 4.5, 1.5]) cylinder(1.01, 6, 6, false, $fn=32);
+        }
+        
+    }
+
+    // Sacrificial layer for bolt holes
+    for (x=[-boltspa,boltspa]) {
+        translate([x, -kdia/2-cdia+thick+boltoff+0.5, hi-4.35]) #cube([8,8,0.2], true);
+    }
+    // Side with amp
+    rotate([0,0,120]) for (x=[-boltspa,ampboltspa]) {
+        translate([x, -kdia/2-cdia+thick+boltoff+0.5, hi-4.35]) #cube([8,8,0.2], true);
+    }
+    // Third side
+    rotate([0,0,240]) for (x=[-boltspa,boltspa]) {
+        translate([x, -kdia/2-cdia+thick+boltoff+0.5, hi-4.35]) #cube([8,8,0.2], true);
     }
 }
 
@@ -202,6 +253,13 @@ module tkeycover_box(dpt=20)
     );
 }
 
+module tbolt_cube(x, y, z, b)
+{
+    rotate([0,90,0]) translate([0,0,-y/2]) linear_extrude(height=y) polygon([
+        [z/2,x/2],[z/2,-x/2],[-z/2+b,-x/2],[-z/2,-x/2+b],[-z/2,x/2]
+    ]);
+}
+
 module tkeyplane()
 {
     thick = 2;
@@ -233,6 +291,24 @@ module tkeyplane()
                 translate([off*row, off*col*s3/2, -rh/2]) cube([ribthick, off*s3/2, rh], true);
                 translate([off*row, off*col*s3/2-2.1-(3.3*((col+tside+1)%2)), -rh]) wireclip_x();
             }
+
+            // Amp holder
+            translate([20.9*s3,kdia+cdia-2.1 -31, -2]) rotate([180,0,-60]) {
+                // Right side
+                translate([-30.2/2-2/2, 19/2, 6/2]) cube([2, 19, 6], true);
+                translate([-30.2/2, 19/2, 2.3/2]) cube([1, 19, 2.3], true);
+
+                // Left side
+                translate([30.2/2+2/2, 30/2, 6/2]) cube([2, 30, 6], true);
+                translate([30.2/2, 30/2, 2.3/2]) cube([4, 30, 2.3], true);
+
+                // Back
+                translate([0.6,30+2/2,6/2]) cube([33, 2, 6], true);
+                translate([2.5,30,2.3/2]) cube([29, 4, 2.3], true);
+
+                // Bottom
+                translate([0, 4+6/2, 2.3/2]) cube([30, 6, 2.3], true);
+            }
         }
         
         // Normal hex keys
@@ -246,16 +322,28 @@ module tkeyplane()
         for (x=[-1,1], y=[-1,1]) {
             translate([x*pinx, y*piny+kdia, -1.1-thick/2])
                 cylinder(4, 1.25, 1.25, false, $fn=32);
+            translate([x*pinx, y*piny+kdia, -12])
+                cylinder(10, 2.75, 2.75, false, $fn=32);
         }
         
         // Speakers
         for (a=[120,240]) rotate([0,0,a]) {
             translate([0, kdia, -8.01]) {
                 cylinder(8.02, 22.5, 22.5, false);
-                rotate([0,0,270-a*1.5]) translate([0, 21, 6])
+                rotate([0,0,90-a*1.5]) translate([0, 21, 6])
                     cube([23, 7, 8], true);
             }
         }
+
+        // Bolt holes
+        // Backside
+        for (x=[-boltspa,boltspa]) translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
+        // Side with amp
+        rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
+            translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
+        // Third side
+        rotate([0,0,240]) for (x=[-boltspa,boltspa])
+            translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
     }
 }
 
@@ -322,12 +410,21 @@ module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
         for (a=[120,240]) rotate([0,0,a]) {
             translate([0, kdia, -0.01]) {
                 cylinder(3.01, 23, 23, false, $fn=rnd);
-                rotate([0,0,270-a*1.5]) translate([0, 21, 1.5])
+                rotate([0,0,90-a*1.5]) translate([0, 21, 1.5])
                     cube([23, 7, 3.01], true);
-                rotate([0,0,270-a*1.5]) translate([0, 21, 2.11])
+                rotate([0,0,90-a*1.5]) translate([0, 21, 2.11])
                     cube([23, 10, 2.2], true);
             }
         }
+        // Bolt holes
+        // Backside
+        for (x=[-boltspa,boltspa]) translate([x, -kdia/2-cdia+2+boltoff, -0.01]) cylinder(1.02, 2.1, 2.1, $fn=32);
+        // Side with amp
+        rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
+            translate([x, -kdia/2-cdia+2+boltoff, -0.01]) cylinder(1.02, 2.1, 2.1, $fn=32);
+        // Third side
+        rotate([0,0,240]) for (x=[-boltspa,boltspa])
+            translate([x, -kdia/2-cdia+2+boltoff, -0.01]) cylinder(1.02, 2.1, 2.1, $fn=32);
     }
 
 }
