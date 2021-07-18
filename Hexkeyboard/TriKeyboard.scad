@@ -10,6 +10,7 @@ rnd = 120;
 boltoff = 6.5;
 boltspa = 45;
 ampboltspa = 28;
+espboltspa = 25;
 
 ribthick = 2;
 coverhi = 7;
@@ -31,6 +32,10 @@ screentabo = 3;
 
 speakerdia = 48.5;
 
+esp32xoff = -14.8*s3;
+esp32yoff = -2.1-12.8;
+esp32zoff = 3;
+
 translate([0,0,0]) tkeycaps();
 color("lightblue") tkeycover();
 color("green") translate([0,0,-1.1]) tkeyplane();
@@ -40,12 +45,35 @@ rotate([0,0,120]) speaker();
 rotate([0,0,240]) speaker();
 color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
     rotate([180,0,-60]) ampboard();
+color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
+    rotate([180,0,-30]) esp32();
+    
 
 /*
 *color("teal") translate([6,-kdia/2-cdia+2.1 +6, coverhi-1.1])
     rotate([-90,0,0]) ampboard();
     */
 
+
+module esp32()
+{
+    ewi = 31.5;
+    ehi = 39;
+    eth = 0.9;
+    ebz = 2.7;
+    ehh = 6;
+    ehw = 2.7;
+    
+    linear_extrude(height=eth) polygon([
+        [0,ebz],[ebz,0],[ewi-ebz,0],[ewi,ebz],
+        [ewi,ehi-ehh],[ewi-ehw,ehi-ehh],[ewi-ehw,ehi],
+        [0,ehi]
+    ]);
+    translate([6.6, 0.4, eth]) cube([18.1, 25.5, 0.9], false);
+    translate([7.8, 7.3, eth+0.9]) cube([15.7, 17.7, 2.4], false);
+    translate([11.7, 34.1, eth]) cube([7.7, 5.5, 2.6], false);
+    translate([25.8, 33.7, eth]) cube([3.5, 4.8, 2.0], false);
+}
 
 module ampboard()
 {
@@ -146,8 +174,8 @@ module tkeycover()
             // Side with amp
             rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
                 translate([x, -kdia/2-cdia+thick+6.99, -hi/2+0.01]) tbolt_cube(10,10.01,hi+0.01,4);
-            // Third side
-            rotate([0,0,240]) for (x=[-boltspa,boltspa])
+            // Side with esp32
+            rotate([0,0,240]) for (x=[-espboltspa,boltspa])
                 translate([x, -kdia/2-cdia+thick+6.99, -hi/2+0.01]) tbolt_cube(10,10.01,hi+0.01,4);
         }
         
@@ -162,8 +190,8 @@ module tkeycover()
             translate([x, -kdia/2-cdia+thick+boltoff, -6.01]) cylinder(hi, 2.1, 2.1, $fn=32);
             translate([x, -kdia/2-cdia+thick+boltoff+0.5, -3]) cube([6, 10, 2.5], true);
         }
-        // Third side
-        rotate([0,0,240]) for (x=[-boltspa,boltspa]) {
+        // Side with esp32
+        rotate([0,0,240]) for (x=[-espboltspa,boltspa]) {
             translate([x, -kdia/2-cdia+thick+boltoff, -6.01]) cylinder(hi, 2.1, 2.1, $fn=32);
             translate([x, -kdia/2-cdia+thick+boltoff+0.5, -3]) cube([6, 10, 2.5], true);
         }
@@ -214,8 +242,8 @@ module tkeycover()
     rotate([0,0,120]) for (x=[-boltspa,ampboltspa]) {
         translate([x, -kdia/2-cdia+thick+boltoff+0.5, hi-4.35]) #cube([8,8,0.2], true);
     }
-    // Third side
-    rotate([0,0,240]) for (x=[-boltspa,boltspa]) {
+    // Side with esp32
+    rotate([0,0,240]) for (x=[-espboltspa,boltspa]) {
         translate([x, -kdia/2-cdia+thick+boltoff+0.5, hi-4.35]) #cube([8,8,0.2], true);
     }
 }
@@ -303,11 +331,33 @@ module tkeyplane()
                 translate([30.2/2, 30/2, 2.3/2]) cube([4, 30, 2.3], true);
 
                 // Back
-                translate([0.6,30+2/2,6/2]) cube([33, 2, 6], true);
+                translate([0.16,30+2/2,6/2]) cube([33, 2, 6], true);
                 translate([2.5,30,2.3/2]) cube([29, 4, 2.3], true);
 
                 // Bottom
-                translate([0, 4+6/2, 2.3/2]) cube([30, 6, 2.3], true);
+                translate([0, 4+6/2, 2.3/2]) cube([3, 6, 2.3], true);
+            }
+            
+            // esp32 holder
+            translate([esp32xoff, kdia+cdia+esp32yoff, -2]) rotate([180,0,-30]) {
+                ewi = 31.5;
+                ehi = 39;
+                // bottom side
+                translate([0.5,-2,0]) cube([13.5, 2, esp32zoff+3], false);
+                translate([0.5,-2,0]) cube([13.5, 4, esp32zoff], false);
+                
+                // top side
+                translate([0, ehi, 0]) cube([11, 2, esp32zoff+3], false);
+                translate([20, ehi, 0]) cube([ewi-22, 2, esp32zoff+3], false);
+                translate([0, ehi-2, 0]) cube([ewi-2, 4, esp32zoff], false);
+                
+                // right side
+                translate([ewi, 2.655, 0]) cube([2, ehi-10+0.345, esp32zoff+3], false);
+                translate([ewi-2, 2.655, 0]) cube([4, 3.345, esp32zoff], false);
+                translate([ewi-0.5, 2.655, 0]) cube([2.5, ehi-10+0.345, esp32zoff], false);
+                
+                // Middle
+                translate([ewi/2, ehi/2, 0]) cylinder(esp32zoff, 5, 5, false, $fn=32);
             }
         }
         
@@ -317,7 +367,7 @@ module tkeyplane()
             translate([off*row, off*col*s3/2, -kthick-thick/2]) cube([16,16,thick+0.1], true);
         }
         // Screen connector
-        translate([0,kdia+10,-thick/2]) cube([21, 18, 2.1], true);
+        translate([0,kdia+10,-thick/2-3]) cube([21, 18, 8.1], true);
         // Screen pins
         for (x=[-1,1], y=[-1,1]) {
             translate([x*pinx, y*piny+kdia, -1.1-thick/2])
@@ -341,8 +391,8 @@ module tkeyplane()
         // Side with amp
         rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
             translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
-        // Third side
-        rotate([0,0,240]) for (x=[-boltspa,boltspa])
+        // Side with esp32
+        rotate([0,0,240]) for (x=[-espboltspa,boltspa])
             translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
     }
 }
@@ -422,8 +472,8 @@ module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
         // Side with amp
         rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
             translate([x, -kdia/2-cdia+2+boltoff, -0.01]) cylinder(1.02, 2.1, 2.1, $fn=32);
-        // Third side
-        rotate([0,0,240]) for (x=[-boltspa,boltspa])
+        // Side with esp32
+        rotate([0,0,240]) for (x=[-espboltspa,boltspa])
             translate([x, -kdia/2-cdia+2+boltoff, -0.01]) cylinder(1.02, 2.1, 2.1, $fn=32);
     }
 
@@ -431,7 +481,7 @@ module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
 
 module tkeyplane_box(thick=2, off=2)
 {
-    ang = 10;
+    ang = 360/rnd;
     nsd = 360/ang + 3;
     polyhedron(
         points=concat(
