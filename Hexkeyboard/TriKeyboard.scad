@@ -11,8 +11,8 @@ rnd = 120;
 
 boltoff = 6.5;
 boltspa = 45;
-ampboltspa = 28;
-espboltspa = 25;
+ampboltspa = 27.5;
+espboltspa = 24.8;
 
 ribthick = 2;
 coverhi = 7;
@@ -24,7 +24,7 @@ cdia = 34;
 kdia = off*(tside*2)+textra-cdia*2;
 
 kext = 0;
-sholes = 0; // Turn on speaker holes
+sholes = 1; // Turn on speaker holes
 
 screendia = 35.6;
 screentab1 = 14.5;
@@ -38,10 +38,10 @@ esp32xoff = -14.8*s3;
 esp32yoff = -2.1-12.8;
 esp32zoff = 3;
 
-*translate([0,0,0]) tkeycaps();
-*color("lightblue") tkeycover();
+translate([0,0,0]) tkeycaps();
+color("lightblue") tkeycover();
 color("green") translate([0,0,-1.1]) tkeyplane();
-*color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 color("lightblue") tbottom();
 
 
@@ -564,6 +564,42 @@ module tbottom(dpt = boxdepth)
                 ]);
             }
 
+            // Bolt hole stems
+            // Backside
+            for (x=[-boltspa,boltspa])
+                translate([x, -kdia/2-cdia+thick+boltoff, 0]) cylinder(dpt-3.2, 5, 5, $fn=32);
+            // Side with amp
+            rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
+                translate([x, -kdia/2-cdia+thick+boltoff, 0]) cylinder(dpt-3.2, 5, 5, $fn=32);
+            // Side with esp32
+            rotate([0,0,240]) for (x=[-espboltspa,boltspa])
+                translate([x, -kdia/2-cdia+thick+boltoff, 0]) cylinder(dpt-3.2, 5, 5, $fn=32);
+
+        }
+
+        // Backside
+        for (x=[-boltspa,boltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -0.01]) {
+                cylinder(0.61, 4.4, 3.8, $fn=32);
+                cylinder(dpt-5.2 + 0.01, 3.8, 3.8, $fn=32);
+                cylinder(dpt-3.2+0.02, 2.1, 2.1, $fn=32);
+            }
+        }
+        // Side with amp
+        rotate([0,0,120]) for (x=[-boltspa,ampboltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -0.01]) {
+                cylinder(0.61, 4.4, 3.8, $fn=32);
+                cylinder(dpt-5.2 + 0.01, 3.8, 3.8, $fn=32);
+                cylinder(dpt-3.2+0.02, 2.1, 2.1, $fn=32);
+            }
+        }
+        // Side with esp32
+        rotate([0,0,240]) for (x=[-espboltspa,boltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -0.01]) {
+                cylinder(0.61, 4.4, 3.8, $fn=32);
+                cylinder(dpt-5.2 + 0.01, 3.8, 3.8, $fn=32);
+                cylinder(dpt-3.2+0.02, 2.1, 2.1, $fn=32);
+            }
         }
 
         // sd card
