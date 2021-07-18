@@ -22,7 +22,7 @@ cdia = 34;
 kdia = off*(tside*2)+textra-cdia*2;
 
 kext = 0;
-sholes = 1; // Turn on speaker holes
+sholes = 0; // Turn on speaker holes
 
 screendia = 35.6;
 screentab1 = 14.5;
@@ -47,13 +47,21 @@ color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
     rotate([180,0,-60]) ampboard();
 color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
     rotate([180,0,-30]) esp32();
+color("teal") translate([0,-kdia/2-cdia+3.4,-1.5-1.6-3.9])
+    rotate([0, 0, 0]) sdboard();
     
 
-/*
-*color("teal") translate([6,-kdia/2-cdia+2.1 +6, coverhi-1.1])
-    rotate([-90,0,0]) ampboard();
-    */
-
+module sdboard()
+{
+    swi = 18;
+    shi = 18;
+    sth = 1.6;
+    translate([-swi/2, 0, 0]) {
+        cube([swi,shi,sth], false);
+        translate([2.2, -2.6, sth]) cube([13.7, 11.8, 2.2], false);
+        translate([2, 15.3, -12]) cube([15, 2.5, 12], false);
+    }
+}
 
 module esp32()
 {
@@ -231,6 +239,9 @@ module tkeycover()
             translate([-6, 4.5, 2.5]) cylinder(3, 9, 9, false, $fn=32);
             translate([-6, 4.5, 1.5]) cylinder(1.01, 6, 6, false, $fn=32);
         }
+
+        // sd card cutout
+        translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.4-hi]) cube([14, 2.02, 2.4], false);
         
     }
 
@@ -370,6 +381,23 @@ module tkeyplane()
                 // Middle
                 translate([ewi/2, ehi/2, 0]) cylinder(esp32zoff, 5, 5, false, $fn=32);
             }
+
+            // sd module holder
+            translate([0,-kdia/2-cdia+2.1,-2]) {
+                // left side
+                translate([-11.1,0,-4]) cube([2,23,4], false);
+                translate([-11.1,4,-2.3]) cube([4,12,2.3], false);
+                translate([-11.1,0,-4]) cube([4, 1.2, 4], false);
+
+                // right side
+                translate([9.1,0,-4]) cube([2,23,4], false);
+                translate([7.1,4,-2.3]) cube([4,12,2.3], false);
+                translate([7.1,0,-4]) cube([4, 1.2, 4], false);
+
+                // bottom
+                translate([-11.1,19.4,-4]) cube([22.2,3,4], false);
+            }
+
         }
         
         // Normal hex keys
