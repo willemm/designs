@@ -5,6 +5,8 @@ s3 = sqrt(3);
 s2 = sqrt(2);
 off = 22;
 
+boxdepth = 22;
+
 rnd = 120;
 
 boltoff = 6.5;
@@ -36,10 +38,13 @@ esp32xoff = -14.8*s3;
 esp32yoff = -2.1-12.8;
 esp32zoff = 3;
 
-translate([0,0,0]) tkeycaps();
-color("lightblue") tkeycover();
+*translate([0,0,0]) tkeycaps();
+*color("lightblue") tkeycover();
 color("green") translate([0,0,-1.1]) tkeyplane();
-color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+*color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+color("lightblue") tbottom();
+
+
 color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
 rotate([0,0,120]) speaker();
 rotate([0,0,240]) speaker();
@@ -47,8 +52,7 @@ color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
     rotate([180,0,-60]) ampboard();
 color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
     rotate([180,0,-30]) esp32();
-color("teal") translate([0,-kdia/2-cdia+3.4,-1.5-1.6-3.9])
-    rotate([0, 0, 0]) sdboard();
+color("teal") translate([0,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
     
 
 module sdboard()
@@ -159,7 +163,7 @@ module tkeycover()
     ythick = 1;
     dia=off+1;
     hi=coverhi-mpthick;
-    dpt=22;
+    dpt=boxdepth;
     srd = (screendia+0.4)/2;
 
     
@@ -542,6 +546,79 @@ module tkeyplane_box(thick=2, off=2)
             rounded_poly(kdia, thick, cdia-off-0.1, ang)
         ),
         faces=topnquadbot(nsd, 2),
+        convexity=4
+    );
+}
+
+module tbottom(dpt = boxdepth)
+{
+    thick = 2;
+    translate([0,0,-dpt]) difference() {
+        union() {
+            tbottom_box(dpt);
+
+            // sd card
+            translate([8, -kdia/2-cdia+4.1, 0]) rotate([0,-90,0]) {
+                linear_extrude(height=16) polygon([
+                    [0,0],[0,3],[dpt-7.2,10],[dpt-7.1,9.9],[dpt-7.1,0.1],[dpt-7.2,0]
+                ]);
+            }
+
+        }
+
+        // sd card
+        translate([-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
+
+        // Amp cutout
+        translate([20.9*s3,kdia+cdia-2.1 -31, dpt-3.11]) rotate([180,0,-60]) {
+            translate([-17.5,-0.15,0]) cube([35,2.1,9.01], false);
+        }
+
+    }
+    // Amp board
+
+    translate([20.9*s3,kdia+cdia-2.1 -31, -2-dpt]) rotate([180,0,-60]) {
+        translate([-11, 14, 5.2-dpt]) cube([4,15,dpt-7.2], false);
+        difference() {
+            translate([2.5, -0.1, 5.2-dpt]) cube([2.5,8,dpt-7.2], false);
+            translate([-6, 4.5, 5.15-dpt]) cylinder(5, 9.5, 9.5, $fn=rnd);
+        }
+    }
+
+    // esp32
+
+    translate([esp32xoff,kdia+cdia+esp32yoff, 0]) rotate([180,0,-30]) {
+        x = 15.7;
+        y = 17.7;
+        z = dpt-10.4;
+        translate([7.8, 7.3, 10.4]) polyhedron(
+            points = [
+                [4,4,0],[x-4,4,0],[x-4,y-4,0],[4,y-4,0],
+                [0,0,z],[x,0,z],[x,y,z],[0,y,z] ],
+            faces = [
+                [0,1,2,3],[7,6,5,4],
+                [4,5,1,0],[5,6,2,1],[6,7,3,2],[7,4,0,3]
+            ]);
+
+        // cube([15.7, 17.7, dpt-10.4], false);
+    }
+}
+
+module tbottom_box(dpt = boxdepth)
+{
+    thick = 2;
+    ythick = 1;
+    ang = 360/rnd;
+    nsd = 360/ang + 3;
+    hi = dpt-coverhi+3.8;
+    polyhedron(
+        points=concat(
+            rounded_poly(kdia, 0, cdia-thick-0.1, ang),
+            rounded_poly(kdia, hi, cdia-thick-0.1, ang),
+            rounded_poly(kdia, hi, cdia-thick*2-0.1, ang),
+            rounded_poly(kdia, ythick, cdia-thick*2-0.1, ang)
+        ),
+        faces=topnquadbot(nsd, 4),
         convexity=4
     );
 }
