@@ -309,15 +309,26 @@ module tkeyplane()
             for (col = [-tside-0.5:tside+0.5]) {
                 kwid = kdia + (tside-abs(col))*off + 15;
                 translate([0, off*col*s3/2, -rh/2]) cube([kwid, ribthick, rh], true);
-                for (row = [-tside-1+abs(col)/2:tside-abs(col)/2]) {
-                    translate([off*row+off*1.28-(abs(col)%2)*off/2, off*col*s3/2, -rh-2]) wireclip_y();
+                for (row = [-tside-1+abs(col)/2:tside-abs(col)/2-(abs(col)<1 ? 1 : 0)]) {
+                    // translate([off*row+off*1.28-(abs(col)%2)*off/2, off*col*s3/2, -rh-2]) wireclip_y();
+                    if (col > 0) translate([off*row+off*1.28, off*col*s3/2, -rh-2]) wireclip_d(an=-30);
+                    else if (col < -1) translate([off*row+off*0.78, off*col*s3/2, -rh-2]) wireclip_d(an=30);
+                    else translate([off*row+off*0.81, off*col*s3/2, -rh-2]) wireclip_d(an=0);
                 }
             }
+            // extra horizontal wireclips
+            translate([off*(tside-1)+off*0.88, off*(-0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(tside-1)+off*0.88, off*(0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(tside-1)+off*0.82, off*(-1.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(tside-1)+off*1.18, off*(-0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(tside-1)+off*1.18, off*(0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(tside-1)+off*1.06, off*(-1.5)*s3/2, -rh-2]) wireclip_d(an=0);
             
             // Vertical ribs
             for (col = [-tside:tside], row = [-(tside-abs(col)/2)-0.5:(tside-abs(col)/2)+0.5]) {
+                pinof = col >= 0 ? 3.3 : 0;
                 translate([off*row, off*col*s3/2, -rh/2]) cube([ribthick, off*s3/2, rh], true);
-                translate([off*row, off*col*s3/2-2.1-(3.3*((col+tside+1)%2)), -rh]) wireclip_x();
+                translate([off*row, off*col*s3/2-2.1-pinof, -rh]) wireclip_x();
             }
 
             // Amp holder
@@ -379,7 +390,7 @@ module tkeyplane()
         // Speakers
         for (a=[120,240]) rotate([0,0,a]) {
             translate([0, kdia, -8.01]) {
-                cylinder(8.02, 22.5, 22.5, false);
+                cylinder(8.02, 22.5, 22.5, false, $fn=rnd);
                 rotate([0,0,90-a*1.5]) translate([0, 21, 6])
                     cube([23, 7, 8], true);
             }
@@ -396,6 +407,20 @@ module tkeyplane()
             translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
     }
 }
+
+module wireclip_d(an=-30, wid=ribthick, dia=0.8, thick=0.8, hei=1.5)
+{
+    r = dia/2;
+    t = thick*1.4;
+    op = 0.2;
+    difference() {
+        translate([0,0,hei/2]) cube([dia+2*t,wid,hei+3], true);
+        translate([0,0,-r]) rotate([90,0,an]) cylinder(1.5*wid+0.2, r, r, true, $fn=20);
+        translate([0,0,-r]) rotate([90,0,an]) cylinder(1.5*wid+0.2, r+0.3, 0, true, $fn=20);
+        translate([0,0,-r]) rotate([90,0,an]) cylinder(1.5*wid+0.2, 0, r+0.3, true, $fn=20);
+    }
+}
+
 
 module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
 {
