@@ -24,7 +24,7 @@ cdia = 34;
 kdia = off*(tside*2)+textra-cdia*2;
 
 kext = 0;
-sholes = 0; // Turn on speaker holes
+sholes = 1; // Turn on speaker holes
 
 screendia = 35.6;
 screentab1 = 14.5;
@@ -44,9 +44,9 @@ sdrot = 120;
 usbin = 1.7;
 usboff = -10;
 
-*translate([0,0,0]) tkeycaps();
-*color("lightblue") tkeycover();
-*color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+translate([0,0,0]) tkeycaps();
+color("lightblue") tkeycover();
+color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 color("green") translate([0,0,-1.1]) tkeyplane();
 color("lightblue") tbottom();
 
@@ -62,7 +62,47 @@ color("teal") rotate([0,0,sdrot])
     translate([sdoff,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
 color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
     
+color("teal") translate([kdia-14.5,0, -1.5-1.6-0.1+0.3]) rotate([-90,0,90]) chargeboard();
+
+color("teal") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
+color("DimGrey") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
+
 *color("crimson") translate([0,-kdia/2-cdia+13.5, -1.5-1.6-9]) b18650();
+
+module switch()
+{
+    translate([-5.5,0,0]) cube([11,5.3, 5.8], false);
+    translate([-10,0,0]) cube([20,0.4, 5.8], false);
+    translate([0,-6,1.4]) cube([3,6.5,3], false);
+
+    translate([-3.8,5,2.7]) cube([1.6, 2.8, 0.4], false);
+    translate([-0.8,5,2.7]) cube([1.6, 2.8, 0.4], false);
+    translate([ 2.2,5,2.7]) cube([1.6, 2.8, 0.4], false);
+}
+
+module switchclip()
+{
+    tl = 0.1;
+    t = 1.2;
+    h = 5.8;
+    w = 5.5;
+    b = 0.3;
+    d = 1.8;
+    intersection() {
+        rotate([-90,0,0]) linear_extrude(height=4, convexity=4) polygon([
+            [-w-t+b,h+t],[-w-t,h+t-b],[-w-t,-d+b],[-w-t+b,-d],
+            [-w-b,-d],[-w,-d+b],[-w,h],[w,h],[w,-d+b],[w+b,-d],
+            [w+t-b,-d],[w+t,-d+b],[w+t,h+t-b],[w+t-b,h+t]
+        ]);
+        translate([-12,2,-9*s2+d+2-b]) rotate([45,0,0]) cube([24,9,9]);
+    }
+}
+
+module chargeboard()
+{
+    translate([-27/2,0,0]) cube([27,18,1.2], false);
+    translate([-27/2+0.2,0,0]) cube([2.5,17.6,15], false);
+}
 
 module usbport()
 {
@@ -277,6 +317,11 @@ module tkeycover()
             translate([ 3.7, -0.5, -1.5]) cube([3.5, 1, 2], false);
             translate([-4, -usbin-0.01, -0.1]) cube([8, 2.02, 3.1], false);
         }
+
+        // switch cutout
+        rotate([0,0,120]) translate([-31-4, -kdia/2-cdia-0.01, 1.5-1.6-8-hi]) {
+            cube([8,2.02,4], false);
+        }
         
     }
 
@@ -354,8 +399,12 @@ module tkeyplane()
             // horizontal ribs
             for (col = [-tside-0.5:tside+0.5]) {
                 // Some shorter to make room for stuff
-                kcut = (col == tside-0.5) ? 10 : (col == tside+0.5) ? 2.7 : 0;
-                kwid = kdia + (tside-abs(col))*off + 15 - kcut;
+                kcut = (col == tside-0.5) ? 17
+                     : (col == tside+0.5) ? 9.7
+                     : (col == tside-1.5) ? 9
+                     : (col == tside-2.5) ? 9
+                     : 0;
+                kwid = kdia + (tside-abs(col))*off + 29 - kcut;
                 translate([-kcut/2, off*col*s3/2, -rh/2]) cube([kwid, ribthick, rh], true);
                 for (row = [-tside-1+abs(col)/2:tside-abs(col)/2-(abs(col)<1 ? 1 : 0)]) {
                     // translate([off*row+off*1.28-(abs(col)%2)*off/2, off*col*s3/2, -rh-2]) wireclip_y();
@@ -454,6 +503,33 @@ module tkeyplane()
                 translate([-9.1, 12.9+usbin, -4.3]) cube([18.2, 2, 4.3], false);
             }
 
+            // switch holder
+            rotate([0,0,120]) translate([-31, -kdia/2-cdia+2.1, -2]) {
+                // left side
+                translate([5,0,-5]) cube([8,2,5]);
+
+                // right side
+                translate([-10,0,-5]) cube([5,2,5]);
+            }
+
+            // charge board holder
+            translate([kdia-14.5, 0, -16]) {
+                // sides
+                translate([-3.4,-10.5,10]) cube([2,24.5, 6], false);
+                translate([-1.4,-10.5,0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
+                    [2,0],[0,2],[0,12],[11,23],[11,0] ]);
+                translate([3.6,-15,0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
+                    [2,0],[0,2],[0,14],[2,16],[15,16],[15,0] ]);
+                // edge
+                translate([-1.6,13.7,9]) cube([1.97,2, 7], false);
+                translate([0.2,12,11.5]) linear_extrude(height=4.5) polygon([
+                    [0,0],[1,0],[1,1.5],[0,0.5+s3*1.5]
+                ]);
+                // translate([0.2,12,11.5]) cube([2, 4, 4.5], false);
+
+                // other edge
+                translate([-1.8,-16,2]) cube([5.4,2, 12.5], false);
+            }
 
         }
         
@@ -483,17 +559,34 @@ module tkeyplane()
 
         // Bolt holes
         // Backside
-        for (x=[-boltspa,boltspa]) translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
+        for (x=[-boltspa,boltspa]) {
+            translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
+            translate([x, -kdia/2-cdia+thick+boltoff, -12]) cylinder(10, 6, 6, $fn=32);
+        }
         // Side with amp
-        rotate([0,0,120]) for (x=[-boltspa,ampboltspa])
+        rotate([0,0,120]) for (x=[-boltspa,ampboltspa]) {
             translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
+            translate([x, -kdia/2-cdia+thick+boltoff, -12]) cylinder(10, 6, 6, $fn=32);
+        }
         // Side with esp32
-        rotate([0,0,240]) for (x=[-espboltspa,boltspa])
+        rotate([0,0,240]) for (x=[-espboltspa,boltspa]) {
             translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
-            
-        // Extra cutout because it doesn't quite fit
-        rotate([0,0,120]) translate([ampboltspa, -kdia/2-cdia+thick+boltoff, -12])
-            cylinder(10, 6, 6, $fn=32);
+            translate([x, -kdia/2-cdia+thick+boltoff, -12]) cylinder(10, 6, 6, $fn=32);
+        }
+
+        // cutout for switch clip
+        rotate([0,0,120]) translate([-31, -kdia/2-cdia+2.1, -2]) {
+            // left side
+            translate([5.5, 2.5, -0.01]) cube([1.3,4,2.02], false);
+            // right side
+            translate([-6.8, 2.5, -0.01]) cube([1.3,4,2.02], false);
+        }
+
+        // cutout for charge board
+        translate([kdia-14.5, 0, -2.01]) {
+            translate([-1.4,-14.5,0]) cube([1.6,28.2,0.41], false);
+            translate([-18.5, -14.5, 0]) cube([18.5,4,0.41], false);
+        }
     }
 }
 
@@ -625,6 +718,14 @@ module tbottom(dpt = boxdepth)
             rotate([0,0,240]) for (x=[-espboltspa,boltspa])
                 translate([x, -kdia/2-cdia+thick+boltoff, 0]) cylinder(dpt-3.2, 5, 5, $fn=32);
 
+            // switch
+            rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.1, 0]) {
+                translate([11,0,0]) rotate([0,-90,0]) linear_extrude(height=25) polygon([
+                    [0,0],[0,3],[dpt-10.5,5.4],[dpt-10.3,5.2],[dpt-10.3,0]
+                ]);
+                translate([7,0.6,dpt-10.5]) cube([4,4.8,7.3], false);
+                translate([-11,0.6,dpt-10.5]) cube([4,4.8,7.3], false);
+            }
         }
 
         // Backside
@@ -664,6 +765,10 @@ module tbottom(dpt = boxdepth)
         // usb port cutout
         rotate([0,0,120]) translate([usboff-10,-kdia/2-cdia+2.09, dpt-8.2]) {
             cube([20.1, 2.1, 5.1], false);
+        }
+        // switch cutout
+        rotate([0,0,120]) translate([-31-11, -kdia/2-cdia+2.09, dpt-8.2]) {
+            cube([24,2.1,5.1], false);
         }
     }
     // Amp board
@@ -708,7 +813,6 @@ module tbottom(dpt = boxdepth)
             [0,0],[0,3],[dpt-7.7,9],[dpt-7.5,8.8],[dpt-7.5,0.7],[dpt-8.2,0]
         ]);
     }
-
 }
 
 module tbottom_box(dpt = boxdepth)
