@@ -41,6 +41,9 @@ esp32zoff = 3;
 sdoff = 12;
 sdrot = 120;
 
+usbin = 1.7;
+usboff = -10;
+
 translate([0,0,0]) tkeycaps();
 color("lightblue") tkeycover();
 color("lightgreen") translate([0,0,-1.05]) tkeyholder();
@@ -59,6 +62,15 @@ color("teal") rotate([0,0,sdrot])
     translate([sdoff,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
     
 *color("crimson") translate([0,-kdia/2-cdia+13.5, -1.5-1.6-9]) b18650();
+color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
+
+module usbport()
+{
+    translate([-7,0.4,0]) cube([14, 14.5, 1.7], false);
+    translate([-7,0,0]) cube([3, 1, 1.7], false);
+    translate([4,0,0]) cube([3, 1, 1.7], false);
+    translate([-3.85,-1.4,1.4]) cube([7.7, 5.8, 2.8], false);
+}
 
 module b18650()
 {
@@ -257,6 +269,14 @@ module tkeycover()
         // sd card cutout
         rotate([0,0,sdrot]) translate([sdoff,0,0])
         translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.4-hi]) cube([14, 2.02, 2.4], false);
+
+        // usb port cutout
+        rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-3.0-hi]) {
+            // translate([-7.1, -usbin-0.01, 0]) cube([14.2, 2.02, 1.8], false);
+            translate([-7.2, -0.5, -1.5]) cube([3.5, 1, 2], false);
+            translate([ 3.7, -0.5, -1.5]) cube([3.5, 1, 2], false);
+            translate([-4, -usbin-0.01, -0.1]) cube([8, 2.02, 3.1], false);
+        }
         
     }
 
@@ -420,6 +440,21 @@ module tkeyplane()
             // close gap
             translate([off*2-1.5, off*(tside-0.5)*s3/2-0.55, -rh/2]) cube([1.01, 0.9, rh], true);
 
+            // usb port holder
+            rotate([0,0,120]) translate([usboff,-kdia/2-cdia+2.1, -2]) {
+                // left side
+                translate([-9.1, 0, -5]) cube([2, 14.9+usbin, 5], false);
+                translate([-9.1, 0, -2.6]) cube([4, 9.8+usbin, 2.6], false);
+
+                // right side
+                translate([ 7.1, 0, -5]) cube([2, 14.9+usbin, 5], false);
+                translate([ 5.1, 0, -2.6]) cube([4, 9.8+usbin, 2.6], false);
+
+                // back side
+                translate([-9.1, 12.9+usbin, -4.3]) cube([18.2, 2, 4.3], false);
+            }
+
+
         }
         
         // Normal hex keys
@@ -575,14 +610,6 @@ module tbottom(dpt = boxdepth)
         union() {
             tbottom_box(dpt);
 
-            // sd card
-            rotate([0,0,sdrot])
-            translate([8+sdoff, -kdia/2-cdia+4.1, 0]) rotate([0,-90,0]) {
-                linear_extrude(height=16) polygon([
-                    [0,0],[0,3],[dpt-7.2,10],[dpt-7.1,9.9],[dpt-7.1,0.1],[dpt-7.2,0]
-                ]);
-            }
-
             // Bolt hole stems
             // Backside
             for (x=[-boltspa,boltspa])
@@ -621,15 +648,19 @@ module tbottom(dpt = boxdepth)
             }
         }
 
-        // sd card
-        rotate([0,0,sdrot])
-        translate([sdoff-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
-
         // Amp cutout
         translate([20.9*s3,kdia+cdia-2.1 -31, dpt-3.11]) rotate([180,0,-60]) {
             translate([-17.5,-0.15,0]) cube([35,2.1,9.01], false);
         }
 
+        // sd card cutout
+        rotate([0,0,sdrot])
+        translate([sdoff-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
+
+        // usb port cutout
+        rotate([0,0,120]) translate([usboff-10,-kdia/2-cdia+2.09, dpt-8.2]) {
+            cube([20.1, 2.1, 5.1], false);
+        }
     }
     // Amp board
 
@@ -658,6 +689,22 @@ module tbottom(dpt = boxdepth)
 
         // cube([15.7, 17.7, dpt-10.4], false);
     }
+
+    // sd card
+    rotate([0,0,sdrot])
+    translate([8+sdoff, -kdia/2-cdia+4.1, -dpt]) rotate([0,-90,0]) {
+        linear_extrude(height=16) polygon([
+            [0,0],[0,3],[dpt-7.2,10],[dpt-7.0,9.8],[dpt-7.1,0.1],[dpt-7.2,0]
+        ]);
+    }
+
+    // usb port
+    rotate([0,0,120]) translate([usboff+6,-kdia/2-cdia+4.1, -dpt]) rotate([0,-90,0]) {
+        linear_extrude(height=12) polygon([
+            [0,0],[0,3],[dpt-7.7,9],[dpt-7.5,8.8],[dpt-7.5,0.7],[dpt-8.2,0]
+        ]);
+    }
+
 }
 
 module tbottom_box(dpt = boxdepth)
