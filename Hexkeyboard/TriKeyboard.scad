@@ -11,7 +11,7 @@ rnd = 120;
 
 boltoff = 6.5;
 boltspa = 45;
-ampboltspa = 27.5;
+ampboltspa = 28.2;
 espboltspa = 24.8;
 
 ribthick = 2;
@@ -24,7 +24,7 @@ cdia = 34;
 kdia = off*(tside*2)+textra-cdia*2;
 
 kext = 0;
-sholes = 1; // Turn on speaker holes
+sholes = 0; // Turn on speaker holes
 
 screendia = 35.6;
 screentab1 = 14.5;
@@ -44,9 +44,9 @@ sdrot = 120;
 usbin = 1.7;
 usboff = -10;
 
-translate([0,0,0]) tkeycaps();
-color("lightblue") tkeycover();
-color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+*translate([0,0,0]) tkeycaps();
+*color("lightblue") tkeycover();
+*color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 color("green") translate([0,0,-1.1]) tkeyplane();
 color("lightblue") tbottom();
 
@@ -60,9 +60,9 @@ color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
     rotate([180,0,-30]) esp32();
 color("teal") rotate([0,0,sdrot])
     translate([sdoff,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
+color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
     
 *color("crimson") translate([0,-kdia/2-cdia+13.5, -1.5-1.6-9]) b18650();
-color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
 
 module usbport()
 {
@@ -490,6 +490,10 @@ module tkeyplane()
         // Side with esp32
         rotate([0,0,240]) for (x=[-espboltspa,boltspa])
             translate([x, -kdia/2-cdia+thick+boltoff, -2.01]) cylinder(2.02, 2.1, 2.1, $fn=32);
+            
+        // Extra cutout because it doesn't quite fit
+        rotate([0,0,120]) translate([ampboltspa, -kdia/2-cdia+thick+boltoff, -12])
+            cylinder(10, 6, 6, $fn=32);
     }
 }
 
