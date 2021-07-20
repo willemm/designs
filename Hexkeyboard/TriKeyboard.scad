@@ -38,10 +38,13 @@ esp32xoff = -14.8*s3;
 esp32yoff = -2.1-12.8;
 esp32zoff = 3;
 
+sdoff = 12;
+sdrot = 120;
+
 translate([0,0,0]) tkeycaps();
 color("lightblue") tkeycover();
-color("green") translate([0,0,-1.1]) tkeyplane();
 color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+color("green") translate([0,0,-1.1]) tkeyplane();
 color("lightblue") tbottom();
 
 
@@ -52,8 +55,15 @@ color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
     rotate([180,0,-60]) ampboard();
 color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
     rotate([180,0,-30]) esp32();
-color("teal") translate([0,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
+color("teal") rotate([0,0,sdrot])
+    translate([sdoff,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
     
+*color("crimson") translate([0,-kdia/2-cdia+13.5, -1.5-1.6-9]) b18650();
+
+module b18650()
+{
+    rotate([0,90,0]) cylinder(65, 9, 9, true, $fn=32);
+}
 
 module sdboard()
 {
@@ -245,6 +255,7 @@ module tkeycover()
         }
 
         // sd card cutout
+        rotate([0,0,sdrot]) translate([sdoff,0,0])
         translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.4-hi]) cube([14, 2.02, 2.4], false);
         
     }
@@ -322,27 +333,29 @@ module tkeyplane()
                 
             // horizontal ribs
             for (col = [-tside-0.5:tside+0.5]) {
-                kwid = kdia + (tside-abs(col))*off + 15;
-                translate([0, off*col*s3/2, -rh/2]) cube([kwid, ribthick, rh], true);
+                // Some shorter to make room for stuff
+                kcut = (col == tside-0.5) ? 10 : (col == tside+0.5) ? 2.7 : 0;
+                kwid = kdia + (tside-abs(col))*off + 15 - kcut;
+                translate([-kcut/2, off*col*s3/2, -rh/2]) cube([kwid, ribthick, rh], true);
                 for (row = [-tside-1+abs(col)/2:tside-abs(col)/2-(abs(col)<1 ? 1 : 0)]) {
                     // translate([off*row+off*1.28-(abs(col)%2)*off/2, off*col*s3/2, -rh-2]) wireclip_y();
-                    if (col > 0) translate([off*row+off*1.28, off*col*s3/2, -rh-2]) wireclip_d(an=-30);
-                    else if (col < -1) translate([off*row+off*0.78, off*col*s3/2, -rh-2]) wireclip_d(an=30);
-                    else translate([off*row+off*0.81, off*col*s3/2, -rh-2]) wireclip_d(an=0);
+                    if (col > 0) translate([-off*row-off*1.28, off*col*s3/2, -rh-2]) wireclip_d(an=30);
+                    else if (col < -1) translate([-off*row-off*0.78, off*col*s3/2, -rh-2]) wireclip_d(an=-30);
+                    else translate([-off*row-off*0.81, off*col*s3/2, -rh-2]) wireclip_d(an=0);
                 }
             }
             // extra horizontal wireclips
-            translate([off*(tside-1)+off*0.88, off*(-0.5)*s3/2, -rh-2]) wireclip_d(an=0);
-            translate([off*(tside-1)+off*0.88, off*(0.5)*s3/2, -rh-2]) wireclip_d(an=0);
-            translate([off*(tside-1)+off*0.82, off*(-1.5)*s3/2, -rh-2]) wireclip_d(an=0);
-            translate([off*(tside-1)+off*1.18, off*(-0.5)*s3/2, -rh-2]) wireclip_d(an=0);
-            translate([off*(tside-1)+off*1.18, off*(0.5)*s3/2, -rh-2]) wireclip_d(an=0);
-            translate([off*(tside-1)+off*1.06, off*(-1.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(-1-tside)+off*0.88, off*(-0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(-1-tside)+off*0.88, off*(0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(-1-tside)+off*1.03, off*(-1.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(-1-tside)+off*1.18, off*(-0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(-1-tside)+off*1.18, off*(0.5)*s3/2, -rh-2]) wireclip_d(an=0);
+            translate([off*(-1-tside)+off*1.23, off*(-1.5)*s3/2, -rh-2]) wireclip_d(an=0);
             
             // Vertical ribs
             for (col = [-tside:tside], row = [-(tside-abs(col)/2)-0.5:(tside-abs(col)/2)+0.5]) {
-                pinof = col >= 0 ? 3.3 : 0;
-                translate([off*row, off*col*s3/2, -rh/2]) cube([ribthick, off*s3/2, rh], true);
+                pinof = col < 0 ? 3.3 : 0;
+                translate([off*row, off*col*s3/2, -rh/2]) cube([ribthick, off*s3/2-1, rh], true);
                 translate([off*row, off*col*s3/2-2.1-pinof, -rh]) wireclip_x();
             }
 
@@ -387,20 +400,25 @@ module tkeyplane()
             }
 
             // sd module holder
-            translate([0,-kdia/2-cdia+2.1,-2]) {
+            rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1,-2]) {
                 // left side
-                translate([-11.1,0,-4]) cube([2,23,4], false);
+                translate([-11.1,0,-4]) cube([2,19.7,4], false);
                 translate([-11.1,4,-2.3]) cube([4,12,2.3], false);
                 translate([-11.1,0,-4]) cube([4, 1.2, 4], false);
 
                 // right side
-                translate([9.1,0,-4]) cube([2,23,4], false);
+                translate([9.1,0,-4]) cube([2,20,4], false);
                 translate([7.1,4,-2.3]) cube([4,12,2.3], false);
                 translate([7.1,0,-4]) cube([4, 1.2, 4], false);
 
                 // bottom
-                translate([-11.1,19.4,-4]) cube([22.2,3,4], false);
+                translate([-9.2,19.4,-4]) cube([1,0.5,4], false);
+                translate([-8.6,19.4,-4]) cube([18,2,4], false);
+                translate([10  ,17.4,-4]) cube([2,1.5,4], false);
+
             }
+            // close gap
+            translate([off*2-1.5, off*(tside-0.5)*s3/2-0.55, -rh/2]) cube([1.01, 0.9, rh], true);
 
         }
         
@@ -558,7 +576,8 @@ module tbottom(dpt = boxdepth)
             tbottom_box(dpt);
 
             // sd card
-            translate([8, -kdia/2-cdia+4.1, 0]) rotate([0,-90,0]) {
+            rotate([0,0,sdrot])
+            translate([8+sdoff, -kdia/2-cdia+4.1, 0]) rotate([0,-90,0]) {
                 linear_extrude(height=16) polygon([
                     [0,0],[0,3],[dpt-7.2,10],[dpt-7.1,9.9],[dpt-7.1,0.1],[dpt-7.2,0]
                 ]);
@@ -603,7 +622,8 @@ module tbottom(dpt = boxdepth)
         }
 
         // sd card
-        translate([-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
+        rotate([0,0,sdrot])
+        translate([sdoff-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
 
         // Amp cutout
         translate([20.9*s3,kdia+cdia-2.1 -31, dpt-3.11]) rotate([180,0,-60]) {
