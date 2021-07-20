@@ -24,7 +24,6 @@ cdia = 34;
 kdia = off*(tside*2)+textra-cdia*2;
 
 kext = 0;
-sholes = 1; // Turn on speaker holes
 
 screendia = 35.6;
 screentab1 = 14.5;
@@ -43,6 +42,8 @@ sdrot = 120;
 
 usbin = 1.7;
 usboff = -10;
+
+sholes = 1; // Turn on speaker holes
 
 translate([0,0,0]) tkeycaps();
 color("lightblue") tkeycover();
@@ -67,7 +68,29 @@ color("teal") translate([kdia-14.5,0, -1.5-1.6-0.1+0.3]) rotate([-90,0,90]) char
 color("teal") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
 color("DimGrey") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
 
-*color("crimson") translate([0,-kdia/2-cdia+13.5, -1.5-1.6-9]) b18650();
+translate([0,-kdia/2-cdia+12.6, -1.5-1.6-7]) b18650();
+
+module b18650()
+{
+    bxh = 21.6;
+    bxw = 20.9;
+    bh = bxh/2;
+    bw = bxw/2;
+    bt = 1.1;
+    bv = 6;
+    translate([0,0,-1.7]) color("crimson") rotate([0,90,0]) cylinder(65, 9, 9, true, $fn=128);
+    color("DimGrey") {
+        rotate([0,90,0]) translate([0,0,-78/2]) linear_extrude(height=78, convexity=6) polygon([
+            [-bh,-bw],[bh-bv,-bw],
+            [bh-bv,-bw+bt],[-bh+bt+bv,-bw+bt],[-bh+bt,-bw+bt+bv],
+            [-bh+bt,bw-bt-bv],[-bh+bt+bv,bw-bt],[bh-bv,bw-bt],
+            [bh-bv,bw],[-bh,bw]
+        ]);
+        translate([ (78-2.4)/2, 0, 0]) cube([2.4, bxw, bxh], true);
+        translate([-(78-2.4)/2, 0, 0]) cube([2.4, bxw, bxh], true);
+        // #cube([78, 20.9, 21.5], true);
+    }
+}
 
 module switch()
 {
@@ -110,11 +133,6 @@ module usbport()
     translate([-7,0,0]) cube([3, 1, 1.7], false);
     translate([4,0,0]) cube([3, 1, 1.7], false);
     translate([-3.85,-1.4,1.4]) cube([7.7, 5.8, 2.8], false);
-}
-
-module b18650()
-{
-    rotate([0,90,0]) cylinder(65, 9, 9, true, $fn=32);
 }
 
 module sdboard()
@@ -251,6 +269,13 @@ module tkeycover()
             // Side with esp32
             rotate([0,0,240]) for (x=[-espboltspa,boltspa])
                 translate([x, -kdia/2-cdia+thick+6.99, -hi/2+0.01]) tbolt_cube(10,10.01,hi+0.01,4);
+
+            // plateau for battery holder
+            translate([70/2,-kdia/2-cdia+2, -hi+0.8]) rotate([0,-90,0])
+                linear_extrude(height=70) polygon([
+                    [0,0],[0,21],[hi,21],[hi,4]
+                ]);
+            // #translate([-80/2,-kdia/2-cdia+2, -hi+0.8]) cube([80, 20, 3], false);
         }
         
         // Bolt holes
@@ -322,6 +347,9 @@ module tkeycover()
         rotate([0,0,120]) translate([-31-4, -kdia/2-cdia-0.01, 1.5-1.6-8-hi]) {
             cube([8,2.02,4], false);
         }
+
+        // cutout for battery holder
+        translate([-78.2/2,-kdia/2-cdia+2, -hi-1.2]) cube([78.2, 2.02, 2], false);
         
     }
 
@@ -587,6 +615,9 @@ module tkeyplane()
             translate([-1.4,-14.5,0]) cube([1.6,28.2,0.41], false);
             translate([-18.5, -14.5, 0]) cube([18.5,4,0.41], false);
         }
+
+        // cutout for battery holder
+        translate([0,-kdia/2-cdia+12.59, -1]) cube([78.2, 21.11, 2.02], true);
     }
 }
 
@@ -673,6 +704,10 @@ module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
                     cube([23, 10, 2.2], true);
             }
         }
+
+        // cutout for battery holder
+        translate([0,-kdia/2-cdia+12.59, 0.5]) cube([78.2, 21.11, 1.02], true);
+
         // Bolt holes
         // Backside
         for (x=[-boltspa,boltspa]) translate([x, -kdia/2-cdia+2+boltoff, -0.01]) cylinder(1.02, 2.1, 2.1, $fn=32);
@@ -726,6 +761,11 @@ module tbottom(dpt = boxdepth)
                 translate([7,0.6,dpt-10.5]) cube([4,4.8,7.3], false);
                 translate([-11,0.6,dpt-10.5]) cube([4,4.8,7.3], false);
             }
+
+            // battery holder
+            for (x=[-30:20:30]) {
+                translate([x-2,-kdia/2-cdia+3, 1]) cube([4, 17.5, 5], false);
+            }
         }
 
         // Backside
@@ -770,6 +810,13 @@ module tbottom(dpt = boxdepth)
         rotate([0,0,120]) translate([-31-11, -kdia/2-cdia+2.09, dpt-8.2]) {
             cube([24,2.1,5.1], false);
         }
+
+        // cutout for battery holder
+        translate([-78/2,-kdia/2-cdia+2.09, 6]) cube([78, 2.02, dpt-9], false);
+        translate([-80/2,-kdia/2-cdia+2.09, 1]) cube([5, 2.02, dpt-4], false);
+        translate([ 80/2-5,-kdia/2-cdia+2.09, 1]) cube([5, 2.02, dpt-4], false);
+
+        translate([-65/2, -kdia/2-cdia+12.6, 2.9 + 7.3]) rotate([0,90,0]) cylinder(65, 9.2, 9.2, $fn=128);
     }
     // Amp board
 
@@ -812,6 +859,19 @@ module tbottom(dpt = boxdepth)
         linear_extrude(height=12) polygon([
             [0,0],[0,3],[dpt-7.7,9],[dpt-7.5,8.8],[dpt-7.5,0.7],[dpt-8.2,0]
         ]);
+    }
+
+    // Sacrificial layer for bolt holes
+    for (x=[-boltspa,boltspa]) {
+        translate([x, -kdia/2-cdia+thick+boltoff, -5.2]) #cylinder(0.2, 4, 4);
+    }
+    // Side with amp
+    rotate([0,0,120]) for (x=[-boltspa,ampboltspa]) {
+        translate([x, -kdia/2-cdia+thick+boltoff, -5.2]) #cylinder(0.2, 4, 4);
+    }
+    // Side with esp32
+    rotate([0,0,240]) for (x=[-espboltspa,boltspa]) {
+        translate([x, -kdia/2-cdia+thick+boltoff, -5.2]) #cylinder(0.2, 4, 4);
     }
 }
 
