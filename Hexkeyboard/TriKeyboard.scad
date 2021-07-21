@@ -49,8 +49,8 @@ sholes = 0; // Turn on speaker holes
 *translate([0,0,0]) tkeycaps();
 *color("lightblue") tkeycover();
 *color("lightgreen") translate([0,0,-1.05]) tkeyholder();
-color("green") translate([0,0,-1.1]) tkeyplane();
-*color("lightblue") tbottom();
+*color("green") translate([0,0,-1.1]) tkeyplane();
+color("lightblue") tbottom();
 
 
 *color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
@@ -590,9 +590,9 @@ module tkeyplane()
                     rotate([-90,0,0]) translate([6.3,0.39,-0.01]) cylinder(20.02,8.8/2,8.8/2,$fn=64);
                 }
                 // back side right
-                translate([31, -64, -15]) difference() {
-                    cube([6,20,14], false);
-                    rotate([-90,0,0]) translate([-0.3,0.4,-0.01]) cylinder(20.02,8.8/2,8.8/2,$fn=64);
+                translate([31, -59, -15]) difference() {
+                    cube([6,15,14], false);
+                    rotate([-90,0,0]) translate([-0.3,0.4,-0.01]) cylinder(15.02,8.8/2,8.8/2,$fn=64);
                 }
 
                 // front side back
@@ -826,12 +826,12 @@ module tbottom(dpt = boxdepth)
                 // battery pack holder
                 translate([-1,-3.8,2]) {
                     translate([-34,0,0]) difference() {
-                        cube([6,130,5], true);
+                        cube([6,130,4], true);
                         rotate([-90,0,0]) translate([3.3,-3.4,-130.2/2]) cylinder(130.2,8.8/2,8.8/2,$fn=64);
                     }
-                    translate([34,0,0]) difference() {
-                        cube([6,130,5], true);
-                        rotate([-90,0,0]) translate([-3.3,-3.4,-130.2/2]) cylinder(130.2,8.8/2,8.8/2,$fn=64);
+                    translate([34,2.5,0]) difference() {
+                        cube([6,125,4], true);
+                        rotate([-90,0,0]) translate([-3.3,-3.4,-125.2/2]) cylinder(125.2,8.8/2,8.8/2,$fn=64);
                     }
                 }
             }
