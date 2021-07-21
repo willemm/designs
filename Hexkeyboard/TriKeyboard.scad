@@ -12,7 +12,7 @@ rnd = 120;
 boltoff = 6.5;
 boltspa = 45;
 ampboltspa = 28.2;
-espboltspa = 24.8;
+espboltspa = 27.4;
 
 ribthick = 2;
 coverhi = 7;
@@ -33,8 +33,8 @@ screentabo = 3;
 
 speakerdia = 48.5;
 
-esp32xoff = -14.8*s3;
-esp32yoff = -2.1-12.8;
+esp32xoff = -13.8*s3;
+esp32yoff = -2.1-9.8;
 esp32zoff = 3;
 
 sdoff = 12;
@@ -141,6 +141,7 @@ module chargeboard()
 {
     translate([-27/2,0,0]) cube([27,18,1.2], false);
     translate([-27/2+0.2,0,0]) cube([2.5,17.6,15], false);
+    translate([-27/2+6.0,9.2,-4.6]) cylinder(5.8, 5.8/2, 5.8/2, false, $fn=32);
 }
 
 module usbport()
@@ -499,8 +500,8 @@ module tkeyplane()
                 ewi = 31.5;
                 ehi = 39;
                 // bottom side
-                translate([0.5,-2,0]) cube([13.5, 2, esp32zoff+3], false);
-                translate([0.5,-2,0]) cube([13.5, 4, esp32zoff], false);
+                translate([1.5,-2,0]) cube([12.5, 2, esp32zoff+3], false);
+                translate([1.5,-2,0]) cube([12.5, 4, esp32zoff], false);
                 
                 // top side
                 translate([0, ehi, 0]) cube([11, 2, esp32zoff+3], false);
@@ -566,8 +567,11 @@ module tkeyplane()
                 translate([-3.4,-10.5,10]) cube([2,24.5, 6], false);
                 translate([-1.4,-10.5,0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
                     [2,0],[0,2],[0,12],[11,23],[11,0] ]);
-                translate([3.6,-15,0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
-                    [2,0],[0,2],[0,14],[2,16],[15,16],[15,0] ]);
+
+                translate([3.6,-15,0]) rotate([0,-90,0]) linear_extrude(height=2, convexity=6) polygon([
+                    [2,0],[2,1],[4,3],[7,3],[9,5],[9,10],[7,12],[3,12],[2,13],
+                    [2,15],[3,16],[15,16],[15,0] ]);
+
                 // edge
                 translate([-1.6,13.7,9]) cube([1.97,2, 7], false);
                 translate([0.2,12,11.5]) linear_extrude(height=4.5) polygon([
