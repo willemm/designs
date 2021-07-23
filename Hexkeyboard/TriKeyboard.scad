@@ -5,7 +5,7 @@ s3 = sqrt(3);
 s2 = sqrt(2);
 off = 22;
 
-boxdepth = 22;
+boxdepth = 28;
 
 rnd = 120;
 
@@ -33,7 +33,7 @@ screentabo = 3;
 
 speakerdia = 48.5;
 
-esp32xoff = -13.8*s3;
+esp32xoff = -12.0*s3;
 esp32yoff = -2.1-9.8;
 esp32zoff = 3;
 
@@ -44,7 +44,7 @@ usbin = 1.7;
 usboff = -10;
 
 use18650 = 0;
-sholes = 0; // Turn on speaker holes
+spkrholes = 1; // Turn on speaker holes
 
 *translate([0,0,0]) tkeycaps();
 *color("lightblue") tkeycover();
@@ -54,8 +54,8 @@ color("lightblue") tbottom();
 
 
 *color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
-*rotate([0,0,120]) speaker();
-*rotate([0,0,240]) speaker();
+rotate([0,0,120]) speaker();
+rotate([0,0,240]) speaker();
 *color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
     rotate([180,0,-60]) ampboard();
 *color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
@@ -69,7 +69,7 @@ color("lightblue") tbottom();
 *color("teal") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
 *color("DimGrey") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
 
-if (use18650) {
+*if (use18650) {
     translate([0,-kdia/2-cdia+12.6,-1.5-1.6-7]) b18650();
 } else {
     color("DimGrey") rotate([0,0,0]) translate([-1,-3.8, -boxdepth+1.1]) bpack();
@@ -191,7 +191,7 @@ module ampboard()
     translate([-6, 4.5, 1.6]) cylinder(1.5, 5, 5, false, $fn=32);
     translate([9.9,25.7,11.6/2]) cube([10, 7.8, 11.6], true);
     translate([-0.6,25.7,11.6/2]) cube([10, 7.8, 11.6], true);
-    translate([-13.6, 20.7, 5]) cube([2.5, 18, 10], true);
+    translate([-13.6, 20.7, 21/2]) cube([2.5, 18, 21], true);
     translate([-2.8, 17.5, 0]) cylinder(13.7, 2.6, 2.6, $fn=32);
 }
 
@@ -254,7 +254,7 @@ module tkeycaps()
     }
 }
 
-module tkeycover()
+module tkeycover(sholes = spkrholes)
 {
     thick = 2;
     ythick = 1;
@@ -488,7 +488,7 @@ module tkeyplane()
                 translate([30.2/2, 30/2, 2.3/2]) cube([4, 30, 2.3], true);
 
                 // Back
-                translate([0.16,30+2/2,6/2]) cube([33, 2, 6], true);
+                translate([0.6,30+2/2,6/2]) cube([29.9, 2, 6], true);
                 translate([2.5,30,2.3/2]) cube([29, 4, 2.3], true);
 
                 // Bottom
@@ -509,12 +509,11 @@ module tkeyplane()
                 translate([0, ehi-2, 0]) cube([ewi-2, 4, esp32zoff], false);
                 
                 // right side
-                translate([ewi, 2.655, 0]) cube([2, ehi-10+0.345, esp32zoff+3], false);
-                translate([ewi-2, 2.655, 0]) cube([4, 3.345, esp32zoff], false);
-                translate([ewi-0.5, 2.655, 0]) cube([2.5, ehi-10+0.345, esp32zoff], false);
+                translate([ewi, 9.24, 0]) cube([2, ehi-17+0.345, esp32zoff+3], false);
+                translate([ewi-0.5, 9.24, 0]) cube([2.5, ehi-17+0.345, esp32zoff], false);
                 
                 // Middle
-                translate([ewi/2, ehi/2, 0]) cylinder(esp32zoff, 5, 5, false, $fn=32);
+                translate([ewi/2, ehi/2-3, 0]) cylinder(esp32zoff, 5, 5, false, $fn=32);
             }
 
             // sd module holder
@@ -586,33 +585,37 @@ module tkeyplane()
             // battery pack holder
             if (!use18650) translate([-1, -3.8, 0]) {
                 // back side back
-                translate([-35, -64, -11]) cube([70,4,10], false);
+                translate([-35, -64, 11-boxdepth]) cube([70,4,boxdepth-12], false);
 
                 // back side left
-                translate([-37, -64, -15]) difference() {
-                    cube([6,20,14], false);
+                translate([-37, -64, 7-boxdepth]) difference() {
+                    cube([6,20,boxdepth-8], false);
                     rotate([-90,0,0]) translate([6.3,0.39,-0.01]) cylinder(20.02,8.8/2,8.8/2,$fn=64);
                 }
                 // back side right
-                translate([31, -59, -15]) difference() {
-                    cube([6,15,14], false);
+                translate([31, -59, 7-boxdepth]) difference() {
+                    cube([6,15,boxdepth-8], false);
                     rotate([-90,0,0]) translate([-0.3,0.4,-0.01]) cylinder(15.02,8.8/2,8.8/2,$fn=64);
                 }
+                translate([31,-64,11-boxdepth]) cube([6,15,boxdepth-12], false);
 
                 // front side back
-                translate([-6, 60, -11]) cube([16,8,10], false);
-                translate([-6, 65.2, -15]) cube([16,2.8,5], false);
+                translate([-4, 60, 11-boxdepth]) cube([11,8,boxdepth-12], false);
+                translate([-4, 65.2, 7-boxdepth]) cube([11,2.8,5], false);
 
                 // front side left
-                translate([-37,31.4,-15]) difference() {
-                    cube([6,7.2,14], false);
+                translate([-37,31.4,7-boxdepth]) difference() {
+                    cube([6,7.2,boxdepth-8], false);
                     rotate([-90,0,0]) translate([6.3,0.39,-0.01]) cylinder(7.22,8.8/2,8.8/2,$fn=64);
                 }
                 // front side right
-                translate([33,31.4,-15]) difference() {
-                    cube([4,7.2,14], false);
+                translate([33,31.4,7-boxdepth]) difference() {
+                    cube([4,7.2,boxdepth-8], false);
                     rotate([-90,0,0]) translate([-2.3,0.39,-0.01]) cylinder(7.22,8.8/2,8.8/2,$fn=64);
                 }
+                // Extra legs
+                translate([-29, 50.5, 11-boxdepth]) cube([14, 5, boxdepth-12], false);
+                translate([20.5, 50.5, 11-boxdepth]) cube([12, 5, boxdepth-12], false);
             }
         }
         
@@ -821,6 +824,32 @@ module tbottom(dpt = boxdepth)
                 translate([-11,0.6,dpt-10.5]) cube([4,4.8,7.3], false);
             }
 
+            // charge board
+            translate([kdia-17, -14, 0.5]) {
+                x = 5;
+                y = 28;
+                z = dpt-21.5;
+                polyhedron(
+                points = [
+                    [-14,8,0],[-14,-4,0],[x+4,-4,0],[x+4,y+4,0],[-4,y+4,0],
+                    [-10,4,z],[-10,0,z],[x,0,z],[x,y,z],[0,y,z] ],
+                faces = [
+                    [0,1,2,3,4],[9,8,7,6,5], [5,6,1,0],[6,7,2,1],[7,8,3,2],[8,9,4,3],[9,5,0],[9,0,4]
+                ]);
+            }
+
+            // Speakers
+            for (a=[120,240]) rotate([0,0,a]) {
+                translate([0,kdia,0.5]) {
+                    sd = 22;
+                    sh = 8;
+                    difference() {
+                        cylinder(dpt-sh, sd, sd, false, $fn=rnd);
+                        translate([0,0,-0.01]) cylinder(dpt-sh+0.02, sd-1.2, sd-1.2, false, $fn=rnd);
+                    }
+                }
+            }
+
             if (use18650) {
                 // battery holder
                 for (x=[-30:20:30]) {
@@ -870,6 +899,13 @@ module tbottom(dpt = boxdepth)
         translate([20.9*s3,kdia+cdia-2.1 -31, dpt-3.11]) rotate([180,0,-60]) {
             translate([-17.5,-0.15,0]) cube([35,2.1,9.01], false);
         }
+
+        // esp32 cutout
+        *rotate([0,0,60]) {
+            translate([33,kdia/2+cdia-6.1,dpt-3-6.5]) cube([45,4.01,6.51], false);
+            translate([41,kdia/2+cdia-6.1,dpt-3-22]) cube([29,4.01,22.01], false);
+        }
+
 
         // sd card cutout
         rotate([0,0,sdrot])
