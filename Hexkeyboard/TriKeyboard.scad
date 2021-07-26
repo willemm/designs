@@ -1,3 +1,11 @@
+/* TODO:
+
+ v Sleuf voor luidspreker verbindingen wat breder
+ v Sleuven in bovenkant: rekening houden met overhang layer, +0.2 mm
+ v esp32 vashouder op bodem lijkt iets te dik
+ * microsd verder naar binnen omdat het kaartje erg uitsteekt
+ 
+*/
 use <Keyboard.scad>;
 
 tside=2;
@@ -39,6 +47,8 @@ esp32zoff = 3;
 
 sdoff = 12;
 sdrot = 120;
+sdin = 1.3;
+//sdin = 5.8;
 
 usbin = 1.7;
 usboff = -10;
@@ -48,20 +58,20 @@ spkrholes = 1; // Turn on speaker holes
 
 *translate([0,0,0]) tkeycaps();
 *color("lightblue") tkeycover();
-*color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 *color("green") translate([0,0,-1.1]) tkeyplane();
-color("lightblue") tbottom();
+*color("lightblue") tbottom();
 
 
 *color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
-rotate([0,0,120]) speaker();
-rotate([0,0,240]) speaker();
+*rotate([0,0,120]) speaker();
+*rotate([0,0,240]) speaker();
 *color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
     rotate([180,0,-60]) ampboard();
 *color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
     rotate([180,0,-30]) esp32();
-*color("teal") rotate([0,0,sdrot])
-    translate([sdoff,-kdia/2-cdia+3.4,-1.5-1.6-3.9]) sdboard();
+rotate([0,0,sdrot])
+    translate([sdoff,-kdia/2-cdia+2.1+sdin,-1.5-1.6-3.9]) sdboard();
 *color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
     
 *color("teal") translate([kdia-14.5,0, -1.5-1.6-0.1+0.3]) rotate([-90,0,90]) chargeboard();
@@ -157,10 +167,14 @@ module sdboard()
     swi = 18;
     shi = 18;
     sth = 1.6;
-    translate([-swi/2, 0, 0]) {
+    color("teal") translate([-swi/2, 0, 0]) {
         cube([swi,shi,sth], false);
         translate([2.2, -2.6, sth]) cube([13.7, 11.8, 2.2], false);
         translate([2, 15.3, -12]) cube([15, 2.5, 12], false);
+    }
+    color("crimson") {
+        cwi = 11.1;
+        translate([-cwi/2-0.3,-10,2.9]) cube([cwi, 15, 0.7], false);
     }
 }
 
@@ -346,20 +360,20 @@ module tkeycover(sholes = spkrholes)
         
         // Amp cutout
         translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4-hi]) rotate([180,0,-60]) {
-            translate([-6, 4.5, 2.5]) cylinder(3, 9, 9, false, $fn=32);
+            translate([-6, 4.5, 2.5]) cylinder(3.2, 9, 9, false, $fn=32);
             translate([-6, 4.5, 1.5]) cylinder(1.01, 6, 6, false, $fn=32);
         }
 
         // sd card cutout
         rotate([0,0,sdrot]) translate([sdoff,0,0])
-        translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.4-hi]) cube([14, 2.02, 2.4], false);
+        translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.6-hi]) cube([14, 2.02, 2.6], false);
 
         // usb port cutout
         rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-3.0-hi]) {
             // translate([-7.1, -usbin-0.01, 0]) cube([14.2, 2.02, 1.8], false);
-            translate([-7.2, -0.5, -1.5]) cube([3.5, 1, 2], false);
-            translate([ 3.7, -0.5, -1.5]) cube([3.5, 1, 2], false);
-            translate([-4, -usbin-0.01, -0.1]) cube([8, 2.02, 3.1], false);
+            translate([-7.2, -0.5, -1.7]) cube([3.5, 1, 2.2], false);
+            translate([ 3.7, -0.5, -1.7]) cube([3.5, 1, 2.2], false);
+            translate([-4, -usbin-0.01, -0.3]) cube([8, 2.02, 3.1], false);
         }
 
         // switch cutout
@@ -638,8 +652,8 @@ module tkeyplane()
         for (a=[120,240]) rotate([0,0,a]) {
             translate([0, kdia, -8.01]) {
                 cylinder(8.02, 22.5, 22.5, false, $fn=rnd);
-                rotate([0,0,90-a*1.5]) translate([0, 21, 6])
-                    cube([23, 7, 8], true);
+                rotate([0,0,90-a*1.5]) translate([0, 21, 1])
+                    cube([25, 7, 18], true);
             }
         }
 
@@ -759,9 +773,9 @@ module tkeyholder(off=off, thick=mpthick, kthick=1, rh=6, skthick=1.6)
             translate([0, kdia, -0.01]) {
                 cylinder(3.01, 23, 23, false, $fn=rnd);
                 rotate([0,0,90-a*1.5]) translate([0, 21, 1.5])
-                    cube([23, 7, 3.01], true);
+                    cube([25, 7, 3.01], true);
                 rotate([0,0,90-a*1.5]) translate([0, 21, 2.11])
-                    cube([23, 10, 2.2], true);
+                    cube([25, 10, 2.2], true);
             }
         }
 
@@ -932,10 +946,11 @@ module tbottom(dpt = boxdepth)
     // Amp board
 
     translate([20.9*s3,kdia+cdia-2.1 -31, -2-dpt]) rotate([180,0,-60]) {
-        translate([-11, 14, 5.2-dpt]) cube([4,15,dpt-7.2], false);
+        z = dpt-7.3;
+        translate([-11, 14, -z-2]) cube([4,15,z], false);
         difference() {
-            translate([2.5, -0.1, 5.2-dpt]) cube([2.5,8,dpt-7.2], false);
-            translate([-6, 4.5, 5.15-dpt]) cylinder(5, 9.5, 9.5, $fn=rnd);
+            translate([2.5, -0.1, -z-2]) cube([2.5,8,z], false);
+            translate([-6, 4.5, -z-2.05]) cylinder(5, 9.5, 9.5, $fn=rnd);
         }
     }
 
@@ -944,8 +959,8 @@ module tbottom(dpt = boxdepth)
     translate([esp32xoff,kdia+cdia+esp32yoff, 0]) rotate([180,0,-30]) {
         x = 15.7;
         y = 17.7;
-        z = dpt-10.4;
-        translate([7.8, 7.3, 10.4]) polyhedron(
+        z = dpt-10.6;
+        translate([7.8, 7.3, dpt-z]) polyhedron(
             points = [
                 [4,4,0],[x-4,4,0],[x-4,y-4,0],[4,y-4,0],
                 [0,0,z],[x,0,z],[x,y,z],[0,y,z] ],
