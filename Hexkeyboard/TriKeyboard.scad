@@ -45,39 +45,47 @@ esp32xoff = -12.0*s3;
 esp32yoff = -2.1-9.8;
 esp32zoff = 3;
 
-sdoff = 12;
+// sdlow = 0;
+// sdoff = 11;
+// sdrot = 120;
+// sdin = 7.3;
+sdlow = 1;
+sdoff = -6;
 sdrot = 120;
-sdin = 1.3;
-//sdin = 5.8;
+sdin = 9.5;
+sdz = 4.9;
 
 usbin = 1.7;
-usboff = -10;
+usboff = 14;
+
+switchoff = -6;
 
 use18650 = 0;
 spkrholes = 1; // Turn on speaker holes
 
 *translate([0,0,0]) tkeycaps();
-*color("lightblue") tkeycover();
-color("lightgreen") translate([0,0,-1.05]) tkeyholder();
+color("lightblue") tkeycover();
+*color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 *color("green") translate([0,0,-1.1]) tkeyplane();
-*color("lightblue") tbottom();
+color("lightblue") tbottom();
 
 
 *color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
 *rotate([0,0,120]) speaker();
 *rotate([0,0,240]) speaker();
-*color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4])
-    rotate([180,0,-60]) ampboard();
-*color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3])
-    rotate([180,0,-30]) esp32();
-rotate([0,0,sdrot])
-    translate([sdoff,-kdia/2-cdia+2.1+sdin,-1.5-1.6-3.9]) sdboard();
-*color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
+*color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4]) rotate([180,0,-60]) ampboard();
+*color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3]) rotate([180,0,-30]) esp32();
+color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
+if (sdlow) {
+    rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) rotate([0,180,0]) sdboard();
+} else {
+    rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,-1.5-1.6-3.9]) sdboard();
+}
     
-*color("teal") translate([kdia-14.5,0, -1.5-1.6-0.1+0.3]) rotate([-90,0,90]) chargeboard();
+color("teal") translate([kdia-14.5,0, -1.5-1.6-0.1+0.3]) rotate([-90,0,90]) chargeboard();
 
-*color("teal") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
-*color("DimGrey") rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
+color("teal") rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
+color("DimGrey") rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
 
 *if (use18650) {
     translate([0,-kdia/2-cdia+12.6,-1.5-1.6-7]) b18650();
@@ -174,7 +182,7 @@ module sdboard()
     }
     color("crimson") {
         cwi = 11.1;
-        translate([-cwi/2-0.3,-10,2.9]) cube([cwi, 15, 0.7], false);
+        translate([-cwi/2-0.3,-10,2.9]) cube([cwi, 15, 0.9], false);
     }
 }
 
@@ -365,8 +373,13 @@ module tkeycover(sholes = spkrholes)
         }
 
         // sd card cutout
-        rotate([0,0,sdrot]) translate([sdoff,0,0])
-        translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.6-hi]) cube([14, 2.02, 2.6], false);
+        if (sdlow) {
+            rotate([0,0,sdrot]) translate([sdoff,0,0])
+            translate([-6, -kdia/2-cdia-0.01, -dpt-hi-0.01]) cube([12.5, 2.02, 2.101], false);
+        } else {
+            rotate([0,0,sdrot]) translate([sdoff,0,0])
+            translate([-7, -kdia/2-cdia-0.01, -1.5-1.6-2.6-hi]) cube([14, 2.02, 2.6], false);
+        }
 
         // usb port cutout
         rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-3.0-hi]) {
@@ -377,7 +390,7 @@ module tkeycover(sholes = spkrholes)
         }
 
         // switch cutout
-        rotate([0,0,120]) translate([-31-4, -kdia/2-cdia-0.01, 1.5-1.6-8-hi]) {
+        rotate([0,0,120]) translate([switchoff-4, -kdia/2-cdia-0.01, 1.5-1.6-8-hi]) {
             cube([8,2.02,4], false);
         }
 
@@ -531,7 +544,8 @@ module tkeyplane()
             }
 
             // sd module holder
-            rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1,-2]) {
+            if (!sdlow) {
+              rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1,-2]) {
                 // left side
                 translate([-11.1,0,-4]) cube([2,19.7,4], false);
                 translate([-11.1,4,-2.3]) cube([4,12,2.3], false);
@@ -547,9 +561,10 @@ module tkeyplane()
                 translate([-8.6,19.4,-4]) cube([18,2,4], false);
                 translate([10  ,17.4,-4]) cube([2,1.5,4], false);
 
+              }
+              // close gap
+              translate([off*2-1.5, off*(tside-0.5)*s3/2-0.55, -rh/2]) cube([1.01, 0.9, rh], true);
             }
-            // close gap
-            translate([off*2-1.5, off*(tside-0.5)*s3/2-0.55, -rh/2]) cube([1.01, 0.9, rh], true);
 
             // usb port holder
             rotate([0,0,120]) translate([usboff,-kdia/2-cdia+2.1, -2]) {
@@ -566,7 +581,7 @@ module tkeyplane()
             }
 
             // switch holder
-            rotate([0,0,120]) translate([-31, -kdia/2-cdia+2.1, -2]) {
+            rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+2.1, -2]) {
                 // left side
                 translate([5,0,-5]) cube([8,2,5]);
 
@@ -675,7 +690,7 @@ module tkeyplane()
         }
 
         // cutout for switch clip
-        rotate([0,0,120]) translate([-31, -kdia/2-cdia+2.1, -2]) {
+        rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+2.1, -2]) {
             // left side
             translate([5.5, 2.5, -0.01]) cube([1.3,4,2.02], false);
             // right side
@@ -830,7 +845,7 @@ module tbottom(dpt = boxdepth)
                 translate([x, -kdia/2-cdia+thick+boltoff, 0]) cylinder(dpt-3.2, 5, 5, $fn=32);
 
             // switch
-            rotate([0,0,120]) translate([-31, -kdia/2-cdia+4.1, 0]) {
+            rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.1, 0]) {
                 translate([11,0,0]) rotate([0,-90,0]) linear_extrude(height=25) polygon([
                     [0,0],[0,3],[dpt-10.5,5.4],[dpt-10.3,5.2],[dpt-10.3,0]
                 ]);
@@ -922,15 +937,22 @@ module tbottom(dpt = boxdepth)
 
 
         // sd card cutout
-        rotate([0,0,sdrot])
-        translate([sdoff-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
+        if (sdlow) {
+            rotate([0,0,sdrot]) {
+                translate([sdoff-6, -kdia/2-cdia+2.09, -0.01]) cube([12.5, 2.02, 2.11+0.2], false);
+                translate([sdoff-6, -kdia/2-cdia+2.09, 1]) cube([12.5, sdin-2.7, 1.1+0.2], false);
+            }
+        } else {
+            rotate([0,0,sdrot])
+            translate([sdoff-12, -kdia/2-cdia+2.09, dpt-7.2]) cube([24, 2.02, 4.01], false);
+        }
 
         // usb port cutout
         rotate([0,0,120]) translate([usboff-10,-kdia/2-cdia+2.09, dpt-8.2]) {
             cube([20.1, 2.1, 5.1], false);
         }
         // switch cutout
-        rotate([0,0,120]) translate([-31-11, -kdia/2-cdia+2.09, dpt-8.2]) {
+        rotate([0,0,120]) translate([switchoff-11, -kdia/2-cdia+2.09, dpt-8.2]) {
             cube([24,2.1,5.1], false);
         }
 
@@ -973,11 +995,13 @@ module tbottom(dpt = boxdepth)
     }
 
     // sd card
-    rotate([0,0,sdrot])
-    translate([8+sdoff, -kdia/2-cdia+4.1, -dpt]) rotate([0,-90,0]) {
-        linear_extrude(height=16) polygon([
-            [0,0],[0,3],[dpt-7.2,10],[dpt-7.0,9.8],[dpt-7.1,0.1],[dpt-7.2,0]
-        ]);
+    if (!sdlow) {
+        rotate([0,0,sdrot])
+        translate([8+sdoff, -kdia/2-cdia+4.1, -dpt]) rotate([0,-90,0]) {
+            linear_extrude(height=16) polygon([
+                [0,0],[0,3],[dpt-7.2,10],[dpt-7.0,9.8],[dpt-7.1,0.1],[dpt-7.2,0]
+            ]);
+        }
     }
 
     // usb port
