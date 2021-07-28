@@ -63,11 +63,11 @@ switchoff = -6;
 use18650 = 0;
 spkrholes = 1; // Turn on speaker holes
 
-*translate([0,0,0]) tkeycaps();
+translate([0,0,0]) tkeycaps();
 *color("lightblue") tkeycover();
 *color("lightgreen") translate([0,0,-1.05]) tkeyholder();
 color("green") translate([0,0,-1.1]) tkeyplane();
-translate([0,0,0]) color("lightblue") tbottom();
+*translate([0,0,0]) color("lightblue") tbottom();
 
 
 *color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
@@ -78,6 +78,11 @@ translate([0,0,0]) color("lightblue") tbottom();
 *color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
 if (sdlow) {
     rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) rotate([0,180,0]) sdboard();
+
+    rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) {
+        #translate([0,7,20/2]) cube([6,10,17.5], true);
+    }
+
 } else {
     rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,-1.5-1.6-3.9]) sdboard();
 }
@@ -476,7 +481,7 @@ module tkeyplane()
             // horizontal ribs
             for (col = [-tside-0.5:tside+0.5]) {
                 // Some shorter to make room for stuff
-                kcut = (col == tside-0.5) ? 12
+                kcut = (col == tside-0.5) ? 13.05
                      : (col == tside+0.5) ? 9.7
                      : (col == tside-1.5) ? 9
                      : (col == tside-2.5) ? 9
@@ -551,6 +556,7 @@ module tkeyplane()
                 hi = 12;
                 x = wi/2;
                 x2 = x+1.2;
+                xc = x-5;
                 y = hi;
                 y2 = -2;
                 y1 = 6;
@@ -561,14 +567,23 @@ module tkeyplane()
                 z1 = z - 10;
                 polyhedron(convexity=5,
                     points = [
-                        [x2,y2,0],[-x2,y2,0],[-x2,y,0],[x2,y,0],
-                        [x1,y1,z1],[-x1,y1,z1],[-x1,y,z1],[x1,y-1,z1],
-                        [x0,y0,z],[-x0,y0,z],[-x0,y,z],[x0,y-1,z]
+                        [x2,y2,0],[xc,y2,0],[xc,y,0],[x2,y,0],
+                        [x2,y1,z1],[xc,y1,z1],[xc,y,z1],[x1,y-1,z1],
+                        [x2,y0,z],[xc,y0,z],[xc,y,z],[x0,y-1,z]
+                    ],
+                    faces = topnquadbot(4, 3)
+                );
+                polyhedron(convexity=5,
+                    points = [
+                        [-xc,y2,0],[-x2,y2,0],[-x2,y,0],[-xc,y,0],
+                        [-xc,y1,z1],[-x2,y1,z1],[-x2,y,z1],[-xc,y,z1],
+                        [-xc,y0,z],[-x2,y0,z],[-x2,y,z],[-xc,y,z]
                     ],
                     faces = topnquadbot(4, 3)
                 );
                 tol = 0;
-                translate([-wi/2-1.2,y2,-1.5]) cube([wi+2.4,-y2-tol,1.5], false);
+                translate([-wi/2-1.2,y2,-1.5]) cube([x-xc+1.2,-y2-tol,1.5], false);
+                translate([wi/2-(x-xc),y2,-1.5]) cube([x-xc+1.2,-y2-tol,1.5], false);
                 translate([-wi/2,0,0]) rotate([-90,0,0]) linear_extrude(height=hi) polygon([
                     [-tol,0],[-1.2,0],[-1.2,2.8],[-tol+0.6,2.8],[-tol+0.6,2.4],[-tol,1.8]
                 ]);
@@ -624,20 +639,22 @@ module tkeyplane()
             // charge board holder
             translate([kdia-14.5, 0, -16]) {
                 // sides
-                translate([-3.4,-10.5,10]) cube([2,24.5, 6], false);
+                *translate([-3.4,-10.5,10]) cube([2,24.5, 5], false);
                 translate([-1.4,-10.5,0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
-                    [2,0],[0,2],[0,12],[11,23],[11,0] ]);
+                    [2,0],[0,2],[0,12],[11,23],[15,23],[15,0] ]);
 
                 translate([3.6,-15,0]) rotate([0,-90,0]) linear_extrude(height=2, convexity=6) polygon([
                     [2,0],[2,1],[4,3],[7,3],[9,5],[9,10],[7,12],[3,12],[2,13],
                     [2,15],[3,16],[15,16],[15,0] ]);
 
                 // edge
-                translate([-1.6,13.7,9]) cube([1.97,2, 7], false);
-                translate([0.2,12,11.5]) linear_extrude(height=4.5) polygon([
-                    [0,0],[1,0],[1,1.5],[0,0.5+s3*1.5]
+                *translate([-1.6,13.7,10]) cube([1.97,2, 5], false);
+                *translate([0.2,12,10]) cube([1.97,3.7, 5], false);
+
+                translate([0.2,12,10]) linear_extrude(height=5, convexity=5) polygon([
+                    [0,0],[2,0],[2,2.2],[0.5,3.7],[-2.1,3.7],[-3.6,2.2],[-3.6,-2],
+                    [-1.6,-2],[-1.6,1.8],[0,1.8]
                 ]);
-                // translate([0.2,12,11.5]) cube([2, 4, 4.5], false);
 
                 // other edge
                 translate([-1.8,-16.5,2]) cube([5.4,2, 12.5], false);
