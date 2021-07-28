@@ -50,9 +50,9 @@ esp32zoff = 3;
 // sdrot = 120;
 // sdin = 7.3;
 sdlow = 1;
-sdoff = -6;
+sdoff = -7.7;
 sdrot = 120;
-sdin = 9.5;
+sdin = 10.4;
 sdz = 4.9;
 
 usbin = 1.7;
@@ -64,10 +64,10 @@ use18650 = 0;
 spkrholes = 1; // Turn on speaker holes
 
 *translate([0,0,0]) tkeycaps();
-color("lightblue") tkeycover();
+*color("lightblue") tkeycover();
 *color("lightgreen") translate([0,0,-1.05]) tkeyholder();
-*color("green") translate([0,0,-1.1]) tkeyplane();
-color("lightblue") tbottom();
+color("green") translate([0,0,-1.1]) tkeyplane();
+translate([0,0,0]) color("lightblue") tbottom();
 
 
 *color("pink") translate([0,kdia,coverhi-0.5]) roundscreen();
@@ -75,7 +75,7 @@ color("lightblue") tbottom();
 *rotate([0,0,240]) speaker();
 *color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4]) rotate([180,0,-60]) ampboard();
 *color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3]) rotate([180,0,-30]) esp32();
-color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
+*color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
 if (sdlow) {
     rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) rotate([0,180,0]) sdboard();
 } else {
@@ -84,8 +84,8 @@ if (sdlow) {
     
 color("teal") translate([kdia-14.5,0, -1.5-1.6-0.1+0.3]) rotate([-90,0,90]) chargeboard();
 
-color("teal") rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
-color("DimGrey") rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
+*color("teal") rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.2, -1.5-1.6-5.9]) switch();
+*color("DimGrey") rotate([0,0,120]) translate([switchoff, -kdia/2-cdia+4.6, -1.5-1.6-0.1]) switchclip();
 
 *if (use18650) {
     translate([0,-kdia/2-cdia+12.6,-1.5-1.6-7]) b18650();
@@ -178,11 +178,12 @@ module sdboard()
     color("teal") translate([-swi/2, 0, 0]) {
         cube([swi,shi,sth], false);
         translate([2.2, -2.6, sth]) cube([13.7, 11.8, 2.2], false);
-        translate([2, 15.3, -12]) cube([15, 2.5, 12], false);
+        translate([0, 13, -12]) cube([17.5, 6, 12], false);
     }
     color("crimson") {
         cwi = 11.1;
-        translate([-cwi/2-0.3,-10,2.9]) cube([cwi, 15, 0.9], false);
+        translate([-cwi/2-0.3,-10,2.9]) cube([cwi, 15, 0.7], false);
+        translate([-cwi/2-0.3,-10,2.9]) cube([cwi, 2, 0.9], false);
     }
 }
 
@@ -475,7 +476,7 @@ module tkeyplane()
             // horizontal ribs
             for (col = [-tside-0.5:tside+0.5]) {
                 // Some shorter to make room for stuff
-                kcut = (col == tside-0.5) ? 17
+                kcut = (col == tside-0.5) ? 12
                      : (col == tside+0.5) ? 9.7
                      : (col == tside-1.5) ? 9
                      : (col == tside-2.5) ? 9
@@ -544,7 +545,38 @@ module tkeyplane()
             }
 
             // sd module holder
-            if (!sdlow) {
+            if (sdlow) {
+              rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth+1.2]) {
+                wi = 18;
+                hi = 12;
+                x = wi/2;
+                x2 = x+1.2;
+                y = hi;
+                y2 = -2;
+                y1 = 6;
+                x1 = x-1.5;
+                y0 = 6;
+                x0 = x-2;
+                z = boxdepth-sdz-1.2-1;
+                z1 = z - 10;
+                polyhedron(convexity=5,
+                    points = [
+                        [x2,y2,0],[-x2,y2,0],[-x2,y,0],[x2,y,0],
+                        [x1,y1,z1],[-x1,y1,z1],[-x1,y,z1],[x1,y-1,z1],
+                        [x0,y0,z],[-x0,y0,z],[-x0,y,z],[x0,y-1,z]
+                    ],
+                    faces = topnquadbot(4, 3)
+                );
+                tol = 0;
+                translate([-wi/2-1.2,y2,-1.5]) cube([wi+2.4,-y2-tol,1.5], false);
+                translate([-wi/2,0,0]) rotate([-90,0,0]) linear_extrude(height=hi) polygon([
+                    [-tol,0],[-1.2,0],[-1.2,2.8],[-tol+0.6,2.8],[-tol+0.6,2.4],[-tol,1.8]
+                ]);
+                translate([ wi/2,0,0]) rotate([-90,0,0]) linear_extrude(height=hi) polygon([
+                    [tol,0],[1.2,0],[1.2,2.8],[tol-0.6,2.8],[tol-0.6,2.4],[tol,1.8]
+                ]);
+              }
+            } else {
               rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1,-2]) {
                 // left side
                 translate([-11.1,0,-4]) cube([2,19.7,4], false);
@@ -856,15 +888,14 @@ module tbottom(dpt = boxdepth)
             // charge board
             translate([kdia-17, -14, 0.5]) {
                 x = 5;
-                y = 28;
+                y = 27;
                 z = dpt-21.5;
                 polyhedron(
                 points = [
-                    [-14,8,0],[-14,-4,0],[x+4,-4,0],[x+4,y+4,0],[-4,y+4,0],
+                    [-11,4,0],[-11,-2,0],[x+2,-2,0],[x+2,y,0],[0,y,0],
                     [-10,4,z],[-10,0,z],[x,0,z],[x,y,z],[0,y,z] ],
-                faces = [
-                    [0,1,2,3,4],[9,8,7,6,5], [5,6,1,0],[6,7,2,1],[7,8,3,2],[8,9,4,3],[9,5,0],[9,0,4]
-                ]);
+                faces = topnquadbot(5, 2)
+                );
             }
 
             // Speakers
@@ -896,6 +927,16 @@ module tbottom(dpt = boxdepth)
                         rotate([-90,0,0]) translate([-3.3,-3.4,-125.2/2]) cylinder(125.2,8.8/2,8.8/2,$fn=64);
                     }
                 }
+            }
+
+            if (sdlow) {
+                rotate([0,0,sdrot]) translate([sdoff, -kdia/2-cdia+2.1+sdin, 1]) {
+                    tol = 0.1;
+                    translate([-8,9.2+tol,0]) cube([16, 2, 1.4], false);
+                    translate([-8.0,-2,0]) cube([1.2-tol, 12, 1.4], false);
+                    translate([8-1.2+tol,-2,0]) cube([1.2-tol, 12, 1.4], false);
+                }
+
             }
         }
 
@@ -939,8 +980,8 @@ module tbottom(dpt = boxdepth)
         // sd card cutout
         if (sdlow) {
             rotate([0,0,sdrot]) {
-                translate([sdoff-6, -kdia/2-cdia+2.09, -0.01]) cube([12.5, 2.02, 2.11+0.2], false);
-                translate([sdoff-6, -kdia/2-cdia+2.09, 1]) cube([12.5, sdin-2.7, 1.1+0.2], false);
+                translate([sdoff-6, -kdia/2-cdia+2.09, -0.01]) cube([12.5, 3.51, 2.11+0.2], false);
+                translate([sdoff-6, -kdia/2-cdia+2.09, 1]) cube([12.5, 5.5, 1.1+0.2], false);
             }
         } else {
             rotate([0,0,sdrot])
@@ -948,12 +989,12 @@ module tbottom(dpt = boxdepth)
         }
 
         // usb port cutout
-        rotate([0,0,120]) translate([usboff-10,-kdia/2-cdia+2.09, dpt-8.2]) {
-            cube([20.1, 2.1, 5.1], false);
+        rotate([0,0,120]) translate([usboff-10,-kdia/2-cdia+2.09, dpt-8.4]) {
+            cube([20.1, 2.1, 5.3], false);
         }
         // switch cutout
-        rotate([0,0,120]) translate([switchoff-11, -kdia/2-cdia+2.09, dpt-8.2]) {
-            cube([24,2.1,5.1], false);
+        rotate([0,0,120]) translate([switchoff-11, -kdia/2-cdia+2.09, dpt-8.4]) {
+            cube([24,2.1,5.3], false);
         }
 
         if (use18650) {
@@ -1007,7 +1048,7 @@ module tbottom(dpt = boxdepth)
     // usb port
     rotate([0,0,120]) translate([usboff+6,-kdia/2-cdia+4.1, -dpt]) rotate([0,-90,0]) {
         linear_extrude(height=12) polygon([
-            [0,0],[0,3],[dpt-7.7,9],[dpt-7.5,8.8],[dpt-7.5,0.7],[dpt-8.2,0]
+            [0,0],[0,3],[dpt-7.7,9],[dpt-7.5,8.8],[dpt-7.5,0.9],[dpt-8.4,0]
         ]);
     }
 
