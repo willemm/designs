@@ -3,7 +3,7 @@
  v Sleuf voor luidspreker verbindingen wat breder
  v Sleuven in bovenkant: rekening houden met overhang layer, +0.2 mm
  v esp32 vashouder op bodem lijkt iets te dik
- * microsd verder naar binnen omdat het kaartje erg uitsteekt
+ v microsd verder naar binnen omdat het kaartje erg uitsteekt
  
 */
 use <Keyboard.scad>;
@@ -65,8 +65,8 @@ spkrholes = 1; // Turn on speaker holes
 
 *color("lightblue") tkeycover();
 *color("lightgreen") translate([0,0,-1.05]) tkeyholder();
-color("green") translate([0,0,-1.1]) tkeyplane();
-*translate([0,0,0]) color("lightblue") tbottom();
+*color("green") translate([0,0,-1.1]) tkeyplane();
+translate([0,0,0]) color("lightblue") tbottom();
 
 
 *translate([0,0,0]) tkeycaps();
@@ -76,10 +76,10 @@ color("green") translate([0,0,-1.1]) tkeyplane();
 *color("teal") translate([20.9*s3,kdia+cdia-2.1 -31, -1.5-1.6-2.4]) rotate([180,0,-60]) ampboard();
 *color("teal") translate([esp32xoff,kdia+cdia+esp32yoff, -1.5-1.6-3]) rotate([180,0,-30]) esp32();
 *color("teal") rotate([0,0,120]) translate([usboff,-kdia/2-cdia+usbin, -1.5-1.6-4.3]) usbport();
-*if (sdlow) {
+if (sdlow) {
     rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) rotate([0,180,0]) sdboard();
 
-    rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) {
+    *rotate([0,0,sdrot]) translate([sdoff,-kdia/2-cdia+2.1+sdin,sdz-boxdepth]) {
         color("white") translate([0,7,20/2]) cube([6,10,17.5], true);
     }
 
@@ -180,10 +180,15 @@ module sdboard()
     swi = 18;
     shi = 18;
     sth = 1.6;
+    hld = 2.2;
     color("teal") translate([-swi/2, 0, 0]) {
-        cube([swi,shi,sth], false);
+        difference() {
+            cube([swi,shi,sth], false);
+            translate([1.6, 13.2, -0.01]) cylinder(sth+0.02, hld/2, hld/2, $fn=32);
+            translate([18-1.6, 13.2, -0.01]) cylinder(sth+0.02, hld/2, hld/2, $fn=32);
+        }
         translate([2.2, -2.6, sth]) cube([13.7, 11.8, 2.2], false);
-        translate([0, 13, -12]) cube([17.5, 6, 12], false);
+        #translate([0, 13, -12]) cube([17.5, 6, 12], false);
     }
     color("crimson") {
         cwi = 11.1;
@@ -1006,11 +1011,16 @@ module tbottom(dpt = boxdepth)
             if (sdlow) {
                 rotate([0,0,sdrot]) translate([sdoff, -kdia/2-cdia+2.1+sdin, 1]) {
                     tol = 0.1;
+                    hld = 2.2-tol;
                     translate([-8,9.2+tol,0]) cube([16, 2, 1.4], false);
                     translate([-8.0,-2,0]) cube([1.2-tol, 12, 1.4], false);
                     translate([8-1.2+tol,-2,0]) cube([1.2-tol, 12, 1.4], false);
-                }
 
+                    translate([ (9-1.6), 13.2, -0.2]) cylinder(2.5, hld/2, hld/2, $fn=32);
+                    translate([-(9-1.6), 13.2, -0.2]) cylinder(2.5, hld/2, hld/2, $fn=32);
+                    translate([ (9-1.6), 13.2, 2.3]) cylinder(1.5, hld/2, 0.2, $fn=32);
+                    translate([-(9-1.6), 13.2, 2.3]) cylinder(1.5, hld/2, 0.2, $fn=32);
+                }
             }
         }
 
