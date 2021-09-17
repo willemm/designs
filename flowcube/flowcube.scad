@@ -5,24 +5,77 @@ holesp = 2.54;
 holedia = 1;
 boardth = 1.2;
 
-perfboard(47,47);
+ledsp = holesp * 4;
+ledz = boardth+0.5;
 
-module perfboard(w,h)
+butsp = holesp * 12;
+
+for (x=[0:3], y=[0:3]) {
+    translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
+}
+
+color("#a85") perfboard(47, 47);
+
+color("#eee") translate([0,0,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5, 64);
+
+color("#333") translate([0,0,11]) {
+    difference() {
+        perfboard(4, 4, 0.6, holesp * 12, holesp * 8, 0.5, 64);
+        for (x=[0:3]) {
+            translate([(x+0.5)*holesp*12, 24*holesp, 0.5]) cube([10,48*holesp+0.01,1.01], true);
+        }
+        for (y=[0:3]) {
+            translate([24*holesp, (y+0.5)*holesp*12, 0.5]) cube([48*holesp+0.01,10,1.01], true);
+        }
+    }
+}
+
+module buttonset()
 {
-    wid = holesp * (w+1);
-    hei = holesp * (h+1);
-    hr = holedia/2;
+    color("#acf") translate([0, 0, ledz]) switch();
+    color("#767") translate([-ledsp, 0, ledz]) wsled();
+    color("#767") translate([ ledsp, 0, ledz]) wsled();
+    color("#767") translate([0, -ledsp, ledz]) wsled();
+    color("#767") translate([0,  ledsp, ledz]) wsled();
+}
 
-    cp = 16;
+module switch()
+{
+    swsz = 8;
+    swhi = 5;
+    stemw = 3;
+    stemh = 3.6;
+    stemhi = 10;
+    translate([0,0,swhi/2])   cube([swsz, swsz, swhi], true);
+    translate([0,0,stemhi/2]) cube([stemw, stemh, stemhi], true);
+}
+
+module wsled()
+{
+    wsdia = 9/2;
+    wssz = 4.9;
+    wsbt = 1.6;
+    wsthi = 3.2;
+    translate([0,0,wsthi/2]) cube([wssz, wssz, wsthi], true);
+    cylinder(wsbt, wsdia, wsdia, $fn=64);
+}
+
+
+module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
+{
+    wid = hsp * (w-1+eof*2);
+    hei = hsp * (h-1+eof*2);
+    hr = hdi/2;
+
     an = 360/cp;
     lo = 2*(w+h+2);
     l2 = lo + cp*w*h;
     lo2 = l2+lo;
     points = concat(
         ssquare(wid,hei,w+1,h+1,0),
-        [for (x=[1:w], y=[1:h]) each circle(x*holesp, y*holesp, 0, hr, an)],
-        ssquare(wid,hei,w+1,h+1,boardth),
-        [for (x=[1:w], y=[1:h]) each circle(x*holesp, y*holesp, boardth, hr, an)]
+        [for (x=[0:w-1], y=[0:h-1]) each circle((x+eof)*hsp, (y+eof)*hsp, 0, hr, an)],
+        ssquare(wid,hei,w+1,h+1,thi),
+        [for (x=[0:w-1], y=[0:h-1]) each circle((x+eof)*hsp, (y+eof)*hsp, thi, hr, an)]
     );
     polyhedron(points = points, faces = concat(
         // [[0,1,2,3],[l2+3,l2+2,l2+1,l2+0]],
@@ -59,12 +112,6 @@ module perfboard(w,h)
         bcornerdart(l2, cp, w, h),
         []
     ));
-    *translate([0,0,-boardth/2]) difference() {
-        cube([wid, hei, boardth], true);
-        for (x=[-w/2+0.5:w/2], y=[-h/2+0.5:h/2]) {
-            translate([x*holesp, y*holesp, 0]) cylinder(boardth+0.02, hr, hr, true, $fn=48);
-        }
-    }
 }
 
 // Square with multiple points on sides
