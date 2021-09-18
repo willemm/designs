@@ -10,33 +10,63 @@ ledz = boardth+0.5;
 
 butsp = holesp * 12;
 
-for (x=[0:3], y=[0:3]) {
-    translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
-}
+butdia = holesp * 8;
 
-color("#a85") perfboard(47, 47);
+cubeside();
+translate([0,0,-butsp*4]) rotate([90,0,0]) cubeside();
+translate([0,0,-butsp*4]) rotate([0,-90,0]) cubeside();
 
-color("#eee") translate([0,0,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5, 64);
+module cubeside() {
+    for (x=[0:3], y=[0:3]) {
+        translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
+    }
 
-color("#333") translate([0,0,11]) {
-    difference() {
-        perfboard(4, 4, 0.6, holesp * 12, holesp * 8, 0.5, 64);
-        for (x=[0:3]) {
-            translate([(x+0.5)*holesp*12, 24*holesp, 0.5]) cube([10,48*holesp+0.01,1.01], true);
-        }
-        for (y=[0:3]) {
-            translate([24*holesp, (y+0.5)*holesp*12, 0.5]) cube([48*holesp+0.01,10,1.01], true);
+    color("#a85") perfboard(47, 47);
+
+    color("#eee") translate([0,0,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5, 64);
+
+    color("#333") translate([0,0,10]) {
+        difference() {
+            perfboard(4, 4, 1.6, holesp * 12, holesp * 8, 0.5, 64);
+            for (x=[0:3]) {
+                translate([(x+0.5)*holesp*12, 24*holesp, 0.8]) cube([10,48*holesp+0.01,1.61], true);
+            }
+            for (y=[0:3]) {
+                translate([24*holesp, (y+0.5)*holesp*12, 0.8]) cube([48*holesp+0.01,10,1.61], true);
+            }
         }
     }
 }
 
 module buttonset()
 {
+    color("#eee") translate([0,0,ledz+7.5]) button();
+
     color("#acf") translate([0, 0, ledz]) switch();
     color("#767") translate([-ledsp, 0, ledz]) wsled();
     color("#767") translate([ ledsp, 0, ledz]) wsled();
     color("#767") translate([0, -ledsp, ledz]) wsled();
     color("#767") translate([0,  ledsp, ledz]) wsled();
+}
+
+module button()
+{
+    // cylinder(5, butdia/2-0.5, butdia/2-0.5, $fn=160);
+    cp = 60;
+    an = 360/cp;
+    lh = 0.5;
+    hi = 7;
+    lc = hi/lh;
+    polyhedron(points = concat(
+        circle(0, 0, 0, butdia/2 - 0.5, an),
+        dome(0, 0, 2, hi-2, butdia/2 - 0.5 -2, 2, an, lc),
+        []),
+        faces = concat(
+            [tface(0, cp)],
+            [bface(cp*lc, cp)],
+            [for (l=[0:lc]) each qface(l*cp, cp, cp)],
+            []
+        ));
 }
 
 module switch()
@@ -195,3 +225,24 @@ function fcornerdart(lo, ss, w, h, di=0) = concat(
     fcornertri(lo=lo+2*(w+h+2)+ss*(h-1),     so=0.75, ss=ss, eo=lo + w+h+w+3, di=di)
 );
 function bcornerdart(lo, ss, w, h, di=1) = fcornerdart(lo, ss, w, h, di);
+
+
+// dome
+// x, y, height, diameter, circle steps, layer count
+// (z/h)^2 + (D/d)^2 = 1
+// (D/d)^2 = 1 - (z/h)^2
+// D/d = sqrt(1 - (z/h)^2)
+// D = d * sqrt(1 - (z/h)^2)
+function dome(x, y, z, h, d, d2, an, lc) = [for (i=[0:lc-1]) each
+    circle(x, y, z+(i*h/lc), d2 + d * sqrt(1 - (i/lc)*(i/lc)), an)
+];
+
+// faces
+function qface(s, n, o) = [for (i=[0:n-1]) each [
+    [s+(i+1)%n,s+(i+1)%n+o,s+i],
+    [s+(i+1)%n+o,s+i+o,s+i]
+]];
+
+// top/bottom face
+function bface(o, n) = [for (p=[0:n-1]) p+o];
+function tface(o, n) = [for (p=[n-1:-1:0]) p+o];
