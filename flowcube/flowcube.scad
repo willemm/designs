@@ -17,28 +17,41 @@ rotate([90,90,0]) cubeside();
 rotate([-90,0,90]) cubeside();
 
 module cubeside() {
-    for (x=[0:3], y=[0:3]) {
-        translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
-    }
-    color("#eee") cubeedge(sd = holesp*48);
-    color("#333") for (x=[0:4]) {
-        ao = (x == 0 ? 0 : (2*x-1)*holesp*6+5);
-        sd = ((x == 0 || x == 4) ? holesp*6-5 : holesp*12-10);
-        translate([ao, 0, 0]) cubeedge(sd = sd, thi = 1.6);
-    }
+    zof = -2.3;
+    xsof = 0.15;
+    xof = xsof*holesp*12;
+    bof = 10;
+    ewid = 10;
+    translate([0,0,zof]) {
+        for (x=[0:3], y=[0:3]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
+        }
+        color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = holesp*48 - xof + bof, rd=10+zof+xof);
+        color("#333") for (x=[0:4]) {
+            ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
+            sd = (x == 0 ? holesp*6-ewid/2-xof :
+                x == 4 ? holesp*6-ewid/2+bof : holesp*12-ewid);
+            translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.6, rd=10+zof+xof);
+        }
+        color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
+            cube([48*holesp-xof+bof, xof+bof+0.02, 1.6], true);
+        color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
+            cube([xof+bof+0.02, 48*holesp-xof+bof, 1.6], true);
 
-    color("#a85") perfboard(47, 47);
+        translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
+        //color("#a85") perfboard(47, 47);
 
-    color("#eee") translate([0,0,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5, 64);
+        color("#eee") translate([xof,xof,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
 
-    color("#333") translate([0,0,10]) {
-        difference() {
-            perfboard(4, 4, 1.6, holesp * 12, holesp * 8, 0.5, 64);
-            for (x=[0:3]) {
-                translate([(x+0.5)*holesp*12, 24*holesp, 0.8]) cube([10,48*holesp+0.01,1.61], true);
-            }
-            for (y=[0:3]) {
-                translate([24*holesp, (y+0.5)*holesp*12, 0.8]) cube([48*holesp+0.01,10,1.61], true);
+        color("#333") translate([0,0,10]) {
+            difference() {
+                translate([xof,xof,0]) perfboard(4, 4, 1.6, holesp * 12, holesp * 8, 0.5-xsof, 64);
+                for (x=[0:3]) {
+                    translate([(x+0.5)*holesp*12, 21*holesp+xof/2, 0.8]) cube([ewid,42*holesp-xof+0.01,1.61], true);
+                }
+                for (y=[0:3]) {
+                    translate([21*holesp+xof/2, (y+0.5)*holesp*12, 0.8]) cube([42*holesp-xof+0.01,ewid,1.61], true);
+                }
             }
         }
     }
@@ -48,7 +61,7 @@ module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
 {
     an = 90/cp;
     ss = 2*(cp+1);
-    polyhedron(
+    polyhedron(convexity=5,
         points = concat(
             xarc(0, 0, 0,  rd,     360, 270, -an),
             xarc(0, 0, 0,  rd+thi, 270, 360,  an),
@@ -82,10 +95,11 @@ module button()
     lh = 0.5;
     hi = 7;
     lc = hi/lh;
-    polyhedron(points = concat(
-        circle(0, 0, 0, butdia/2 - 0.5, an),
-        dome(0, 0, 2, hi-2, butdia/2 - 0.5 -2, 2, an, lc),
-        []),
+    polyhedron(convexity=5,
+        points = concat(
+            circle(0, 0, 0, butdia/2 - 0.5, an),
+            dome(0, 0, 2, hi-2, butdia/2 - 0.5 -2, 2, an, lc),
+            []),
         faces = concat(
             [tface(0, cp)],
             [bface(cp*lc, cp)],
@@ -132,7 +146,7 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
         ssquare(wid,hei,w+1,h+1,thi),
         [for (x=[0:w-1], y=[0:h-1]) each circle((x+eof)*hsp, (y+eof)*hsp, thi, hr, an)]
     );
-    polyhedron(points = points, faces = concat(
+    polyhedron(convexity = 5, points = points, faces = concat(
         // [[0,1,2,3],[l2+3,l2+2,l2+1,l2+0]],
         nquads(0, lo, l2), // Outside
         [for (p=[lo:cp:l2-1]) each nquads(p, cp, l2)], // Hole insides
