@@ -13,12 +13,18 @@ butsp = holesp * 12;
 butdia = holesp * 8;
 
 cubeside();
-translate([0,0,-butsp*4]) rotate([90,0,0]) cubeside();
-translate([0,0,-butsp*4]) rotate([0,-90,0]) cubeside();
+rotate([90,90,0]) cubeside();
+rotate([-90,0,90]) cubeside();
 
 module cubeside() {
     for (x=[0:3], y=[0:3]) {
         translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
+    }
+    color("#eee") cubeedge(sd = holesp*48);
+    color("#333") for (x=[0:4]) {
+        ao = (x == 0 ? 0 : (2*x-1)*holesp*6+5);
+        sd = ((x == 0 || x == 4) ? holesp*6-5 : holesp*12-10);
+        translate([ao, 0, 0]) cubeedge(sd = sd, thi = 1.6);
     }
 
     color("#a85") perfboard(47, 47);
@@ -36,6 +42,25 @@ module cubeside() {
             }
         }
     }
+}
+
+module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
+{
+    an = 90/cp;
+    ss = 2*(cp+1);
+    polyhedron(
+        points = concat(
+            xarc(0, 0, 0,  rd,     360, 270, -an),
+            xarc(0, 0, 0,  rd+thi, 270, 360,  an),
+            xarc(sd, 0, 0, rd,     360, 270, -an),
+            xarc(sd, 0, 0, rd+thi, 270, 360,  an),
+            []
+        ), faces = concat(
+            qface(0, ss, ss),
+            fqfacei(0, cp+1, ss-1),
+            bqfacei(ss, cp+1, ss-1),
+            []
+        ));
 }
 
 module buttonset()
@@ -238,11 +263,23 @@ function dome(x, y, z, h, d, d2, an, lc) = [for (i=[0:lc-1]) each
 ];
 
 // faces
+// start offset, number of sides, offset of next
 function qface(s, n, o) = [for (i=[0:n-1]) each [
     [s+(i+1)%n,s+(i+1)%n+o,s+i],
     [s+(i+1)%n+o,s+i+o,s+i]
 ]];
 
+// faces, second layer ordering inverted
+function bqfacei(s, n, o, di=0) = [for (i=[0:n-2]) each [
+    [s+(i+1-di),s+o-(i+1-di),s+i+di],
+    [s+o-(i+1-di),s+o-i-di,s+i+di]
+]];
+function fqfacei(s, n, o, di=1) = bqfacei(s, n, o, di);
+
 // top/bottom face
 function bface(o, n) = [for (p=[0:n-1]) p+o];
 function tface(o, n) = [for (p=[n-1:-1:0]) p+o];
+
+// Part of a circle
+// x, y, z, radius, start, end, an
+function xarc(x, y, z, rd, st, ed, an) = [for (a=[st:an:ed]) [ x, y+rd*sin(a), z+rd*cos(a) ]];
