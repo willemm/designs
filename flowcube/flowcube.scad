@@ -27,15 +27,19 @@ module cubeside() {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
         color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = holesp*48 - xof + bof, rd=10+zof+xof);
-        color("#333") for (x=[0:4]) {
+        *color("#333") for (x=[0:4]) {
             ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
             sd = (x == 0 ? holesp*6-ewid/2-xof :
                 x == 4 ? holesp*6-ewid/2+bof : holesp*12-ewid);
             translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.6, rd=10+zof+xof);
         }
-        color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
+        color("#eee") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.5])
+            cube([48*holesp-xof+bof, xof+bof+0.02, 1], true);
+        color("#eee") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.5])
+            cube([xof+bof+0.02, 48*holesp-xof+bof, 1], true);
+        *color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
             cube([48*holesp-xof+bof, xof+bof+0.02, 1.6], true);
-        color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
+        *color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
             cube([xof+bof+0.02, 48*holesp-xof+bof, 1.6], true);
 
         translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
@@ -43,7 +47,7 @@ module cubeside() {
 
         color("#eee") translate([xof,xof,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
 
-        color("#333") translate([0,0,10]) {
+        *color("#333") translate([0,0,10]) {
             difference() {
                 translate([xof,xof,0]) perfboard(4, 4, 1.6, holesp * 12, holesp * 8, 0.5-xsof, 64);
                 for (x=[0:3]) {
