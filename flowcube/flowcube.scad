@@ -4,6 +4,7 @@
 holesp = 2.54;
 holedia = 1;
 boardth = 1.2;
+ewid = 10;
 
 ledsp = holesp * 4;
 ledz = boardth+0.5;
@@ -21,31 +22,39 @@ module cubeside() {
     xsof = 0.15;
     xof = xsof*holesp*12;
     bof = 10;
-    ewid = 10;
     translate([0,0,zof]) {
         for (x=[0:3], y=[0:3]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
         color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = holesp*48 - xof + bof, rd=10+zof+xof);
-        *color("#333") for (x=[0:4]) {
+        color("#333") for (x=[0:4]) {
             ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
             sd = (x == 0 ? holesp*6-ewid/2-xof :
                 x == 4 ? holesp*6-ewid/2+bof : holesp*12-ewid);
             translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.6, rd=10+zof+xof);
+            if (x > 0 && x < 4) {
+                // TODO: Magic numbers!
+                translate([x*holesp*12,0,11]) edgefacet(thi=0.6);
+                translate([x*holesp*12,-9.3,2.3]) rotate([-90,0,0]) edgefacet(thi=0.6);
+            }
         }
         color("#eee") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.5])
             cube([48*holesp-xof+bof, xof+bof+0.02, 1], true);
         color("#eee") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.5])
             cube([xof+bof+0.02, 48*holesp-xof+bof, 1], true);
-        *color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
+        color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
             cube([48*holesp-xof+bof, xof+bof+0.02, 1.6], true);
-        *color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
+        color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
             cube([xof+bof+0.02, 48*holesp-xof+bof, 1.6], true);
 
-        translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
+        *translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
         //color("#a85") perfboard(47, 47);
 
         color("#eee") translate([xof,xof,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
+
+        color("#333") for (x=[1:3], y=[1:3]) {
+            translate([butsp*x,butsp*y,11]) sidefacet();
+        }
 
         *color("#333") translate([0,0,10]) {
             difference() {
@@ -65,17 +74,78 @@ module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
 {
     an = 90/cp;
     ss = 2*(cp+1);
+    union() {
+        polyhedron(convexity=5,
+            points = concat(
+                xarc(0, 0, 0,  rd,     360, 270, -an),
+                xarc(0, 0, 0,  rd+thi, 270, 360,  an),
+                xarc(sd, 0, 0, rd,     360, 270, -an),
+                xarc(sd, 0, 0, rd+thi, 270, 360,  an),
+                []
+            ), faces = concat(
+                qface(0, ss, ss),
+                fqfacei(0, cp+1, ss-1),
+                bqfacei(ss, cp+1, ss-1),
+                []
+            ));
+    }
+}
+
+module edgefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
+{
+    an = 90/cp;
+    xo = butsp/2; // offset of hole centers
+    esta = asin((ewid/2)/rd);
+    cnf = floor((90-(esta*2)) / an);
+    sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
+    ss = (cnf+1)*2+2;
+
+    // TODO: Magic numbers!
     polyhedron(convexity=5,
         points = concat(
-            xarc(0, 0, 0,  rd,     360, 270, -an),
-            xarc(0, 0, 0,  rd+thi, 270, 360,  an),
-            xarc(sd, 0, 0, rd,     360, 270, -an),
-            xarc(sd, 0, 0, rd+thi, 270, 360,  an),
+            [[ xo-ewid/2, 4.57, thi]],
+            zarc( xo,  xo, thi, rd, 180+sta, 270-sta, an),
+            zarc(-xo,  xo, thi, rd,  90+sta, 180-sta, an),
+            [[-xo+ewid/2, 4.57, thi]],
+            [[ xo-ewid/2, 4.57,   0]],
+            zarc( xo,  xo,   0, rd, 180+sta, 270-sta, an),
+            zarc(-xo,  xo,   0, rd,  90+sta, 180-sta, an),
+            [[-xo+ewid/2, 4.57,   0]],
             []
-        ), faces = concat(
-            qface(0, ss, ss),
-            fqfacei(0, cp+1, ss-1),
-            bqfacei(ss, cp+1, ss-1),
+        ),
+        faces = concat(
+            [tface( 0, ss)],
+            qface( 0, ss, ss),
+            [bface(ss, ss)],
+            []
+        ));
+}
+
+module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
+{
+    an = 90/cp;
+    xo = butsp/2; // offset of hole centers
+    esta = asin((ewid/2)/rd);
+    cnf = floor((90-(esta*2)) / an);
+    sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
+    ss = (cnf+1)*4;
+
+    polyhedron(convexity=5,
+        points = concat(
+            zarc(-xo, -xo, thi, rd,   0+sta,  90-sta, an),
+            zarc( xo, -xo, thi, rd, 270+sta, 360-sta, an),
+            zarc( xo,  xo, thi, rd, 180+sta, 270-sta, an),
+            zarc(-xo,  xo, thi, rd,  90+sta, 180-sta, an),
+            zarc(-xo, -xo,   0, rd,   0+sta,  90-sta, an),
+            zarc( xo, -xo,   0, rd, 270+sta, 360-sta, an),
+            zarc( xo,  xo,   0, rd, 180+sta, 270-sta, an),
+            zarc(-xo,  xo,   0, rd,  90+sta, 180-sta, an),
+            []
+        ),
+        faces = concat(
+            [tface( 0, ss)],
+            qface( 0, ss, ss),
+            [bface(ss, ss)],
             []
         ));
 }
@@ -301,3 +371,7 @@ function tface(o, n) = [for (p=[n-1:-1:0]) p+o];
 // Part of a circle
 // x, y, z, radius, start, end, an
 function xarc(x, y, z, rd, st, ed, an) = [for (a=[st:an:ed]) [ x, y+rd*sin(a), z+rd*cos(a) ]];
+
+// Part of a circle
+// x, y, z, radius, start, end, an
+function zarc(x, y, z, rd, st, ed, an) = [for (a=[st:an:ed]) [ x+rd*sin(a), y+rd*cos(a), z ]];
