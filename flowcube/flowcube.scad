@@ -152,7 +152,7 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
 
 module buttonset()
 {
-    color("#eee") translate([0,0,ledz+7.5]) button();
+    #color("#eee") translate([0,0,ledz+7.5]) button();
 
     color("#acf") translate([0, 0, ledz]) switch();
     color("#767") translate([-ledsp, 0, ledz]) wsled();
@@ -184,13 +184,28 @@ module button()
 
 module switch()
 {
-    swsz = 8;
-    swhi = 5;
-    stemw = 3;
-    stemh = 3.6;
-    stemhi = 10;
-    translate([0,0,swhi/2])   cube([swsz, swsz, swhi], true);
-    translate([0,0,stemhi/2]) cube([stemw, stemh, stemhi], true);
+    swi = [7,7,6.6];
+
+    nub = [0.4,2,0.4];
+    stem = [4,4,2.5];
+    mid = [1.5,2.5,2.5];
+    ped1 = [2,3,0.7];
+    ped2 = [2,3,0.7];
+
+    pin = [0.6,0.3,3.6];
+
+    translate([0,0,swi[2]/2])   cube(swi, true);
+    translate([0,0,swi[2]+stem[2]/2]) cube(stem, true);
+    for (x=[-1,1], y=[-1,1]) {
+        translate([x*(swi[0]-nub[0])/2, y*(swi[1]-nub[1])/2, -nub[2]/2]) cube(nub,true);
+    }
+    translate([0,0,swi[2]+stem[2]+mid[2]/2]) cube(mid, true);
+    translate([0,0,swi[2]+stem[2]+ped1[2]/2]) cube(ped1, true);
+    translate([0,0,swi[2]+stem[2]+mid[2]-ped2[2]/2]) cube(ped2, true);
+
+    for (x=[-1,0,1], y=[-1,1]) {
+        translate([x*2, y*2.5, -pin[2]/2]) cube(pin, true);
+    }
 }
 
 module wsled()
