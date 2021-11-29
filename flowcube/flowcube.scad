@@ -1,4 +1,3 @@
-
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -14,8 +13,8 @@ butsp = holesp * 12;
 butdia = holesp * 8;
 
 cubeside();
-rotate([90,90,0]) cubeside();
-rotate([-90,0,90]) cubeside();
+*rotate([90,90,0]) cubeside();
+*rotate([-90,0,90]) cubeside();
 
 module cubeside() {
     zof = -2.3;
@@ -68,6 +67,25 @@ module cubeside() {
             }
         }
     }
+    color("#beb") translate([0, 0, zof+ledz+0.2]) backend();
+}
+
+module backend(sd = holesp * 48, thi = 2.8)
+{
+    difference() {
+        cube([sd, sd, thi]);
+        for (x=[0:3], y=[0:3]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz]) buttonholes();
+        }
+    }
+}
+
+module buttonholes(tol=0.1, cut=0.01)
+{
+    translate([-ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
+    translate([ ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
+    translate([0, -ledsp, ledz]) wsled(tol=tol, cut=cut);
+    translate([0,  ledsp, ledz]) wsled(tol=tol, cut=cut);
 }
 
 module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
@@ -152,7 +170,7 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
 
 module buttonset()
 {
-    #color("#eee") translate([0,0,ledz+7.5]) button();
+    *#color("#eee") translate([0,0,ledz+7.5]) button();
 
     color("#acf") translate([0, 0, ledz]) switch();
     color("#767") translate([-ledsp, 0, ledz]) wsled();
@@ -208,14 +226,14 @@ module switch()
     }
 }
 
-module wsled()
+module wsled(tol=0, cut=0)
 {
     wsdia = 9/2;
     wssz = 4.9;
     wsbt = 1.6;
     wsthi = 3.2;
-    translate([0,0,wsthi/2]) cube([wssz, wssz, wsthi], true);
-    cylinder(wsbt, wsdia, wsdia, $fn=64);
+    translate([0,0,wsthi/2]) cube([wssz+tol, wssz+tol, wsthi+cut], true);
+    translate([0,0,-cut/2]) cylinder(wsbt+cut, wsdia+tol, wsdia+tol, $fn=64);
 }
 
 
