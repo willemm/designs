@@ -5,6 +5,8 @@ holedia = 1;
 boardth = 1.2;
 ewid = 10;
 
+numbut = 3;
+
 ledsp = holesp * 4;
 ledz = boardth+0.5;
 
@@ -22,71 +24,111 @@ module cubeside() {
     xof = xsof*holesp*12;
     bof = 10;
     translate([0,0,zof]) {
-        *for (x=[0:3], y=[0:3]) {
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
-        *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = holesp*48 - xof + bof, rd=10+zof+xof);
-        *color("#333") for (x=[0:4]) {
+        *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
+        *color("#333") for (x=[0:numbut]) {
             ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
             sd = (x == 0 ? holesp*6-ewid/2-xof :
-                x == 4 ? holesp*6-ewid/2+bof : holesp*12-ewid);
+                x == numbut ? holesp*6-ewid/2+bof : holesp*12-ewid);
             translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.6, rd=10+zof+xof);
-            if (x > 0 && x < 4) {
+            if (x > 0 && x < numbut) {
                 // TODO: Magic numbers!
                 translate([x*holesp*12,0,11]) edgefacet(thi=0.6);
                 translate([x*holesp*12,-9.3,2.3]) rotate([-90,0,0]) edgefacet(thi=0.6);
             }
         }
-        *color("#eee") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.5])
-            cube([48*holesp-xof+bof, xof+bof+0.02, 1], true);
-        *color("#eee") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.5])
-            cube([xof+bof+0.02, 48*holesp-xof+bof, 1], true);
-        *color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
-            cube([48*holesp-xof+bof, xof+bof+0.02, 1.6], true);
-        *color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
-            cube([xof+bof+0.02, 48*holesp-xof+bof, 1.6], true);
+        *color("#eee") translate([numbut*butsp/2+xof/2+bof/2, numbut*butsp-xof/2+bof/2-0.01, 10.5])
+            cube([numbut*butsp-xof+bof, xof+bof+0.02, 1], true);
+        *color("#eee") translate([numbut*butsp-xof/2+bof/2-0.01, numbut*butsp/2+xof/2+bof/2, 10.5])
+            cube([xof+bof+0.02, numbut*butsp-xof+bof, 1], true);
+        *color("#333") translate([numbut*butsp/2+xof/2+bof/2, numbut*butsp-xof/2+bof/2-0.01, 10.8])
+            cube([numbut*butsp-xof+bof, xof+bof+0.02, 1.6], true);
+        *color("#333") translate([numbut*butsp-xof/2+bof/2-0.01, numbut*butsp/2+xof/2+bof/2, 10.8])
+            cube([xof+bof+0.02, numbut*butsp-xof+bof, 1.6], true);
 
-        *translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
+        //translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
         //color("#a85") perfboard(47, 47);
 
-        color("#eee") translate([xof,xof,10]) perfboard(4, 4, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
+        *color("#eee") translate([xof,xof,10]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
 
-        color("#333") for (x=[1:3], y=[1:3]) {
+        *color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([butsp*x,butsp*y,11]) sidefacet();
         }
 
+        // To be replacd with loose bits
         *color("#333") translate([0,0,10]) {
             difference() {
-                translate([xof,xof,0]) perfboard(4, 4, 1.6, holesp * 12, holesp * 8, 0.5-xsof, 64);
-                for (x=[0:3]) {
-                    translate([(x+0.5)*holesp*12, 21*holesp+xof/2, 0.8]) cube([ewid,42*holesp-xof+0.01,1.61], true);
+                translate([xof,xof,0]) perfboard(numbut, numbut, 1.6, holesp * 12, holesp * 8, 0.5-xsof, 64);
+                for (x=[0:numbut-1]) {
+                    translate([(x+0.5)*holesp*12, (12*numbut-6)/2*holesp+xof/2, 0.8]) cube([ewid,(12*numbut-6)*holesp-xof+0.01,1.61], true);
                 }
-                for (y=[0:3]) {
-                    translate([21*holesp+xof/2, (y+0.5)*holesp*12, 0.8]) cube([42*holesp-xof+0.01,ewid,1.61], true);
+                for (y=[0:numbut-1]) {
+                    translate([(12*numbut-6)/2*holesp+xof/2, (y+0.5)*holesp*12, 0.8]) cube([(12*numbut-6)*holesp-xof+0.01,ewid,1.61], true);
                 }
             }
         }
     }
-    color("#beb") translate([0, 0, zof+ledz+0.2]) backend();
+    color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
+    color("#8c8") translate([0, 0, zof+ledz-1-0.1]) backendback();
 }
 
-module backend(sd = holesp * 48, thi = 2.8)
+module backendback(sd = numbut*butsp, thi = 1.6)
+{
+    difference() {
+        cube([sd, sd, thi]);
+        for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
+            xo = (x+0.5)*butsp + cos(an)*ledsp;
+            yo = (y+0.5)*butsp + sin(an)*ledsp;
+            translate([xo, yo, thi-0.7]) cylinder(0.71, 5, 5, $fn=64);
+        }
+        for (x=[0:numbut-1]) {
+            translate([(x+0.5)*butsp-4, -0.01, -0.01]) cube([8, sd+0.02, thi-0.4+0.01]);
+        }
+        for (y=[0:numbut-1]) {
+            translate([-0.01, (y+0.5)*butsp-4, -0.01]) cube([sd+0.02, 8, thi-0.4+0.01]);
+        }
+    }
+}
+
+module backendfront(sd = numbut*butsp, thi = 1.4)
 {
     difference() {
         union() {
             cube([sd, sd, thi]);
-            for (x=[0:3], y=[0:3]) {
-                translate([(x+0.5)*butsp, (y+0.5)*butsp, thi]) stubpyra(14,14,7,7,4.2);
+            for (x=[0:numbut-1], y=[0:numbut-1]) {
+                translate([(x+0.5)*butsp, (y+0.5)*butsp, thi]) stubpyra(14,14,7,7,7-thi);
+
+                for (an=[0:90:270]) {
+                    xo = (x+0.5)*butsp + cos(an)*ledsp;
+                    yo = (y+0.5)*butsp + sin(an)*ledsp;
+                    translate([xo, yo, thi]) stubpyra(10,10,6,6,2.5-thi);
+                }
             }
-            for (x=[1:3], y=[1:3]) {
-                translate([(x)*butsp, (y)*butsp, thi]) stubpyra(16,16,12,12,5.2);
+            for (x=[1:numbut-1], y=[1:numbut-1]) {
+                translate([x*butsp, y*butsp, thi]) stubpyra(20,20,12,12,8-thi);
             }
+            /*
+            for (x=[1,numbut-1]) {
+                translate([x*butsp,              5, thi]) stubpyra(20,10,12,6,7.7-thi);
+                translate([x*butsp, numbut*butsp-5, thi]) stubpyra(20,10,12,6,7.7-thi);
+            }
+            for (x=[1,numbut-1]) {
+                translate([             5, y*butsp, thi]) stubpyra(10,20,6,12,7.7-thi);
+                translate([numbut*butsp-5, y*butsp, thi]) stubpyra(10,20,6,12,7.7-thi);
+            }
+            translate([             5,              5, thi]) stubpyra(10,10,6,6,7.7-thi);
+            translate([numbut*butsp-5,              5, thi]) stubpyra(10,10,6,6,7.7-thi);
+            translate([             5, numbut*butsp-5, thi]) stubpyra(10,10,6,6,7.7-thi);
+            translate([numbut*butsp-5, numbut*butsp-5, thi]) stubpyra(10,10,6,6,7.7-thi);
+            */
         }
-        for (x=[0:3], y=[0:3]) {
-            translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz]) buttonholes();
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz-0.4]) buttonholes();
         }
-        for (x=[1:3], y=[1:3]) {
-            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(16,16,12,12,5.22);
+        for (x=[1:numbut-1], y=[1:numbut-1]) {
+            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(16,16,10,10,10-thi+0.01);
         }
     }
 }
@@ -106,7 +148,7 @@ module stubpyra(x1=14, y1=14, x2=7, y2=7, z=4.2)
     );
 }
 
-module buttonholes(thi=6.4, tol=0.1, cut=0.01)
+module buttonholes(thi=6.4, tol=0.5, cut=0.01)
 {
     translate([0, 0, ledz+thi/2]) cube([7+tol,7+tol,thi+cut], true);
     translate([0, 0, ledz+thi+1]) cube([5+tol,5+tol,2+cut], true);
