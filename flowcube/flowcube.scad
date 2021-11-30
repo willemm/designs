@@ -22,11 +22,11 @@ module cubeside() {
     xof = xsof*holesp*12;
     bof = 10;
     translate([0,0,zof]) {
-        for (x=[0:3], y=[0:3]) {
+        *for (x=[0:3], y=[0:3]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
-        color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = holesp*48 - xof + bof, rd=10+zof+xof);
-        color("#333") for (x=[0:4]) {
+        *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = holesp*48 - xof + bof, rd=10+zof+xof);
+        *color("#333") for (x=[0:4]) {
             ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
             sd = (x == 0 ? holesp*6-ewid/2-xof :
                 x == 4 ? holesp*6-ewid/2+bof : holesp*12-ewid);
@@ -37,13 +37,13 @@ module cubeside() {
                 translate([x*holesp*12,-9.3,2.3]) rotate([-90,0,0]) edgefacet(thi=0.6);
             }
         }
-        color("#eee") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.5])
+        *color("#eee") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.5])
             cube([48*holesp-xof+bof, xof+bof+0.02, 1], true);
-        color("#eee") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.5])
+        *color("#eee") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.5])
             cube([xof+bof+0.02, 48*holesp-xof+bof, 1], true);
-        color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
+        *color("#333") translate([24*holesp+xof/2+bof/2, 48*holesp-xof/2+bof/2-0.01, 10.8])
             cube([48*holesp-xof+bof, xof+bof+0.02, 1.6], true);
-        color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
+        *color("#333") translate([48*holesp-xof/2+bof/2-0.01, 24*holesp+xof/2+bof/2, 10.8])
             cube([xof+bof+0.02, 48*holesp-xof+bof, 1.6], true);
 
         *translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
@@ -73,15 +73,44 @@ module cubeside() {
 module backend(sd = holesp * 48, thi = 2.8)
 {
     difference() {
-        cube([sd, sd, thi]);
+        union() {
+            cube([sd, sd, thi]);
+            for (x=[0:3], y=[0:3]) {
+                translate([(x+0.5)*butsp, (y+0.5)*butsp, thi]) stubpyra(14,14,7,7,4.2);
+            }
+            for (x=[1:3], y=[1:3]) {
+                translate([(x)*butsp, (y)*butsp, thi]) stubpyra(16,16,12,12,5.2);
+            }
+        }
         for (x=[0:3], y=[0:3]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz]) buttonholes();
+        }
+        for (x=[1:3], y=[1:3]) {
+            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(16,16,12,12,5.22);
         }
     }
 }
 
-module buttonholes(tol=0.1, cut=0.01)
+module stubpyra(x1=14, y1=14, x2=7, y2=7, z=4.2)
 {
+    polyhedron(convexity = 3,
+        points = [
+            [-x1/2,-y1/2,0], [-x1/2, y1/2,0], [ x1/2, y1/2,0], [ x1/2,-y1/2,0],
+            [-x2/2,-y2/2,z], [-x2/2, y2/2,z], [ x2/2, y2/2,z], [ x2/2,-y2/2,z],
+        ],
+        faces = concat(
+            [tface(0,4)],
+            qface(0,4,4),
+            [bface(4,4)]
+        )
+    );
+}
+
+module buttonholes(thi=6.4, tol=0.1, cut=0.01)
+{
+    translate([0, 0, ledz+thi/2]) cube([7+tol,7+tol,thi+cut], true);
+    translate([0, 0, ledz+thi+1]) cube([5+tol,5+tol,2+cut], true);
+
     translate([-ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
     translate([ ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
     translate([0, -ledsp, ledz]) wsled(tol=tol, cut=cut);
