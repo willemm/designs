@@ -24,7 +24,7 @@ module cubeside() {
     xof = xsof*holesp*12;
     bof = 10;
     translate([0,0,zof]) {
-        for (x=[0:numbut-1], y=[0:numbut-1]) {
+        *for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
         *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
@@ -70,7 +70,7 @@ module cubeside() {
             }
         }
     }
-    color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
+    *color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
     color("#8c8") translate([0, 0, zof+ledz-1-0.1]) backendback();
 }
 
@@ -117,6 +117,14 @@ module backendback(sd = numbut*butsp, thi = 1.6)
             xo = (x+0.5)*butsp + cos(an)*ledsp;
             yo = (y+0.5)*butsp + sin(an)*ledsp;
             translate([xo, yo, thi-0.7]) cylinder(0.71, 5, 5, $fn=64);
+        }
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
+                translate([-3.5,-3.5,thi-0.6]) cube([7,7,1.01]);
+                for (x=[-1,1], y=[-1,1]) {
+                    translate([x*3.25-0.25, y*2.2-1.3, thi-1.1]) cube([0.5,2.6,0.601]);
+                }
+            }
         }
     }
 }
