@@ -24,7 +24,7 @@ module cubeside() {
     xof = xsof*holesp*12;
     bof = 10;
     translate([0,0,zof]) {
-        *for (x=[0:numbut-1], y=[0:numbut-1]) {
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
         *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
@@ -51,9 +51,9 @@ module cubeside() {
         //translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
         //color("#a85") perfboard(47, 47);
 
-        *color("#eee") translate([xof,xof,10]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
+        color("#eee") translate([xof,xof,10]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
 
-        *color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
+        color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([butsp*x,butsp*y,11]) sidefacet();
         }
 
@@ -70,7 +70,7 @@ module cubeside() {
             }
         }
     }
-    *color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
+    color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
     color("#8c8") translate([0, 0, zof+ledz-1-0.1]) backendback();
 }
 
@@ -108,6 +108,19 @@ module backendback(sd = numbut*butsp, thi = 1.6)
             for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
                 translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) rotate([0,0,an])
                     translate([2.8, -4, 0]) cube([2, 8, thi]);
+            }
+            for (x=[1:numbut-1], y=[0,numbut]) {
+                yo = y*butsp+(cwid/4+1)*(y>0?-1:1);
+                translate([x*butsp, yo, thi/2]) cube([cwid,cwid/2-2,thi], true);
+            }
+            for (x=[0,numbut], y=[1:numbut-1]) {
+                xo = x*butsp+(cwid/4+1)*(x>0?-1:1);
+                translate([xo, y*butsp, thi/2]) cube([cwid/2-2,cwid,thi], true);
+            }
+            for (x=[0,numbut], y=[0,numbut]) {
+                xo = x*butsp+(cwid/4+1)*(x>0?-1:1);
+                yo = y*butsp+(cwid/4+1)*(y>0?-1:1);
+                translate([xo, yo, thi/2]) cube([cwid/2-2,cwid/2-2,thi], true);
             }
         }
         for (x=[1:numbut-1], y=[1:numbut-1]) {
@@ -151,7 +164,7 @@ module backendfront(sd = numbut*butsp, thi = 1.4)
                 translate([x*butsp,              5, thi]) stubpyra(20,10,12,6,7.7-thi);
                 translate([x*butsp, numbut*butsp-5, thi]) stubpyra(20,10,12,6,7.7-thi);
             }
-            for (x=[1,numbut-1]) {
+            for (y=[1,numbut-1]) {
                 translate([             5, y*butsp, thi]) stubpyra(10,20,6,12,7.7-thi);
                 translate([numbut*butsp-5, y*butsp, thi]) stubpyra(10,20,6,12,7.7-thi);
             }
