@@ -51,9 +51,9 @@ module cubeside() {
         //translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
         //color("#a85") perfboard(47, 47);
 
-        color("#eee") translate([xof,xof,10]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
+        *color("#eee") translate([xof,xof,10]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
 
-        color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
+        *color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([butsp*x,butsp*y,11]) sidefacet();
         }
 
@@ -70,29 +70,11 @@ module cubeside() {
             }
         }
     }
-    color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
-    color("#8c8") translate([0, 0, zof+ledz-1-0.1]) backendback();
+    *color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
+    color("#8c8") translate([0, 0, zof+ledz-1.8-0.1]) backendback();
 }
 
-module backendback_old(sd = numbut*butsp, thi = 1.6)
-{
-    difference() {
-        cube([sd, sd, thi]);
-        for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
-            xo = (x+0.5)*butsp + cos(an)*ledsp;
-            yo = (y+0.5)*butsp + sin(an)*ledsp;
-            translate([xo, yo, thi-0.7]) cylinder(0.71, 5, 5, $fn=64);
-        }
-        for (x=[0:numbut-1]) {
-            translate([(x+0.5)*butsp-4, -0.01, -0.01]) cube([8, sd+0.02, thi-0.4+0.01]);
-        }
-        for (y=[0:numbut-1]) {
-            translate([-0.01, (y+0.5)*butsp-4, -0.01]) cube([sd+0.02, 8, thi-0.4+0.01]);
-        }
-    }
-}
-
-module backendback(sd = numbut*butsp, thi = 1.6)
+module backendback(sd = numbut*butsp, thi = 2.4)
 {
     cwid = butsp-8;
     swid = 16;
@@ -106,8 +88,14 @@ module backendback(sd = numbut*butsp, thi = 1.6)
                 }
             }
             for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
-                translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) rotate([0,0,an])
+                translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) rotate([0,0,an]) {
                     translate([2.8, -4, 0]) cube([2, 8, thi]);
+                    translate([ledsp,  4, 0]) cylinder(2, 1, 1, $fn=4);
+                    translate([ledsp, -4, 0]) cylinder(2, 1, 1, $fn=4);
+                }
+            }
+            for (x=[0:numbut-1], y=[0:numbut-1]) {
+                translate([(x+0.5)*butsp-6/2, (y+0.5)*butsp-3/2, 0]) cube([6,3,2]);
             }
             for (x=[1:numbut-1], y=[0,numbut]) {
                 yo = y*butsp+(cwid/4+1)*(y>0?-1:1);
@@ -137,6 +125,13 @@ module backendback(sd = numbut*butsp, thi = 1.6)
                 for (x=[-1,1], y=[-1,1]) {
                     translate([x*3.25-0.25, y*2.2-1.3, thi-1.1]) cube([0.5,2.6,0.601]);
                 }
+                translate([-5.2,  3.9, 0.5]) rotate([0,90,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+                translate([-5.2, -3.9, 0.5]) rotate([0,90,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+                translate([-5.2,    0, 0.5]) rotate([0,90,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+
+                translate([ 3.9, -5.2, 1.3]) rotate([-90,0,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+                translate([-3.9, -5.2, 1.3]) rotate([-90,0,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+                translate([   1, -5.2, 1.3]) rotate([-90,0,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
             }
         }
     }
