@@ -24,7 +24,7 @@ module cubeside() {
     xof = xsof*holesp*12;
     bof = 10;
     translate([0,0,zof]) {
-        for (x=[0:numbut-1], y=[0:numbut-1]) {
+        *for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
         *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
@@ -70,14 +70,14 @@ module cubeside() {
             }
         }
     }
-    *color("#beb") translate([0, 0, zof+ledz+0.6]) backendfront();
+    color("#beb") translate([0, 0, zof+ledz+1.8]) backendfront();
     color("#8c8") translate([0, 0, zof+ledz-1.8-0.1]) backendback();
 }
 
-module backendback(sd = numbut*butsp, thi = 2.4)
+module backendback(sd = numbut*butsp, thi = 3.6)
 {
     cwid = butsp-8;
-    swid = 16;
+    swid = 20;
     twid = 10;
     difference() {
         union() {
@@ -96,6 +96,7 @@ module backendback(sd = numbut*butsp, thi = 2.4)
             }
             for (x=[0:numbut-1], y=[0:numbut-1]) {
                 translate([(x+0.5)*butsp-6/2, (y+0.5)*butsp-3/2, 0]) cube([6,3,2]);
+                translate([(x+0.5)*butsp-3/2+2.0, (y+0.5)*butsp-6/2, 0]) cube([1.0,6,2]);
             }
             for (x=[1:numbut-1], y=[0,numbut]) {
                 yo = y*butsp+(cwid/4+1)*(y>0?-1:1);
@@ -117,7 +118,7 @@ module backendback(sd = numbut*butsp, thi = 2.4)
         for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
             xo = (x+0.5)*butsp + cos(an)*ledsp;
             yo = (y+0.5)*butsp + sin(an)*ledsp;
-            translate([xo, yo, thi-0.7]) cylinder(0.71, 5, 5, $fn=64);
+            translate([xo, yo, 1.7]) cylinder(thi-1.69, 5, 5, $fn=64);
         }
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
@@ -137,7 +138,7 @@ module backendback(sd = numbut*butsp, thi = 2.4)
     }
 }
 
-module backendfront(sd = numbut*butsp, thi = 1.4)
+module backendfront(sd = numbut*butsp, thi = 1.2, gap=6.4)
 {
     difference() {
         union() {
@@ -148,11 +149,11 @@ module backendfront(sd = numbut*butsp, thi = 1.4)
                 for (an=[0:90:270]) {
                     xo = (x+0.5)*butsp + cos(an)*ledsp;
                     yo = (y+0.5)*butsp + sin(an)*ledsp;
-                    translate([xo, yo, thi]) stubpyra(10,10,6,6,2.5-thi);
+                    translate([xo, yo, thi]) stubpyra(10,10,6,6,gap-5.1-thi);
                 }
             }
             for (x=[1:numbut-1], y=[1:numbut-1]) {
-                translate([x*butsp, y*butsp, thi]) stubpyra(20,20,12,12,8-thi);
+                translate([x*butsp, y*butsp, thi]) stubpyra(20,20,12,12,gap-thi);
             }
             /*
             for (x=[1,numbut-1]) {
@@ -170,10 +171,11 @@ module backendfront(sd = numbut*butsp, thi = 1.4)
             */
         }
         for (x=[0:numbut-1], y=[0:numbut-1]) {
-            translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz-0.4]) buttonholes();
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz-(8-gap)]) buttonholes();
         }
         for (x=[1:numbut-1], y=[1:numbut-1]) {
-            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(16,16,10,10,10-thi+0.01);
+            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(18,18,10,10,gap+0.2-thi+0.01);
+            translate([(x)*butsp, (y)*butsp, gap+1-thi]) cube([6,6,2.02], true);
         }
     }
 }
@@ -198,10 +200,18 @@ module buttonholes(thi=6.4, tol=0.5, cut=0.01)
     translate([0, 0, ledz+thi/2]) cube([7+tol,7+tol,thi+cut], true);
     translate([0, 0, ledz+thi+1]) cube([5+tol,5+tol,2+cut], true);
 
+    /*
     translate([-ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
     translate([ ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
     translate([0, -ledsp, ledz]) wsled(tol=tol, cut=cut);
     translate([0,  ledsp, ledz]) wsled(tol=tol, cut=cut);
+    */
+    for (an=[0:90:270]) rotate([0,0,an]) {
+        translate([-ledsp, 0, ledz+2.5]) cube([5, 5, 2], true);
+        translate([-ledsp, 0, ledz+2.09]) cube([5, 9, 1.01], true);
+        translate([-ledsp, 1.5, ledz+2.09]) cube([9, 2, 1.01], true);
+        translate([-ledsp,-1.5, ledz+2.09]) cube([9, 2, 1.01], true);
+    }
 }
 
 module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
