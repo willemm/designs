@@ -14,6 +14,10 @@ butsp = holesp * 12;
 
 butdia = holesp * 8;
 
+facetnutthi = 7.5;
+facetnutwid = 10;
+facetnuthei = 7;
+
 cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
@@ -84,7 +88,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             for (x=[1:numbut-1], y=[1:numbut-1]) {
                 translate([x*butsp, y*butsp, 0]) {
                     translate([-cwid/2, -cwid/2, 0]) cube([cwid, cwid, thi]);
-                    stubpyra(swid, swid, twid, twid, 9.7);
+                    stubpyra(swid, swid, 11.2, 11.2, 8);
                 }
             }
             for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
@@ -113,7 +117,9 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             }
         }
         for (x=[1:numbut-1], y=[1:numbut-1]) {
-            translate([x*butsp, y*butsp, -1]) stubpyra(swid, swid, twid, twid, 9.7);
+            translate([x*butsp, y*butsp, -1]) stubpyra(swid, swid, twid, twid, 11.3-facetnutthi);
+            translate([x*butsp, y*butsp, 11.3-facetnutthi-1.01]) cylinder(8.41, 2.2, 2.2, $fn=32);
+            translate([x*butsp, y*butsp, 11.2-facetnutthi+4.6/2]) cube([facetnutwid, facetnuthei, 4.6], true);
         }
         for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
             xo = (x+0.5)*butsp + cos(an)*ledsp;
@@ -144,7 +150,7 @@ module backendfront(sd = numbut*butsp, thi = 1.2, gap=6.4)
         union() {
             cube([sd, sd, thi]);
             for (x=[0:numbut-1], y=[0:numbut-1]) {
-                translate([(x+0.5)*butsp, (y+0.5)*butsp, thi]) stubpyra(14,14,7,7,7-thi);
+                translate([(x+0.5)*butsp, (y+0.5)*butsp, thi]) stubpyra(14,14,7,7,5.6-thi);
 
                 for (an=[0:90:270]) {
                     xo = (x+0.5)*butsp + cos(an)*ledsp;
@@ -174,8 +180,8 @@ module backendfront(sd = numbut*butsp, thi = 1.2, gap=6.4)
             translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz-(8-gap)]) buttonholes();
         }
         for (x=[1:numbut-1], y=[1:numbut-1]) {
-            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(18,18,10,10,gap+0.2-thi+0.01);
-            translate([(x)*butsp, (y)*butsp, gap+1-thi]) cube([6,6,2.02], true);
+            translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(18,18,10,10,gap+0.0-thi+0.01);
+            translate([(x)*butsp, (y)*butsp, gap+1-thi]) cube([facetnutwid,facetnuthei,2.02], true);
         }
     }
 }
@@ -274,24 +280,33 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
     sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
     ss = (cnf+1)*4;
 
-    polyhedron(convexity=5,
-        points = concat(
-            zarc(-xo, -xo, thi, rd,   0+sta,  90-sta, an),
-            zarc( xo, -xo, thi, rd, 270+sta, 360-sta, an),
-            zarc( xo,  xo, thi, rd, 180+sta, 270-sta, an),
-            zarc(-xo,  xo, thi, rd,  90+sta, 180-sta, an),
-            zarc(-xo, -xo,   0, rd,   0+sta,  90-sta, an),
-            zarc( xo, -xo,   0, rd, 270+sta, 360-sta, an),
-            zarc( xo,  xo,   0, rd, 180+sta, 270-sta, an),
-            zarc(-xo,  xo,   0, rd,  90+sta, 180-sta, an),
-            []
-        ),
-        faces = concat(
-            [tface( 0, ss)],
-            qface( 0, ss, ss),
-            [bface(ss, ss)],
-            []
-        ));
+    difference() {
+        union() {
+            polyhedron(convexity=5,
+                points = concat(
+                    zarc(-xo, -xo, thi, rd,   0+sta,  90-sta, an),
+                    zarc( xo, -xo, thi, rd, 270+sta, 360-sta, an),
+                    zarc( xo,  xo, thi, rd, 180+sta, 270-sta, an),
+                    zarc(-xo,  xo, thi, rd,  90+sta, 180-sta, an),
+                    zarc(-xo, -xo,   0, rd,   0+sta,  90-sta, an),
+                    zarc( xo, -xo,   0, rd, 270+sta, 360-sta, an),
+                    zarc( xo,  xo,   0, rd, 180+sta, 270-sta, an),
+                    zarc(-xo,  xo,   0, rd,  90+sta, 180-sta, an),
+                    []
+                ),
+                faces = concat(
+                    [tface( 0, ss)],
+                    qface( 0, ss, ss),
+                    [bface(ss, ss)],
+                    []
+                ));
+            translate([0,0,-facetnutthi/2]) cube([facetnutwid-0.2,facetnuthei-0.2,facetnutthi], true);
+        }
+        translate([0,0,-7.51]) cylinder(8.41, 2.2, 2.2, $fn=32);
+        translate([0,0,-4]) cube([7, facetnuthei+0.01, 2.4], true);
+    }
+    // sacrificial layer
+    #translate([0,0,-4-1.2-0.1]) cube([6, 6, 0.2], true);
 }
 
 module buttonset()
