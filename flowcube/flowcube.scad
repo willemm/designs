@@ -12,23 +12,39 @@ ledz = boardth+0.5;
 
 butsp = holesp * 12;
 
+xsof = 0.15;
 butdia = holesp * 8;
 
 facetnutthi = 7.5;
 facetnutwid = 10;
 facetnuthei = 7;
 
-cubeside();
+*mirror([0,0,1]) sidefacet();
+*whiteside();
+*backendfront();
+backendback();
+
+*cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
+module whiteside()
+{
+    xof = xsof*holesp*12;
+    difference() {
+        translate([xof,xof,0]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
+        for (x=[1:numbut-1], y=[1:numbut-1]) {
+            translate([(x)*butsp, (y)*butsp, 0]) cube([facetnutwid,facetnuthei,2.02], true);
+        }
+    }
+}
+
 module cubeside() {
     zof = -2.3;
-    xsof = 0.15;
     xof = xsof*holesp*12;
     bof = 10;
     translate([0,0,zof]) {
-        *for (x=[0:numbut-1], y=[0:numbut-1]) {
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
         *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
@@ -55,7 +71,7 @@ module cubeside() {
         //translate([holesp, holesp, 0]) color("#a85") perfboard(45, 45);
         //color("#a85") perfboard(47, 47);
 
-        *color("#eee") translate([xof,xof,10]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
+        color("#eee") translate([0,0,10]) whiteside();
 
         *color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([butsp*x,butsp*y,11]) sidefacet();
@@ -83,6 +99,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
     cwid = butsp-8;
     swid = 20;
     twid = 10;
+    bwid = 3;
     difference() {
         union() {
             for (x=[1:numbut-1], y=[1:numbut-1]) {
@@ -93,9 +110,9 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             }
             for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
                 translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) rotate([0,0,an]) {
-                    translate([2.8, -4, 0]) cube([2, 8, thi]);
-                    translate([ledsp,  4, 0]) cylinder(2, 1, 1, $fn=4);
-                    translate([ledsp, -4, 0]) cylinder(2, 1, 1, $fn=4);
+                    translate([2.8, -4, 0]) cube([bwid, 8, thi]);
+                    translate([ledsp,  4, 0]) cylinder(3, 1, 1, $fn=4);
+                    translate([ledsp, -4, 0]) cylinder(3, 1, 1, $fn=4);
                 }
             }
             for (x=[0:numbut-1], y=[0:numbut-1]) {
@@ -126,19 +143,20 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             yo = (y+0.5)*butsp + sin(an)*ledsp;
             translate([xo, yo, 1.7]) cylinder(thi-1.69, 5, 5, $fn=64);
         }
+        hl = 2*bwid+6.6;
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
                 translate([-3.5,-3.5,thi-0.6]) cube([7,7,1.01]);
                 for (x=[-1,1], y=[-1,1]) {
                     translate([x*3.25-0.25, y*2.2-1.3, thi-1.1]) cube([0.5,2.6,0.601]);
                 }
-                translate([-5.2,  3.9, 0.5]) rotate([0,90,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
-                translate([-5.2, -3.9, 0.5]) rotate([0,90,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
-                translate([-5.2,    0, 0.5]) rotate([0,90,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+                translate([-hl/2,  3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
+                translate([-hl/2, -3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
+                translate([-hl/2,    0, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
 
-                translate([ 3.9, -5.2, 1.3]) rotate([-90,0,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
-                translate([-3.9, -5.2, 1.3]) rotate([-90,0,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
-                translate([   1, -5.2, 1.3]) rotate([-90,0,0]) cylinder(10.4, 0.4, 0.4, $fn=4);
+                translate([ 3.9, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
+                translate([-3.9, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
+                translate([   1, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
             }
         }
     }
