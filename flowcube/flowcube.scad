@@ -19,9 +19,9 @@ facetnutthi = 7.5;
 facetnutwid = 10;
 facetnuthei = 7;
 
-*mirror([0,0,1]) sidefacet();
+mirror([0,0,1]) sidefacet();
 *whiteside();
-backendfront();
+*backendfront();
 *backendback();
 
 *cubeside();
@@ -135,20 +135,20 @@ module backendback(sd = numbut*butsp, thi = 3.6)
         }
         for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([x*butsp, y*butsp, -1]) stubpyra(swid, swid, twid, twid, 11.3-facetnutthi);
-            translate([x*butsp, y*butsp, 11.3-facetnutthi-1.01]) cylinder(8.41, 2.2, 2.2, $fn=32);
+            translate([x*butsp, y*butsp, 11.3-facetnutthi-1.01]) cylinder(2.02, 2.2, 2.2, $fn=32);
             translate([x*butsp, y*butsp, 11.2-facetnutthi+4.6/2]) cube([facetnutwid, facetnuthei, 4.6], true);
         }
         for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
             xo = (x+0.5)*butsp + cos(an)*ledsp;
             yo = (y+0.5)*butsp + sin(an)*ledsp;
-            translate([xo, yo, 1.7]) cylinder(thi-1.69, 5, 5, $fn=64);
+            translate([xo, yo, 1.7]) cylinder(thi-1.69, 5.5, 5.5, $fn=64);
         }
         hl = 2*bwid+6.6;
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
-                translate([-3.5,-3.5,thi-0.6]) cube([7,7,1.01]);
+                translate([-3.5,-3.5,2]) cube([7,7,thi-1.99]);
                 for (x=[-1,1], y=[-1,1]) {
-                    translate([x*3.25-0.25, y*2.2-1.3, thi-1.1]) cube([0.5,2.6,0.601]);
+                    translate([x*3.25-0.25, y*2.2-1.3, 1.5]) cube([0.5,2.6,0.601]);
                 }
                 translate([-hl/2,  3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
                 translate([-hl/2, -3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
@@ -159,6 +159,10 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                 translate([   1, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
             }
         }
+    }
+    // Sacrificial layer
+    for (x=[1:numbut-1], y=[1:numbut-1]) {
+        #translate([x*butsp, y*butsp, 11.3-facetnutthi-1+0.1]) cube([6,6,0.2], true);
     }
 }
 
@@ -298,6 +302,7 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
     sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
     ss = (cnf+1)*4;
 
+    ngap = 0.9;
     difference() {
         union() {
             polyhedron(convexity=5,
@@ -318,9 +323,9 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
                     [bface(ss, ss)],
                     []
                 ));
-            translate([0,0,-facetnutthi/2]) cube([facetnutwid-0.2,facetnuthei-0.2,facetnutthi], true);
+            translate([0,0,-(facetnutthi-ngap)/2]) cube([facetnutwid-0.2,facetnuthei-0.2,facetnutthi-ngap], true);
         }
-        translate([0,0,-7.51]) cylinder(8.41, 2.2, 2.2, $fn=32);
+        translate([0,0,-7.51]) cylinder(7.41, 2.2, 2.2, $fn=32);
         translate([0,0,-4]) cube([7, facetnuthei+0.01, 2.4], true);
     }
     // sacrificial layer
