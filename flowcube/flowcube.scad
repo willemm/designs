@@ -21,8 +21,8 @@ facetnuthei = 7;
 
 *mirror([0,0,1]) sidefacet();
 *whiteside();
-*backendfront();
-backendback();
+backendfront();
+*backendback();
 
 *cubeside();
 *rotate([90,90,0]) cubeside();
@@ -162,7 +162,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
     }
 }
 
-module backendfront(sd = numbut*butsp, thi = 1.2, gap=6.4)
+module backendfront(sd = numbut*butsp, thi = 1.4, gap=6.4)
 {
     difference() {
         union() {
@@ -170,7 +170,7 @@ module backendfront(sd = numbut*butsp, thi = 1.2, gap=6.4)
             for (x=[0:numbut-1], y=[0:numbut-1]) {
                 translate([(x+0.5)*butsp, (y+0.5)*butsp, thi]) stubpyra(14,14,7,7,5.6-thi);
 
-                for (an=[0:90:270]) {
+                if (thi < 1.4) for (an=[0:90:270]) {
                     xo = (x+0.5)*butsp + cos(an)*ledsp;
                     yo = (y+0.5)*butsp + sin(an)*ledsp;
                     translate([xo, yo, thi]) stubpyra(10,10,6,6,gap-5.1-thi);
