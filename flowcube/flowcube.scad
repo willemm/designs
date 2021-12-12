@@ -19,10 +19,10 @@ facetnutthi = 7.5;
 facetnutwid = 10;
 facetnuthei = 7;
 
-mirror([0,0,1]) sidefacet();
+*mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-*backendback();
+backendback();
 
 *cubeside();
 *rotate([90,90,0]) cubeside();
@@ -47,16 +47,16 @@ module cubeside() {
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
         }
-        *color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
-        *color("#333") for (x=[0:numbut]) {
+        color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
+        color("#333") for (x=[0:numbut]) {
             ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
             sd = (x == 0 ? holesp*6-ewid/2-xof :
                 x == numbut ? holesp*6-ewid/2+bof : holesp*12-ewid);
-            translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.6, rd=10+zof+xof);
+            translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=10+zof+xof+1);
             if (x > 0 && x < numbut) {
                 // TODO: Magic numbers!
-                translate([x*holesp*12,0,11]) edgefacet(thi=0.6);
-                translate([x*holesp*12,-9.3,2.3]) rotate([-90,0,0]) edgefacet(thi=0.6);
+                translate([x*holesp*12,0,11]) edgefacet(thi=1);
+                translate([x*holesp*12,-11.0-zof-1,2.3]) rotate([-90,0,0]) edgefacet(thi=1);
             }
         }
         *color("#eee") translate([numbut*butsp/2+xof/2+bof/2, numbut*butsp-xof/2+bof/2-0.01, 10.5])
@@ -73,7 +73,7 @@ module cubeside() {
 
         color("#eee") translate([0,0,10]) whiteside();
 
-        *color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
+        color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([butsp*x,butsp*y,11]) sidefacet();
         }
 
@@ -91,7 +91,7 @@ module cubeside() {
         }
     }
     color("#beb") translate([0, 0, zof+ledz+1.8]) backendfront();
-    color("#8c8") translate([0, 0, zof+ledz-1.8-0.1]) backendback();
+    *color("#8c8") translate([0, 0, zof+ledz-1.8-0.1]) backendback();
 }
 
 module backendback(sd = numbut*butsp, thi = 3.6)
@@ -141,22 +141,49 @@ module backendback(sd = numbut*butsp, thi = 3.6)
         for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
             xo = (x+0.5)*butsp + cos(an)*ledsp;
             yo = (y+0.5)*butsp + sin(an)*ledsp;
-            translate([xo, yo, 1.7]) cylinder(thi-1.69, 5.5, 5.5, $fn=64);
+            translate([xo, yo, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
         }
-        hl = 2*bwid+6.6;
+        hl = 2*bwid+6;
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
-                translate([-3.5,-3.5,2]) cube([7,7,thi-1.99]);
-                for (x=[-1,1], y=[-1,1]) {
-                    translate([x*3.25-0.25, y*2.2-1.3, 1.5]) cube([0.5,2.6,0.601]);
+                translate([-3.5,-3.5,1.4]) cube([7,7,thi-1.4+0.01]);
+                *for (x=[-1,1], y=[-1,1]) {
+                    translate([x*3.15-0.351, y*2.0-1.5, 1.2]) cube([0.702,3.0,0.601]);
                 }
-                translate([-hl/2,  3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
-                translate([-hl/2, -3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
-                translate([-hl/2,    0, 0.5]) rotate([0,90,0]) cylinder(hl, 0.39, 0.39, $fn=4);
+                if (0) {
+                translate([-hl/2,  3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.49, 0.49, $fn=6);
+                translate([-hl/2, -3.9, 0.5]) rotate([0,90,0]) cylinder(hl, 0.49, 0.49, $fn=6);
+                translate([-hl/2,    0, 0.5]) rotate([0,90,0]) cylinder(hl, 0.49, 0.49, $fn=6);
 
-                translate([ 3.9, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
-                translate([-3.9, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
-                translate([   1, -hl/2, 1.3]) rotate([-90,0,0]) cylinder(hl, 0.39, 0.39, $fn=4);
+                translate([ 3.9, -hl/2, 1.5]) rotate([-90,0,0]) cylinder(hl, 0.49, 0.49, $fn=6);
+                translate([-3.9, -hl/2, 1.5]) rotate([-90,0,0]) cylinder(hl, 0.49, 0.49, $fn=6);
+                translate([   1, -hl/2, 1.5]) rotate([-90,0,0]) cylinder(hl, 0.49, 0.49, $fn=6);
+                } else {
+
+                for (x=[0,1], y=[0,1]) {
+                    mirror([x,0,0]) mirror([0,y,0])
+                    translate([(bwid+2.8), 3.9, -0.001])
+                        linear_extrude(height=1.001) polygon([
+                        [0,-0.3], [3.76,-0.3], [3.16,0.3], [0,0.3]
+                        ]);
+                }
+
+                for (x=[-1:1]) {
+                    translate([0, x*3.9, 0.6]) cube([hl, 0.6, 0.801], true);
+                }
+
+                for (x=[0,1], y=[0,1]) {
+                    mirror([x,0,0]) mirror([0,y,0])
+                    translate([3.9, (bwid+2.8), 1.2])
+                        linear_extrude(height=2.401) polygon([
+                        [-0.3,0], [-0.3,3.76], [0.3,3.16], [0.3,0]
+                        ]);
+                }
+
+                for (x=[-3.9,1,3.9]) {
+                    translate([ x, 0, 1.6]) cube([0.6, hl, 0.801], true);
+                }
+                }
             }
         }
     }
@@ -223,10 +250,11 @@ module stubpyra(x1=14, y1=14, x2=7, y2=7, z=4.2)
     );
 }
 
-module buttonholes(thi=6.4, tol=0.5, cut=0.01)
+module buttonholes(thi=6.4, tol=0.2, cut=0.01)
 {
-    translate([0, 0, ledz+thi/2]) cube([7+tol,7+tol,thi+cut], true);
+    translate([0, 0, ledz+thi/2]) cube([7+tol,7+tol,thi], true);
     translate([0, 0, ledz+thi+1]) cube([5+tol,5+tol,2+cut], true);
+    translate([0, 0, ledz+thi+0.1-cut]) cube([7+tol,5+tol,0.2+cut], true);
 
     /*
     translate([-ledsp, 0, ledz]) wsled(tol=tol, cut=cut);
@@ -334,7 +362,7 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
 
 module buttonset()
 {
-    *#color("#eee") translate([0,0,ledz+7.5]) button();
+    *color("#eee") translate([0,0,ledz+7.5]) button();
 
     color("#acf") translate([0, 0, ledz]) switch();
     color("#767") translate([-ledsp, 0, ledz]) wsled();
@@ -394,10 +422,10 @@ module wsled(tol=0, cut=0)
 {
     wsdia = 9/2;
     wssz = 4.9;
-    wsbt = 1.6;
-    wsthi = 3.2;
-    translate([0,0,wsthi/2]) cube([wssz+tol, wssz+tol, wsthi+cut], true);
-    translate([0,0,-cut/2]) cylinder(wsbt+cut, wsdia+tol, wsdia+tol, $fn=64);
+    wsbt = 1.3;
+    wsthi = 2.9;
+    translate([0,0,wsthi/2+0.35]) cube([wssz+tol, wssz+tol, wsthi+cut], true);
+    translate([0,0,-cut/2+0.35]) cylinder(wsbt+cut, wsdia+tol, wsdia+tol, $fn=64);
 }
 
 
