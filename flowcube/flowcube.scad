@@ -23,10 +23,12 @@ facetnuthei = 7;
 *whiteside();
 *backendfront();
 *backendback();
+*mirror([0,0,1]) button();
+button();
 
-cubeside();
-rotate([90,90,0]) cubeside();
-rotate([-90,0,90]) cubeside();
+*cubeside();
+*rotate([90,90,0]) cubeside();
+*rotate([-90,0,90]) cubeside();
 
 module cubeside() {
     zof = -2.3;
@@ -107,16 +109,7 @@ module cubebackedge(xof, bof, zof, cp=32)
     backwid = butsp-5;
     endofs = (numbut-0.5)*butsp;
     whiteof = butsp/2-xof;
-    *difference() {
-        translate([(numbut-0.5)*butsp, 0, bof+1]) linear_extrude(height=1, convexity=4) {
-            polygon([
-                [ewid/2,xof], [backwid,xof], [backwid,endofs+backwid], [ewid/2,endofs+ewid/2]
-            ]);
-        }
-        for (x=[0:numbut-1]) {
-            translate([(numbut-0.5)*butsp, (x+0.5)*butsp, bof+1-0.01]) cylinder(1.02, butdia/2, butdia/2, $fn=32);
-        }
-    }
+
     an = 90/cp;
     rd = butdia/2;
     esta = asin((ewid/2)/rd);
@@ -420,7 +413,7 @@ module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
 
 module buttonset()
 {
-    *color("#eee") translate([0,0,ledz+7.5]) button();
+    color("#eee") translate([0,0,ledz+9.101]) button();
 
     color("#acf") translate([0, 0, ledz]) switch();
     color("#767") translate([-ledsp, 0, ledz]) wsled();
@@ -435,19 +428,38 @@ module button()
     cp = 60;
     an = 360/cp;
     lh = 0.5;
-    hi = 7;
+    hi = 6.5;
     lc = hi/lh;
-    polyhedron(convexity=5,
-        points = concat(
-            circle(0, 0, 0, butdia/2 - 0.5, an),
-            dome(0, 0, 2, hi-2, butdia/2 - 0.5 -2, 2, an, lc),
-            []),
-        faces = concat(
-            [tface(0, cp)],
-            [bface(cp*lc, cp)],
-            [for (l=[0:lc]) each qface(l*cp, cp, cp)],
-            []
-        ));
+    union() {
+        translate([0,0,5-hi]) polyhedron(convexity=5,
+            points = concat(
+                dome(0, 0, 2, hi-2.5, butdia/2 - 0.4 -3.8, 3, an, lc, 1, -1),
+                circle(0, 0, 0, butdia/2 - 0.4-0.8, an),
+                circle(0, 0, 0, butdia/2 - 0.4, an),
+                dome(0, 0, 2, hi-1.5, butdia/2 - 0.4 -3, 3, an, lc, 1),
+                []),
+            faces = concat(
+                [tface(0, cp)],
+                [bface(cp*(lc*2+1), cp)],
+                [for (l=[0:lc*2+1]) each qface(l*cp, cp, cp)],
+                []
+            ));
+        difference() {
+            translate([-2.3,-2.3,0]) cube([4.6,4.6,5.1]);
+            translate([-0.8,-1.3,-0.01]) cube([1.6,2.6,3.01]);
+            translate([-1.1,-1.6,-0.01]) cube([2.2,3.2,1.01]);
+            translate([0,0,0.999]) stubpyra(2.2,3.2,1.6,2.6,0.3);
+            translate([0,0,2.001]) mirror([0,0,1]) stubpyra(2.2,3.2,1.6,2.6,0.3);
+            translate([-1.1,-1.6,2]) cube([2.2,3.2,1]);
+        }
+    }
+    // Supports
+    for (x=[0,1]) mirror([x,0,0]) {
+        for (y=[0,1]) mirror([0,y,0]) {
+            #translate([-2.3, -2.3, 5-hi]) cube([1.2,0.7,hi-5]);
+        }
+        #translate([-2.3, -2.3, 5-hi]) cube([1.2,4.6,hi-5.4]);
+    }
 }
 
 module switch()
@@ -624,13 +636,13 @@ function bcornerdart(lo, ss, w, h, di=1) = fcornerdart(lo, ss, w, h, di);
 
 
 // dome
-// x, y, height, diameter, circle steps, layer count
+// x, y, height, diameter, circle steps, layer count, direction
 // (z/h)^2 + (D/d)^2 = 1
 // (D/d)^2 = 1 - (z/h)^2
 // D/d = sqrt(1 - (z/h)^2)
 // D = d * sqrt(1 - (z/h)^2)
-function dome(x, y, z, h, d, d2, an, lc) = [for (i=[0:lc-1]) each
-    circle(x, y, z+(i*h/lc), d2 + d * sqrt(1 - (i/lc)*(i/lc)), an)
+function dome(x, y, z, h, d, d2, an, lc, fac=1, dr=1) = [for (i=[(dr>0?0:lc-1):dr:(dr<0?0:lc-1)]) each
+    circle(x, y, z+(i*h/lc), d2 + d * sqrt(1 - (i*fac/lc)*(i*fac/lc)), an)
 ];
 
 // faces
