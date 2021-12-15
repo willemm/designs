@@ -23,8 +23,8 @@ facetnuthei = 7;
 *whiteside();
 *backendfront();
 *backendback();
-*mirror([0,0,1]) button();
-button();
+*button();
+rotate([0,-90,0]) cubeedgeblack();
 
 *cubeside();
 *rotate([90,90,0]) cubeside();
@@ -32,19 +32,19 @@ button();
 
 module cubeside() {
     zof = -2.3;
-    xof = xsof*holesp*12;
-    bof = 10;
+    xof = xsof*butsp;
+    bof = bplof;
     
     translate([0,0,zof]) {
-        buttonseries(xof, bof, zof);
         cubeedgewhite(xof, bof, zof);
-        cubeedgeblack(xof, bof, zof);
-        cubeedgenuts( xof, bof, zof);
+        cubeedgesblack(xof, bof, zof);
         cubebackedges(xof, bof, zof);
 
         whiteside(xof, bof, zof);
         sidefacets(zof, bof, zof);
 
+        cubeedgenuts( xof, bof, zof);
+        buttonseries(xof, bof, zof);
         color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
     }
@@ -52,30 +52,72 @@ module cubeside() {
 
 module buttonseries(xof, bof, zof)
 {
-        for (x=[0:numbut-1], y=[0:numbut-1]) {
-            translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
-        }
+    for (x=[0:numbut-1], y=[0:numbut-1]) {
+        translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
+    }
 }
 
 module cubeedgewhite(xof, bof, zof)
 {
-        color("#eee") translate([xof,xof,-(zof+xof)]) cubeedge(sd = butsp*numbut - xof + bof, rd=10+zof+xof);
+    color("#eee")
+    for (x=[0:numbut-1]) {
+        translate([xof+x*butsp,xof,-(zof+xof)]) cubeedge(sd = butsp-xof*2, rd=10+zof+xof);
+    }
 }
 
-module cubeedgeblack(xof, bof, zof)
+module cubeedgesblack(xof, bof, zof)
 {
-    color("#333") for (x=[0:numbut-1]) {
-        // TODO: Special cases should be replaced by special pieces
-        ao = (x == 0 ? xof : (2*x-1)*holesp*6+ewid/2);
-        sd = (x == 0 ? holesp*6-ewid/2-xof :
-            x == numbut ? holesp*6-ewid/2+bof : holesp*12-ewid);
-        translate([ao, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof+1);
-        if (x > 0 && x < numbut) {
-            // TODO: Magic numbers!
-            translate([x*holesp*12,0,bof+1]) edgefacet(thi=1);
-            translate([x*holesp*12,-bof-1-zof-1,-zof]) rotate([-90,0,0]) edgefacet(thi=1);
-        }
+    // TODO: This needs to be come one thing for all three sides
+    color("#333") translate([xof, xof, -(zof+xof)]) cubeedge(sd = (butsp-ewid)/2-xof, thi = 1.0, rd=bof+zof+xof+1);
+
+    color("#333") for (x=[1:numbut-1]) {
+        translate([butsp*(x-0.5)+ewid/2, 0, 0]) cubeedgeblack(xof, bof, zof);
     }
+}
+
+module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
+{
+    sd = xof*2-0.2;
+    union() {
+        // Outside
+        translate([0, xof, -(zof+xof)]) cubeedge(sd = butsp-ewid, thi = 1.0, rd=bof+zof+xof+1);
+        // Middle
+        translate([butsp/2-ewid/2-sd/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0+tol, rd=bof+zof+xof-tol);
+        // Inside
+        translate([0,xof,-(zof+xof)]) cubeedgeinside(butsp-ewid, bof-2.8, rd=bof+zof+xof-tol);
+
+        // Outer pieces
+        translate([butsp/2-ewid/2,0,bof+1]) edgefacet(thi=1);
+        translate([butsp/2-ewid/2,-bof-1-zof-1,-zof]) rotate([-90,0,0]) edgefacet(thi=1);
+
+        // Inner pieces
+        translate([butsp/2-ewid/2,0,bof-1]) edgefacet(thi=1-tol);
+        translate([butsp/2-ewid/2,-bof-1-zof+1,-zof]) rotate([-90,0,0]) edgefacet(thi=1-tol);
+    }
+}
+
+module cubeedgeinside(sd, ins, rd=10, cp=16)
+{
+    an = 90/cp;
+    rotate([0,90,0]) linear_extrude(height=sd) polygon(concat(
+        arc(0, 0, rd, 180, 270, an),
+        [[-ins,0],[-ins,-ins],[0,-ins]]
+    ));
+    /*
+    polyhedron(convexity=5,
+        points = concat(
+            [[0,  0, ins], [0,  -ins, ins], [0,  -ins, 0]],
+            xarc(0, 0, 0, rd, 270, 360, an),
+            [[sd, 0, ins], [sd, -ins, ins], [sd, -ins, 0]],
+            xarc(sd, 0, 0, rd, 270, 360, an),
+            []
+        ), faces = concat(
+            qface(0, ss, ss),
+            fqfacei(0, cp+1, ss-1),
+            bqfacei(ss, cp+1, ss-1),
+            []
+    ));
+    */
 }
 
 module cubeedgenuts(xof, bof, zof)
@@ -325,21 +367,19 @@ module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
 {
     an = 90/cp;
     ss = 2*(cp+1);
-    union() {
-        polyhedron(convexity=5,
-            points = concat(
-                xarc(0, 0, 0,  rd,     360, 270, -an),
-                xarc(0, 0, 0,  rd+thi, 270, 360,  an),
-                xarc(sd, 0, 0, rd,     360, 270, -an),
-                xarc(sd, 0, 0, rd+thi, 270, 360,  an),
-                []
-            ), faces = concat(
-                qface(0, ss, ss),
-                fqfacei(0, cp+1, ss-1),
-                bqfacei(ss, cp+1, ss-1),
-                []
-            ));
-    }
+    polyhedron(convexity=5,
+        points = concat(
+            xarc(0, 0, 0,  rd,     360, 270, -an),
+            xarc(0, 0, 0,  rd+thi, 270, 360,  an),
+            xarc(sd, 0, 0, rd,     360, 270, -an),
+            xarc(sd, 0, 0, rd+thi, 270, 360,  an),
+            []
+        ), faces = concat(
+            qface(0, ss, ss),
+            fqfacei(0, cp+1, ss-1),
+            bqfacei(ss, cp+1, ss-1),
+            []
+        ));
 }
 
 module edgefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12)
@@ -422,7 +462,7 @@ module buttonset()
     color("#767") translate([0,  ledsp, ledz]) wsled();
 }
 
-module button()
+module button(ptol1=0.4, ptol2=0.0, show=false)
 {
     // cylinder(5, butdia/2-0.5, butdia/2-0.5, $fn=160);
     cp = 60;
@@ -430,6 +470,14 @@ module button()
     lh = 0.5;
     hi = 6.5;
     lc = hi/lh;
+    
+    hc = 4.6;
+    htol = ptol2;
+    xtol = ptol1;
+    hw1 = 2.2+htol;
+    hw2 = 1.6+htol+xtol;
+    hh1 = 3.2+htol;
+    hh2 = 2.6+htol+xtol;
     union() {
         translate([0,0,5-hi]) polyhedron(convexity=5,
             points = concat(
@@ -445,20 +493,24 @@ module button()
                 []
             ));
         difference() {
-            translate([-2.3,-2.3,0]) cube([4.6,4.6,5.1]);
-            translate([-0.8,-1.3,-0.01]) cube([1.6,2.6,3.01]);
-            translate([-1.1,-1.6,-0.01]) cube([2.2,3.2,1.01]);
-            translate([0,0,0.999]) stubpyra(2.2,3.2,1.6,2.6,0.3);
-            translate([0,0,2.001]) mirror([0,0,1]) stubpyra(2.2,3.2,1.6,2.6,0.3);
-            translate([-1.1,-1.6,2]) cube([2.2,3.2,1]);
+            translate([-hc/2,-hc/2,0]) cube([hc,hc,5.1]);
+            translate([-hw2/2,-hh2/2,-0.01]) cube([hw2,hh2,3.01]);
+            translate([-hw1/2,-hh1/2,-0.01]) cube([hw1,hh1,1.01]);
+            translate([0,0,0.999]) stubpyra(hw1,hh1,hw2,hh2,0.3);
+            translate([0,0,2.001]) stubpyra(hw2,hh2,hw1,hh1,0.3);
+            translate([-hw1/2,-hh1/2,2]) cube([hw1,hh1,1]);
+        }
+        if (show) {
+            translate([-5,-2.5,5.1]) linear_extrude(height=0.2)
+                text(str(ptol1*10,"|",(ptol2*10)), 5);
         }
     }
     // Supports
     for (x=[0,1]) mirror([x,0,0]) {
         for (y=[0,1]) mirror([0,y,0]) {
-            #translate([-2.3, -2.3, 5-hi]) cube([1.2,0.7,hi-5]);
+            #translate([-hc/2, -hc/2, 5-hi]) cube([1.2,0.7,hi-5]);
         }
-        #translate([-2.3, -2.3, 5-hi]) cube([1.2,4.6,hi-5.4]);
+        #translate([-hc/2, -hc/2, 5-hi]) cube([1.2,hc,hi-5.4]);
     }
 }
 
