@@ -92,7 +92,7 @@ module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
 
         // Inner pieces
         translate([butsp/2-ewid/2,0,bof-1]) edgefacet(thi=1-tol);
-        translate([butsp/2-ewid/2,-bof-1-zof+1,-zof]) rotate([-90,0,0]) edgefacet(thi=1-tol);
+        translate([butsp/2-ewid/2,-bof-1-zof+1+tol,-zof]) rotate([-90,0,0]) edgefacet(thi=1-tol);
     }
 }
 
