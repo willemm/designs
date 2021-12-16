@@ -5,8 +5,7 @@ holedia = 1;
 boardth = 1.2;
 ewid = 10;
 
-numbut = 5;
-// numbut = 3;
+numbut = 3;
 
 ledsp = holesp * 4;
 ledz = boardth+0.5;
@@ -30,8 +29,60 @@ boltrad = 3/2+0.2;
 *rotate([0,-90,0]) cubeedgewhite();
 
 cubeside();
-rotate([90,90,0]) cubeside();
-rotate([-90,0,90]) cubeside();
+*rotate([90,90,0]) cubeside();
+*rotate([-90,0,90]) cubeside();
+
+/*
+xof = xsof*butsp;
+translate([xof,xof,-xof]) rotate([0,0,45]) sphere(10-2.3+xof+2, $fn=64);
+*/
+qsphere();
+
+module qsphere(xof=xsof*butsp, bof=10, zof=-2.3, cp=16)
+{
+    /*
+     * Run along triangle.
+     * three coords, x,y,z (triangle subdivide from [90,0,0],[0,90,0],[0,0,90])
+     * As seen from bottom line:
+     *   z = sin(a1), zf=cos(a1) (z coord, scaling factor)
+     *   x = zf*cos(a2), y = zf*sin(a2)
+     *
+     *   xyz plane: x+y+z = 1, map c1=[0..1], c2=[0..1]:
+     *   z = c1
+     *   x = (1-c1)*c2
+     *   y = (1-c1)*(1-c2)
+     *
+     *  Just hack it, do sine of x, y, z and then scale to a sphere
+     *
+     * Faces:  triangular numbers
+     */
+    an = 90/cp;
+    rd = xof+bof+zof+2;
+    points = concat(
+        [[0,0,rd]], // Avoid div by zero on zi=0
+        [for (zi=[1:cp], pi=[0:zi])
+            let(zf=zi/cp, z=1-zf, xy=pi/zi, x=zf*xy, y=zf*(1-xy),
+                xc=sin(90*x), yc=sin(90*y), zc=sin(90*z),
+                sf = sqrt(1/(xc*xc+yc*yc+zc*zc)))
+            [-xc*sf*rd, -yc*sf*rd, zc*sf*rd]
+        ],
+        []
+    );
+    faces = concat(
+        [for (c1=[1:cp], c2=[0:c1-1])
+            let(bs=c1*(c1+1)/2)
+            [bs+c2, bs+c2+1, bs+c2-c1]
+        ],
+        [for (c1=[1:cp-1], c2=[0:c1-1])
+            let(bs=c1*(c1+1)/2)
+            [bs+c2+1, bs+c2, bs+c2+c1+2]
+        ],
+        []
+    );
+    // echo("POINTS", points, "FACES", faces);
+    translate([xof,xof,-xof])
+    polyhedron(points=points, faces=faces);
+}
 
 module cubeside() {
     zof = -2.3;
@@ -44,12 +95,12 @@ module cubeside() {
         cubebackedges(xof, bof, zof);
 
         whiteside(xof, bof, zof);
-        sidefacets(zof, bof, zof);
+        *sidefacets(zof, bof, zof);
 
-        cubeedgenuts(xof, bof, zof);
-        buttonseries(xof, bof, zof);
-        color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
-        color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
+        *cubeedgenuts(xof, bof, zof);
+        *buttonseries(xof, bof, zof);
+        *color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
+        *color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
         /*
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
