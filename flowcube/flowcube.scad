@@ -26,9 +26,10 @@ boltrad = 3/2+0.2;
 *backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
+*rotate([0,-90,0]) cubeedgewhite();
 
 cubeside();
-rotate([90,90,0]) cubeside();
+*rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
 module cubeside() {
@@ -37,17 +38,17 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        cubeedgewhite(xof, bof, zof);
+        cubeedgeswhite(xof, bof, zof);
         cubeedgesblack(xof, bof, zof);
         cubebackedges(xof, bof, zof);
 
-        *whiteside(xof, bof, zof);
+        *#whiteside(xof, bof, zof);
         *sidefacets(zof, bof, zof);
 
         cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        color("#beb") translate([0, 0, ledz+1.8]) backendfront();
-        color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
+        color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
+        color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
     }
 }
 
@@ -58,12 +59,65 @@ module buttonseries(xof, bof, zof)
     }
 }
 
-module cubeedgewhite(xof, bof, zof)
+module cubeedgeswhite(xof, bof, zof)
 {
     color("#eee")
     for (x=[0:numbut-1]) {
-        translate([xof+x*butsp,xof,-(zof+xof)]) cubeedge(sd = butsp-xof*2, rd=10+zof+xof);
+        translate([xof+x*butsp,xof,-(zof+xof)]) cubeedgewhite(xof, bof, zof);
     }
+}
+
+module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=16)
+{
+    sd = butsp-xof*2;
+    rd = bof+zof+xof;
+    an = 90/cp;
+    an2 = 45/cp;
+    ss = 2*(cp+1);
+    ss2 = 2*(cp)+1;
+    ins1 = 2*ss;
+    ins2 = 2*ss+2*ss2;
+    ic1 = [0, ss-1, ss, 2*ss-1];
+    ic2 = [ss+ss/2-1, ss+ss/2, ss/2-1, ss/2];
+    polyhedron(convexity=5,
+        points = concat(
+            xarc(0, 0, 0,  rd,     360, 270, -an),
+            xarc(0, 0, 0,  rd+thi, 270, 360,  an),
+            xarc(sd, 0, 0, rd,     360, 270, -an),
+            xarc(sd, 0, 0, rd+thi, 270, 360,  an),
+            zarc(sd/2, sd/2, rd, butdia/2, 225, 135, -an2),
+            zarc(sd/2, sd/2, rd+thi, butdia/2, 225, 135, -an2),
+            yarc(sd/2, -rd, -sd/2, butdia/2, 405, 315, -an2),
+            yarc(sd/2, -(rd+thi), -sd/2, butdia/2, 405, 315, -an2),
+            []
+        ), faces = concat(
+            qface(0, ss, ss, 0, ss/2-2),
+            qface(0, ss, ss, ss/2, ss-2),
+            fqfacei(0, cp+1, ss-1),
+            bqfacei(ss, cp+1, ss-1),
+
+            qface(ins1, ss2, ss2, 0, ss2-2),
+            [[ins1, ins1+ss2, ic1[1]], [ins1, ic1[1], ic1[0]]],
+            [[ins1+ss2*2-1, ins1+ss2-1, ic1[3]], [ins1+ss2-1, ic1[2], ic1[3]]],
+            [[ic1[0], ic1[2], ins1+ss2/2]],
+            fanface(ic1[0], ins1, ins1+ss2/2-1),
+            fanface(ic1[2], ins1+ss2/2, ins1+ss2-1),
+            [[ic1[3], ic1[1], ins1+ss2/2+ss2]],
+            fanface(ic1[1], ins1+ss2, ins1+ss2+ss2/2-1, 0),
+            fanface(ic1[3], ins1+ss2+ss2/2, ins1+ss2+ss2-1, 0),
+
+            qface(ins2, ss2, ss2, 0, ss2-2),
+            [[ins2, ins2+ss2, ic2[1]], [ins2, ic2[1], ic2[0]]],
+            [[ins2+ss2*2-1, ins2+ss2-1, ic2[3]], [ins2+ss2-1, ic2[2], ic2[3]]],
+            [[ic2[0], ic2[2], ins2+ss2/2]],
+            fanface(ic2[0], ins2, ins2+ss2/2-1),
+            fanface(ic2[2], ins2+ss2/2, ins2+ss2-1),
+            [[ic2[3], ic2[1], ins2+ss2/2+ss2]],
+            fanface(ic2[1], ins2+ss2, ins2+ss2+ss2/2-1, 0),
+            fanface(ic2[3], ins2+ss2+ss2/2, ins2+ss2+ss2-1, 0),
+
+            []
+        ));
 }
 
 module cubeedgesblack(xof, bof, zof)
@@ -694,10 +748,14 @@ function dome(x, y, z, h, d, d2, an, lc, fac=1, dr=1) = [for (i=[(dr>0?0:lc-1):d
 
 // faces
 // start offset, number of sides, offset of next
-function qface(s, n, o) = [for (i=[0:n-1]) each [
+function qface(s, n, o, so=0, eo=0) = [for (i=[so:(eo==0?n-1:eo)]) each [
     [s+(i+1)%n,s+(i+1)%n+o,s+i],
     [s+(i+1)%n+o,s+i+o,s+i]
 ]];
+
+// face fan
+// fixed point, start, end, dir
+function fanface(p, s, e, d=1) = [for (i=[s:e]) [p, i+d, i+(1-d)]];
 
 // faces, second layer ordering inverted
 function bqfacei(s, n, o, di=0) = [for (i=[0:n-2]) each [
@@ -713,6 +771,10 @@ function tface(o, n) = [for (p=[n-1:-1:0]) p+o];
 // Part of a circle
 // x, y, z, radius, start, end, an
 function xarc(x, y, z, rd, st, ed, an) = [for (a=[st:an:ed]) [ x, y+rd*sin(a), z+rd*cos(a) ]];
+
+// Part of a circle
+// x, y, z, radius, start, end, an
+function yarc(x, y, z, rd, st, ed, an) = [for (a=[st:an:ed]) [ x+rd*sin(a), y, z+rd*cos(a) ]];
 
 // Part of a circle
 // x, y, z, radius, start, end, an
