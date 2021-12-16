@@ -28,61 +28,10 @@ boltrad = 3/2+0.2;
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
+cubecorner();
 cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
-
-/*
-xof = xsof*butsp;
-translate([xof,xof,-xof]) rotate([0,0,45]) sphere(10-2.3+xof+2, $fn=64);
-*/
-qsphere();
-
-module qsphere(xof=xsof*butsp, bof=10, zof=-2.3, cp=16)
-{
-    /*
-     * Run along triangle.
-     * three coords, x,y,z (triangle subdivide from [90,0,0],[0,90,0],[0,0,90])
-     * As seen from bottom line:
-     *   z = sin(a1), zf=cos(a1) (z coord, scaling factor)
-     *   x = zf*cos(a2), y = zf*sin(a2)
-     *
-     *   xyz plane: x+y+z = 1, map c1=[0..1], c2=[0..1]:
-     *   z = c1
-     *   x = (1-c1)*c2
-     *   y = (1-c1)*(1-c2)
-     *
-     *  Just hack it, do sine of x, y, z and then scale to a sphere
-     *
-     * Faces:  triangular numbers
-     */
-    an = 90/cp;
-    rd = xof+bof+zof+2;
-    points = concat(
-        [[0,0,rd]], // Avoid div by zero on zi=0
-        [for (zi=[1:cp], pi=[0:zi])
-            let(zf=zi/cp, z=1-zf, xy=pi/zi, x=zf*xy, y=zf*(1-xy),
-                xc=sin(90*x), yc=sin(90*y), zc=sin(90*z),
-                sf = sqrt(1/(xc*xc+yc*yc+zc*zc)))
-            [-xc*sf*rd, -yc*sf*rd, zc*sf*rd]
-        ],
-        []
-    );
-    faces = concat(
-        [for (c1=[1:cp], c2=[0:c1-1])
-            let(bs=c1*(c1+1)/2)
-            [bs+c2, bs+c2+1, bs+c2-c1]
-        ],
-        [for (c1=[1:cp-1], c2=[0:c1-1])
-            let(bs=c1*(c1+1)/2)
-            [bs+c2+1, bs+c2, bs+c2+c1+2]
-        ],
-        []
-    );
-    // echo("POINTS", points, "FACES", faces);
-    translate([xof,xof,-xof])
-    polyhedron(points=points, faces=faces);
-}
 
 module cubeside() {
     zof = -2.3;
@@ -99,7 +48,7 @@ module cubeside() {
 
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        *color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
+        color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
         *color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
         /*
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
@@ -179,7 +128,7 @@ module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=16)
 module cubeedgesblack(xof, bof, zof)
 {
     // TODO: This needs to be come one thing for all three sides
-    color("#333") translate([xof, xof, -(zof+xof)]) cubeedge(sd = (butsp-ewid)/2-xof, thi = 1.0, rd=bof+zof+xof+1);
+    // color("#333") translate([xof, xof, -(zof+xof)]) cubeedge(sd = (butsp-ewid)/2-xof, thi = 1.0, rd=bof+zof+xof+1);
 
     color("#333") for (x=[1:numbut-1]) {
         translate([butsp*(x-0.5)+ewid/2, xof, -(zof+xof)]) cubeedgeblack(xof, bof, zof);
@@ -222,6 +171,88 @@ module cubeedgeinside(sd, ins, rd=10, cp=16)
         [[-ins,0],[-ins,-ins+2.5],[-ins+2.5,-ins+2.5],[-ins+2.5,-ins],[0,-ins]]
     ));
 }
+
+module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
+{
+    sd = (butsp-ewid)/2-xof;
+    /*
+     * Run along triangle.
+     * three coords, x,y,z (triangle subdivide from [90,0,0],[0,90,0],[0,0,90])
+     * As seen from bottom line:
+     *   z = sin(a1), zf=cos(a1) (z coord, scaling factor)
+     *   x = zf*cos(a2), y = zf*sin(a2)
+     *
+     *   xyz plane: x+y+z = 1, map c1=[0..1], c2=[0..1]:
+     *   z = c1
+     *   x = (1-c1)*c2
+     *   y = (1-c1)*(1-c2)
+     *
+     *  Just hack it, do sine of x, y, z and then scale to a sphere
+     *
+     * Faces:  triangular numbers
+     */
+    an = 90/cp;
+    rd = xof+bof+zof+2;
+    pqsphere = concat(
+        // Sphere corner
+        [[0,0,rd]], // Avoid div by zero on zi=0
+        [for (zi=[1:cp], pi=[0:zi])
+            let(zf=zi/cp, z=1-zf, xy=pi/zi, x=zf*xy, y=zf*(1-xy),
+                xc=sin(90*x), yc=sin(90*y), zc=sin(90*z),
+                sf = sqrt(1/(xc*xc+yc*yc+zc*zc)))
+            [xc*sf*rd, yc*sf*rd, zc*sf*rd]
+        ],
+        []
+    );
+    fqsphere = concat(
+        [for (c1=[1:cp], c2=[0:c1-1])
+            let(bs=c1*(c1+1)/2)
+            [bs+c2, bs+c2+1, bs+c2-c1]
+        ],
+        [for (c1=[1:cp-1], c2=[0:c1-1])
+            let(bs=c1*(c1+1)/2)
+            [bs+c2+1, bs+c2, bs+c2+c1+2]
+        ],
+        []
+    );
+    parcs = concat(
+        // Extended sphere arcs
+        xyzarcs(rd,   -sd, cp),
+        xyzarcs(rd-1, -sd, cp),
+        xyzarcs(rd-1,   0, cp),
+        xyzarcs(rd-2-tol,   0, cp),
+        xyzarcs(rd-2-tol, -sd, cp),
+        []
+    );
+    csp = len(pqsphere);
+    car = cp+1;
+
+    fqarcs = concat(
+        [for (i=[0:cp-1]) each [
+            [csp-cp+i, csp-cp+i-1, csp+i+1], [csp-cp+i-1, csp+i, csp+i+1] ]],
+        [for (i=[1:cp])
+            let (si=(i*(i+1)/2)-1, si2=si+i+1)
+            each [ [si, si2, csp+car+i], [si, csp+car+i, csp+car+i-1] ]],
+        [for (i=[1:cp])
+            let (si=(i*(i-1)/2), si2=si+i)
+            each [ [si2, si, csp+car*2+i], [si, csp+car*2+i-1, csp+car*2+i] ]],
+        []
+    );
+    fqsides = [for (o=[0:11]) each qfacei(csp+car*o, car, car*3, (o%3==1)?1:0)];
+
+    points = concat(pqsphere, parcs);
+    faces = concat(fqsphere, fqarcs, fqsides);
+    // echo("POINTS", points, "FACES", faces);
+    translate([xof,xof,-xof]) rotate([0,0,180])
+    polyhedron(points=points, faces=faces);
+}
+
+function xyzarcs(rd, sd, cp) = concat(
+    [for (xy=[0:cp]) [sin(xy*90/cp)*rd, cos(xy*90/cp)*rd, sd]],
+    [for (xz=[0:cp]) [sin(xz*90/cp)*rd, sd, cos(xz*90/cp)*rd]],
+    [for (yz=[0:cp]) [sd, sin(yz*90/cp)*rd, cos(yz*90/cp)*rd]],
+    []
+);
 
 module cubeedgenuts(xof, bof, zof)
 {
@@ -895,6 +926,15 @@ function qface(s, n, o, so=0, eo=0) = [for (i=[so:(eo==0?n-1:eo)]) each [
     [s+(i+1)%n,s+(i+1)%n+o,s+i],
     [s+(i+1)%n+o,s+i+o,s+i]
 ]];
+
+// faces, inverted
+// start offset, number of faces, offset of next, direction
+function qfacei(s, n, o, di=1) = [for (i=[0:n-2]) each [
+    [s+i+di,s+i+1+o,s+i+(1-di)],
+    [s+i+di+o,s+i+(1-di)+o,s+i]
+]];
+
+
 
 // face fan
 // fixed point, start, end, dir
