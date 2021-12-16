@@ -5,7 +5,7 @@ holedia = 1;
 boardth = 1.2;
 ewid = 10;
 
-numbut = 3;
+numbut = 4;
 
 ledsp = holesp * 4;
 ledz = boardth+0.5;
@@ -21,14 +21,15 @@ facetnuthei = 6;
 boltrad = 3/2+0.2;
 
 *mirror([0,0,1]) sidefacet();
-*whiteside();
+whiteside();
+*#whiteside2();
 *backendfront();
 *backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-cubeside();
+*cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
@@ -42,11 +43,11 @@ module cubeside() {
         cubeedgesblack(xof, bof, zof);
         cubebackedges(xof, bof, zof);
 
-        *#whiteside(xof, bof, zof);
-        *sidefacets(zof, bof, zof);
+        whiteside(xof, bof, zof);
+        sidefacets(zof, bof, zof);
 
         cubeedgenuts(xof, bof, zof);
-        *buttonseries(xof, bof, zof);
+        buttonseries(xof, bof, zof);
         color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
         color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
     }
@@ -218,13 +219,86 @@ module cubebackedge(xof, bof, zof, cp=32)
         ]);
 }
 
-module whiteside(xof=xsof*holesp*12, bof=10, zof=-2.3)
+module whiteside(xof=xsof*butsp, nh=numbut, bof=10, thi=1, zof=-2.3, eof=0.5-xsof, cp=64)
+{
+    wid = butsp * (nh-1+2*eof);
+    hr = holesp*4;
+    an = 360/cp;
+
+    tcs = cp*nh*nh;
+    ns = 2*(nh-1);
+    tcr = tcs+ns*4;
+
+    color("#eee") translate([0,0,bof])
+    linear_extrude(height=thi, convexity=5) polygon(points=concat(
+        [for (x=[0:nh-1], y=[0:nh-1]) each circle((x+0.5)*butsp, (y+0.5)*butsp, hr, an)],
+        ssquare(xof, butsp*nh-xof, nh-1, butsp, butsp-xof, butsp+xof),
+        [for (x=[1:nh-1], y=[1:nh-1]) each rect(x*butsp, y*butsp, facetnutwid, facetnuthei)],
+        []
+    ), paths=[concat(
+        ws_corner(cp, cp/2, 0, 3, tcs+2*ns, tcs),
+        [for (x=[1:nh-2]) each ws_corner(cp, cp*3/4, nh*x, 2, tcs+2*x-1, tcs+2*x)],
+        ws_corner(cp, cp/2, nh*(nh-1), 2, tcs+ns-1, tcs+3*ns),
+        [for (x=[1:nh-2]) each ws_corner(cp, cp*3/4, nh*(nh-1)+x, 1, tcs+3*ns+2*x-1, tcs+3*ns+2*x)],
+        ws_corner(cp, cp/2, nh*nh-1, 1, tcs+4*ns-1, tcs+2*ns-1),
+        [for (x=[nh-2:-1:1]) each ws_corner(cp, cp*3/4, nh*x+nh-1, 0, tcs+ns+2*x, tcs+ns+2*x-1)],
+        ws_corner(cp, cp/2, nh-1, 0, tcs+ns, tcs+3*ns-1),
+        [for (x=[nh-2:-1:1]) each ws_corner(cp, cp*3/4, x, 3, tcs+2*ns+2*x, tcs+2*ns+2*x-1)],
+        []
+    ),
+        for (x=[1:nh-2],y=[1:nh-2]) [for (i=[0:cp-1]) (x+y*nh)*cp+i],
+        for (i=[0:(nh-1)*(nh-1)-1]) [for (s=[0:3]) tcr+i*4+s]
+    ]);
+}
+
+// Circle part with edge parts
+// offset, quadrant, number of points
+function ws_corner(cp, ns, o, q, s1, e1) = concat(
+    [s1],
+    [for (i=[0:ns]) o*cp+(i+cp*(q*2+1)/8)%cp],
+    [e1]
+);
+
+// Square with multiple points on sides
+// start, end, number of steps, step size, offset1, offset2
+function ssquare(x1, x2, n, s, o1, o2) = concat(
+    [for (x=[0:n-1]) each [[x*s+o1,x1], [x*s+o2,x1]]],
+    [for (x=[0:n-1]) each [[x*s+o1,x2], [x*s+o2,x2]]],
+    [for (y=[0:n-1]) each [[x1,y*s+o1], [x1,y*s+o2]]],
+    [for (y=[0:n-1]) each [[x2,y*s+o1], [x2,y*s+o2]]],
+    []
+);
+
+// Rectangle
+// x center y center, width, height
+function rect(x, y, w, h) = [
+    [x-w/2,y-h/2], [x-w/2,y+h/2], [x+w/2,y+h/2], [x+w/2,y-h/2]
+];
+
+function circle(x,y,d,an) = [
+    for (a = [0:an:360-an]) [x+d*sin(a),y+d*cos(a)]
+];
+
+module whiteside2(xof=xsof*holesp*12, bof=10, zof=-2.3)
 {
     color("#eee") translate([0,0,bof])
     difference() {
         translate([xof,xof,0]) perfboard(numbut, numbut, 1, holesp * 12, holesp * 8, 0.5-xsof, 64);
         for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([(x)*butsp, (y)*butsp, 0]) cube([facetnutwid,facetnuthei,2.02], true);
+        }
+        translate([0, 0, -0.01]) linear_extrude(height=1.02) polygon([
+            [xof-0.01,xof-0.01], [(butsp-xof)+0.01,xof-0.01], [xof-0.01,(butsp-xof)+0.01]
+        ]);
+        for (x=[1:numbut-1]) {
+            translate([x*butsp, 0, -0.01]) linear_extrude(height=1.02) polygon([
+                [xof-0.01,xof-0.01], [(butsp-xof)+0.01,xof-0.01], [butsp/2,(butsp/2)]
+            ]);
+        }
+        mirror([-1,1,0]) for (x=[1:numbut-1]) {
+            translate([x*butsp, 0, -0.01]) linear_extrude(height=1.02) polygon([
+                [xof-0.01,xof-0.01], [(butsp-xof)+0.01,xof-0.01], [butsp/2,(butsp/2)]
+            ]);
         }
     }
 }
@@ -531,8 +605,8 @@ module button(ptol1=0.4, ptol2=0.0, show=false)
         translate([0,0,5-hi]) polyhedron(convexity=5,
             points = concat(
                 dome(0, 0, 2, hi-2.5, butdia/2 - 0.4 -3.8, 3, an, lc, 1, -1),
-                circle(0, 0, 0, butdia/2 - 0.4-0.8, an),
-                circle(0, 0, 0, butdia/2 - 0.4, an),
+                zcircle(0, 0, 0, butdia/2 - 0.4-0.8, an),
+                zcircle(0, 0, 0, butdia/2 - 0.4, an),
                 dome(0, 0, 2, hi-1.5, butdia/2 - 0.4 -3, 3, an, lc, 1),
                 []),
             faces = concat(
@@ -611,10 +685,10 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
     l2 = lo + cp*w*h;
     lo2 = l2+lo;
     points = concat(
-        ssquare(wid,hei,w+1,h+1,0),
-        [for (x=[0:w-1], y=[0:h-1]) each circle((x+eof)*hsp, (y+eof)*hsp, 0, hr, an)],
-        ssquare(wid,hei,w+1,h+1,thi),
-        [for (x=[0:w-1], y=[0:h-1]) each circle((x+eof)*hsp, (y+eof)*hsp, thi, hr, an)]
+        zssquare(wid,hei,w+1,h+1,0),
+        [for (x=[0:w-1], y=[0:h-1]) each zcircle((x+eof)*hsp, (y+eof)*hsp, 0, hr, an)],
+        zssquare(wid,hei,w+1,h+1,thi),
+        [for (x=[0:w-1], y=[0:h-1]) each zcircle((x+eof)*hsp, (y+eof)*hsp, thi, hr, an)]
     );
     polyhedron(convexity = 5, points = points, faces = concat(
         // [[0,1,2,3],[l2+3,l2+2,l2+1,l2+0]],
@@ -655,14 +729,14 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
 
 // Square with multiple points on sides
 // width, height, side steps, z coord
-function ssquare(w,h,ws,hs,z) = concat(
+function zssquare(w,h,ws,hs,z) = concat(
     [for (i=[0:ws-1])  [i*(w/ws),0,z]],
     [for (i=[0:hs-1])  [w,i*(h/hs),z]],
     [for (i=[ws:-1:1]) [i*(w/ws),h,z]],
     [for (i=[hs:-1:1]) [0,i*(h/hs),z]]
 );
 
-function circle(x,y,z,d,an) = [
+function zcircle(x,y,z,d,an) = [
     for (a = [0:an:360-an]) [x+d*sin(a),y+d*cos(a),z]
 ];
 
@@ -743,7 +817,7 @@ function bcornerdart(lo, ss, w, h, di=1) = fcornerdart(lo, ss, w, h, di);
 // D/d = sqrt(1 - (z/h)^2)
 // D = d * sqrt(1 - (z/h)^2)
 function dome(x, y, z, h, d, d2, an, lc, fac=1, dr=1) = [for (i=[(dr>0?0:lc-1):dr:(dr<0?0:lc-1)]) each
-    circle(x, y, z+(i*h/lc), d2 + d * sqrt(1 - (i*fac/lc)*(i*fac/lc)), an)
+    zcircle(x, y, z+(i*h/lc), d2 + d * sqrt(1 - (i*fac/lc)*(i*fac/lc)), an)
 ];
 
 // faces
