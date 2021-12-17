@@ -29,7 +29,7 @@ boltrad = 3/2+0.2;
 *rotate([0,-90,0]) cubeedgewhite();
 
 cubecorner();
-cubeside();
+*cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
@@ -267,31 +267,46 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
     sta = an2 * (cp2-cnf) / 2;  // recalc so it's an integer number of steps
     xo = butsp/2-xof;
     pinst = concat(
-        zarc(-xo, -xo, rd, hrd, sta, 90-sta, an2),
+        zarc(-xo, -xo, rd,   hrd, sta, 90-sta, an2),
         zarc(-xo, -xo, rd-1, hrd, sta, 90-sta, an2),
+        yarc(-xo, rd,   -xo, hrd, 90-sta, sta, -an2),
+        yarc(-xo, rd-1, -xo, hrd, 90-sta, sta, -an2),
+        xarc(rd,   -xo, -xo, hrd, sta, 90-sta, an2),
+        xarc(rd-1, -xo, -xo, hrd, sta, 90-sta, an2),
         []
     );
     cpi = len(pqsphere)+len(parcs);
+    sphc1 = cp*(cp+1)/2;
+    sphc2 = cp*(cp+1)/2+cp;
     finst = concat(
-        [[0, cpi, csp+car*2],[0, csp+car*1, cpi+cnf]],
-        [for (a=[0:cnf-1]) [cpi+a+1, cpi+a, 0]],
-
-        [[csp+car*5, cpi+cnf+1, csp+car*8],[csp+car*4, csp+car*7, cpi+cnf+cnf+1]],
-        [for (a=[0:cnf-1]) [cpi+cnf+a+1, cpi+cnf+a+2, csp+car*8]],
-
-        [[cpi, csp+car*5, csp+car*2],[cpi, cpi+cnf+1, csp+car*5],
-         [cpi+cnf, csp+car*1, csp+car*4],[cpi+cnf+cnf+1, cpi+cnf, csp+car*4] ],
-        qfacei(cpi, cnf+1, cnf+1),
+        face_inset( [0, csp+car*2, csp+car*1],
+                    [csp+car*8, csp+car*5, csp+car*4], cpi, cnf),
+        face_inset( [sphc1, csp+car*0, csp+car*2+cp],
+                    [csp+car*8+cp, csp+car*3, csp+car*5+cp], cpi+2*(cnf+1), cnf),
+        face_inset( [sphc2, csp+car*1+cp, csp+car*0+cp],
+                    [csp+car*7+cp, csp+car*4+cp, csp+car*3+cp], cpi+4*(cnf+1), cnf),
         []
     );
-
 
     points = concat(pqsphere, parcs, pinst);
     faces = concat(fqsphere, fqarcs, fqsides, fqback, finst);
     // echo("POINTS", points, "FACES", faces);
-    translate([xof,xof,-xof]) rotate([0,0,180])
-    polyhedron(points=points, faces=faces);
+    color("#333") translate([xof,xof,-xof]) rotate([0,0,180])
+        polyhedron(points=points, faces=faces);
 }
+
+// top corners (mid, near, far), bottom corners, curve offset, curve length
+function face_inset(t, b, o, l) = concat(
+    [[t[0], o, t[1]], [t[0], t[2], o+l]],
+    [for (i=[0:l-1]) [o+i+1, o+i, t[0]]],
+
+    [[b[0], b[1], o+l+1], [b[2], b[0], o+l+l+1]],
+    [for (i=[0:l-1]) [o+l+i+1, o+l+i+2, b[0]]],
+
+    [[o,   b[1], t[1]], [o, o+l+1, b[1]],
+     [o+l, t[2], b[2]], [o+l+l+1, o+l, b[2]]],
+    qfacei(o, l+1, l+1)
+);
 
 function xyzarcs(rd, sd, cp) = concat(
     [for (xy=[0:cp]) [sin(xy*90/cp)*rd, cos(xy*90/cp)*rd, sd]],
