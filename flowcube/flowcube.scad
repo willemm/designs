@@ -239,9 +239,55 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
         []
     );
     fqsides = [for (o=[0:11]) each qfacei(csp+car*o, car, car*3, (o%3==1)?1:0)];
+    fqback = concat(
+        [[csp+car*12, csp+car*14, csp+car*13],
+         [csp+car*12, csp+car*13, csp+car*12+cp],
+         [csp+car*14, csp+car*12, csp+car*14+cp],
+         [csp+car*12+cp, csp+car*13, csp+car*13+cp],
+         [csp+car*13, csp+car*14, csp+car*10],
+         [csp+car*12+cp, csp+car*13+cp, csp+car*9+cp],
+         [csp+car*14+cp, csp+car*12, csp+car*9] ],
+        [[csp+car*12, csp+car*12+cp, csp+car*12+cp/2]],
+        [for (i=[1:cp/2]) [csp+car*12, csp+car*12+i, csp+car*12+i-1]],
+        [for (i=[cp/2+1:cp]) [csp+car*12+cp, csp+car*12+i, csp+car*12+i-1]],
+        [[csp+car*13+cp, csp+car*13, csp+car*13+cp/2]],
+        [for (i=[1:cp/2]) [csp+car*13, csp+car*13+i-1, csp+car*13+i]],
+        [for (i=[cp/2+1:cp]) [csp+car*13+cp, csp+car*13+i-1, csp+car*13+i]],
+        [[csp+car*14, csp+car*14+cp, csp+car*14+cp/2]],
+        [for (i=[1:cp/2]) [csp+car*14, csp+car*14+i, csp+car*14+i-1]],
+        [for (i=[cp/2+1:cp]) [csp+car*14+cp, csp+car*14+i, csp+car*14+i-1]],
+        []
+    );
 
-    points = concat(pqsphere, parcs);
-    faces = concat(fqsphere, fqarcs, fqsides);
+    cp2 = 32;
+    an2 = 90/cp2;
+    hrd = butdia/2;
+    esta = asin((ewid/2)/hrd);
+    cnf = floor((90-(esta*2)) / an2);
+    sta = an2 * (cp2-cnf) / 2;  // recalc so it's an integer number of steps
+    xo = butsp/2-xof;
+    pinst = concat(
+        zarc(-xo, -xo, rd, hrd, sta, 90-sta, an2),
+        zarc(-xo, -xo, rd-1, hrd, sta, 90-sta, an2),
+        []
+    );
+    cpi = len(pqsphere)+len(parcs);
+    finst = concat(
+        [[0, cpi, csp+car*2],[0, csp+car*1, cpi+cnf]],
+        [for (a=[0:cnf-1]) [cpi+a+1, cpi+a, 0]],
+
+        [[csp+car*5, cpi+cnf+1, csp+car*8],[csp+car*4, csp+car*7, cpi+cnf+cnf+1]],
+        [for (a=[0:cnf-1]) [cpi+cnf+a+1, cpi+cnf+a+2, csp+car*8]],
+
+        [[cpi, csp+car*5, csp+car*2],[cpi, cpi+cnf+1, csp+car*5],
+         [cpi+cnf, csp+car*1, csp+car*4],[cpi+cnf+cnf+1, cpi+cnf, csp+car*4] ],
+        qfacei(cpi, cnf+1, cnf+1),
+        []
+    );
+
+
+    points = concat(pqsphere, parcs, pinst);
+    faces = concat(fqsphere, fqarcs, fqsides, fqback, finst);
     // echo("POINTS", points, "FACES", faces);
     translate([xof,xof,-xof]) rotate([0,0,180])
     polyhedron(points=points, faces=faces);
