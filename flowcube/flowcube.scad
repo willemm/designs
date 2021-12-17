@@ -30,7 +30,7 @@ boltrad = 3/2+0.2;
 
 cubecorner();
 *cubeside();
-*rotate([90,90,0]) cubeside();
+rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
 module cubeside() {
@@ -39,17 +39,17 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        cubeedgeswhite(xof, bof, zof);
-        cubeedgesblack(xof, bof, zof);
-        cubebackedges(xof, bof, zof);
+        *cubeedgeswhite(xof, bof, zof);
+        *cubeedgesblack(xof, bof, zof);
+        *cubebackedges(xof, bof, zof);
 
-        whiteside(xof, bof, zof);
+        *whiteside(xof, bof, zof);
         *sidefacets(zof, bof, zof);
 
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
         color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
-        *color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
+        color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
         /*
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
@@ -239,11 +239,22 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
         []
     );
     fqsides = [for (o=[0:11]) each qfacei(csp+car*o, car, car*3, (o%3==1)?1:0)];
+
+    br = rd-2-tol;
+    bro = 1;
+    pqback = [
+        [-bro,-sd,br], [-sd,-bro,br],
+        [-sd,br,-bro], [-bro,br,-sd],
+        [br,-bro,-sd], [br,-sd,-bro]
+    ];
+    cbk = len(pqsphere)+len(parcs);
+    bp = [csp+car*13, csp+car*14, csp+car*14+cp,
+        csp+car*12, csp+car*12+cp, csp+car*13+cp,
+        cbk, cbk+1, cbk+2, cbk+3, cbk+4, cbk+5];
     fqback = concat(
-        [[csp+car*12, csp+car*14, csp+car*13],
-         [csp+car*12, csp+car*13, csp+car*12+cp],
-         [csp+car*14, csp+car*12, csp+car*14+cp],
-         [csp+car*12+cp, csp+car*13, csp+car*13+cp],
+        [for (i=[0:5]) each [[bp[i], bp[i+6], bp[(i+1)%6+6]],[bp[i], bp[(i+1)%6+6], bp[(i+1)%6]] ]],
+        [[bp[6], bp[8], bp[7]], [bp[6], bp[9], bp[8]],
+         [bp[6], bp[11], bp[9]], [bp[9], bp[11], bp[10]],
          [csp+car*13, csp+car*14, csp+car*10],
          [csp+car*12+cp, csp+car*13+cp, csp+car*9+cp],
          [csp+car*14+cp, csp+car*12, csp+car*9] ],
@@ -275,7 +286,7 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
         xarc(rd-1, -xo, -xo, hrd, sta, 90-sta, an2),
         []
     );
-    cpi = len(pqsphere)+len(parcs);
+    cpi = len(pqsphere)+len(parcs)+len(pqback);
     sphc1 = cp*(cp+1)/2;
     sphc2 = cp*(cp+1)/2+cp;
     finst = concat(
@@ -288,11 +299,37 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
         []
     );
 
-    points = concat(pqsphere, parcs, pinst);
+    xyzof = (br-sd-1)/3;
+
+    points = concat(pqsphere, parcs, pqback, pinst);
     faces = concat(fqsphere, fqarcs, fqsides, fqback, finst);
+
     // echo("POINTS", points, "FACES", faces);
-    color("#333") translate([xof,xof,-xof]) rotate([0,0,180])
-        polyhedron(points=points, faces=faces);
+
+    // color("#333")
+    translate([xof,xof,-xof]) rotate([0,0,180])
+    difference() {
+        union() {
+            difference() {
+                polyhedron(points=points, faces=faces, convexity=6);
+                cube([14.5,14.5,14.5], true);
+            }
+            cdi = sqrt(6*6+8*8)/sqrt(3)*2;
+            //#translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) rotate([0,0,30]) cylinder(9.5, cdi/2, cdi/2, $fn=6);
+            translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) translate([0,0,4.75]) cube([6, 8, 9.5], true);
+        }
+        translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) {
+            translate([0,0,-0.01]) cylinder(7.01, boltrad, boltrad, $fn=32);
+            translate([5,0,1.2+1.4]) cube([6.1+10, 5.5, 2.8], true);
+        }
+    }
+
+    color("#882")
+    translate([xof,xof,-xof]) rotate([0,0,180])
+    translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) {
+        translate([0,0,-2]) cylinder(10, 1.5, 1.5, $fn=32);
+        translate([0,0,-2]) cylinder(1, 2.9, 2.9, $fn=32);
+    }
 }
 
 // top corners (mid, near, far), bottom corners, curve offset, curve length
