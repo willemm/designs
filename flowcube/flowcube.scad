@@ -29,6 +29,7 @@ boltrad = 3/2+0.2;
 *rotate([0,-90,0]) cubeedgewhite();
 
 cubecorner();
+cubecornernut();
 *cubeside();
 rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
@@ -40,20 +41,18 @@ module cubeside() {
     
     translate([0,0,zof]) {
         *cubeedgeswhite(xof, bof, zof);
-        *cubeedgesblack(xof, bof, zof);
+        cubeedgesblack(xof, bof, zof);
         *cubebackedges(xof, bof, zof);
 
         *whiteside(xof, bof, zof);
         *sidefacets(zof, bof, zof);
 
-        *cubeedgenuts(xof, bof, zof);
+        cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
         color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
-        color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8-0.1]) backendback();
-        /*
+        color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8]) backendback();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
-        */
     }
 }
 
@@ -312,7 +311,13 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
         union() {
             difference() {
                 polyhedron(points=points, faces=faces, convexity=6);
-                cube([14.5,14.5,14.5], true);
+                difference() {
+                    cube([14.5,14.5,14.5], true);
+                    // Backfill
+                    translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) {
+                        translate([0,0,4]) cylinder(4, 8, 8, $fn=6);
+                    }
+                }
             }
             cdi = sqrt(6*6+8*8)/sqrt(3)*2;
             //#translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) rotate([0,0,30]) cylinder(9.5, cdi/2, cdi/2, $fn=6);
@@ -321,14 +326,14 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
         translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) {
             translate([0,0,-0.01]) cylinder(7.01, boltrad, boltrad, $fn=32);
             translate([5,0,1.2+1.4]) cube([6.1+10, 5.5, 2.8], true);
+            translate([8,0,1.2]) cube([5, 5.5, 2.8], true);
         }
     }
 
-    color("#882")
+    // Sacrificial support layer
     translate([xof,xof,-xof]) rotate([0,0,180])
     translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) {
-        translate([0,0,-2]) cylinder(10, 1.5, 1.5, $fn=32);
-        translate([0,0,-2]) cylinder(1, 2.9, 2.9, $fn=32);
+        #translate([0,0,1.2+2.8+0.1]) cube([4, 4, 0.2], true);
     }
 }
 
@@ -356,12 +361,27 @@ module cubeedgenuts(xof, bof, zof)
 {
     enof = 1.3+0.6;
     color("#773") for (x=[1:numbut-1]) {
-        translate([x*butsp, -enof, -zof+enof]) rotate([45,0,0])
-            translate([0,0,1.6]) cube([5.5,5.5,2.4], true);
         translate([x*butsp, -enof, -zof+enof]) rotate([45,0,0]) {
+            translate([0,0,1.6]) cube([5.5,5.5,2.4], true);
+
             translate([0,0,-6.3]) cylinder(10, 1.5, 1.5, $fn=32);
             translate([0,0,-7.3]) cylinder(1,2.9,2.9, $fn=32);
         }
+    }
+}
+
+module cubecornernut(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.1)
+{
+    br = xof+bof+zof-tol;
+    sd = (butsp-ewid)/2-xof;
+    xyzof = (br-sd-1)/3;
+    color("#773")
+    translate([xof,xof,-xof]) rotate([0,0,180])
+    translate([xyzof,xyzof,xyzof]) rotate([0,atan(sqrt(2)),45]) {
+        translate([0,0,-2]) cylinder(8, 1.5, 1.5, $fn=32);
+        translate([0,0,-2.5]) cylinder(1, 2.9, 2.9, $fn=32);
+
+        translate([0,0,2.5]) cube([5.5,5.5,2.4], true);
     }
 }
 
@@ -592,6 +612,15 @@ module backendback(sd = numbut*butsp, thi = 3.6)
         rotate([90,0,180]) linear_extrude(height=numbut*butsp) polygon([
             [-2-bcut-btl,0-btl],[-2+btl,0+bcut+btl],[-2+btl,0-btl]
         ]);
+
+        xof = xsof*butsp;
+        cdi = 10.8;  // Magic number
+        translate([xof, xof, -xof+2.4])
+        rotate([0,-atan(sqrt(2)),45]) {
+            translate([0,0,3.0]) cylinder(8, cdi/2, cdi/2, $fn=6);
+            translate([0,0,1]) cylinder(3, boltrad, boltrad, $fn=32);
+            translate([0,0,-2]) cylinder(3.8, 3.4, 3.4, $fn=32);
+        }
     }
     // Sacrificial layer
     for (x=[1:numbut-1], y=[1:numbut-1]) {
@@ -645,6 +674,12 @@ module backendfront(sd = numbut*butsp, thi = 1.4, gap=6.4)
             translate([0, x*butsp, -1.2]) rotate([0,-45,0]) {
                 translate([0,0,0]) cylinder(2, boltrad+0.2, boltrad+0.2, $fn=32);
             }
+        }
+        xof = xsof*butsp;
+        cdi = 11.5;  // Magic number
+        translate([xof, xof, -xof-1.2])
+        rotate([0,-atan(sqrt(2)),45]) {
+            translate([0,0,2]) cylinder(8, cdi/2, cdi/2, $fn=6);
         }
     }
 }
