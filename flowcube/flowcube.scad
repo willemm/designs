@@ -23,15 +23,15 @@ boltrad = 3/2+0.2;
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-*backendback();
+backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-cubecorner();
-cubecornernut();
+*cubecorner();
+*cubecornernut();
 *cubeside();
-rotate([90,90,0]) cubeside();
+*rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
 module cubeside() {
@@ -522,6 +522,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
     difference() {
         union() {
             for (x=[1:numbut-1], y=[1:numbut-1]) {
+                // Large middle bits
                 translate([x*butsp, y*butsp, 0]) {
                     translate([-cwid/2, -cwid/2, 0]) cube([cwid, cwid, thi]);
                     stubpyra(swid, swid, 11.2, 11.2, 8);
@@ -529,52 +530,70 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             }
             for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
                 translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) rotate([0,0,an]) {
+                    // Beams around buttons
                     translate([2.8, -4, 0]) cube([bwid, 8, thi]);
-                    translate([ledsp,  4, 0]) cylinder(3, 1, 1, $fn=4);
-                    translate([ledsp, -4, 0]) cylinder(3, 1, 1, $fn=4);
+
+                    // wsled supports
+                    translate([ledsp,  4, 0]) cylinder(3, 1.6, 1.6, $fn=4);
+                    translate([ledsp, -4, 0]) cylinder(3, 1.6, 1.6, $fn=4);
                 }
             }
+            // Extra bits under buttons
             for (x=[0:numbut-1], y=[0:numbut-1]) {
                 translate([(x+0.5)*butsp-6/2, (y+0.5)*butsp-3/2, 0]) cube([6,3,2]);
                 translate([(x+0.5)*butsp-3/2+2.0, (y+0.5)*butsp-6/2, 0]) cube([1.0,6,2]);
             }
+            // Edge bits
             for (x=[1:numbut-1], y=[0,numbut]) {
                 yo = y*butsp+(cwid/4+1)*(y>0?-1:1);
                 translate([x*butsp, yo, thi/2]) cube([cwid,cwid/2-2,thi], true);
             }
+            // Edge bits
             for (x=[0,numbut], y=[1:numbut-1]) {
                 xo = x*butsp+(cwid/4+1)*(x>0?-1:1);
                 translate([xo, y*butsp, thi/2]) cube([cwid/2-2,cwid,thi], true);
             }
+            // Corner bits
             for (x=[0,numbut], y=[0,numbut]) {
                 xo = x*butsp+(cwid/4+1)*(x>0?-1:1);
                 yo = y*butsp+(cwid/4+1)*(y>0?-1:1);
                 translate([xo, yo, thi/2]) cube([cwid/2-2,cwid/2-2,thi], true);
             }
         }
+        // Cutouts for middle bits (with bolt holes)
         for (x=[1:numbut-1], y=[1:numbut-1]) {
             translate([x*butsp, y*butsp, -1]) stubpyra(swid, swid, twid, twid, 11.3-facetnutthi);
             translate([x*butsp, y*butsp, 11.3-facetnutthi-1.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
             translate([x*butsp, y*butsp, 11.2-facetnutthi+4.6/2]) cube([facetnutwid, facetnuthei, 4.6], true);
         }
+        // Round cutout for wsleds
         for (x=[0:numbut-1], y=[0:numbut-1], an=[0:90:270]) {
             xo = (x+0.5)*butsp + cos(an)*ledsp;
             yo = (y+0.5)*butsp + sin(an)*ledsp;
             translate([xo, yo, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
         }
-        hl = 2*bwid+6;
+        // Button cutout
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
                 translate([-3.5,-3.5,1.4]) cube([7,7,thi-1.4+0.01]);
+            }
+        }
+        hl = 2*bwid+6;
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
+            // Holes for wsled wiring
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) {
                 *for (x=[-1,1], y=[-1,1]) {
                     translate([x*3.15-0.351, y*2.0-1.5, 1.2]) cube([0.702,3.0,0.601]);
                 }
                 for (x=[0,1], y=[0,1]) {
                     mirror([x,0,0]) mirror([0,y,0])
-                    translate([(bwid+2.8), 3.9, -0.001])
+                    translate([(bwid+2.8), 3.9, -0.001]) {
                         linear_extrude(height=1.001) polygon([
-                        [0,-0.3], [3.76,-0.3], [3.16,0.3], [0,0.3]
+                        // [0,-0.3], [3.76,-0.3], [3.16,0.3], [0,0.3]
+                        [0,-0.3], [9.5,-0.3], [9.5,0.3], [0,0.3]
                         ]);
+                        translate([0,0,1]) rotate([0,90,0]) cylinder(9.5, 0.3, 0.3, $fn=4);
+                    }
                 }
 
                 for (x=[-1:1]) {
@@ -585,7 +604,8 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                     mirror([x,0,0]) mirror([0,y,0])
                     translate([3.9, (bwid+2.8), 1.2])
                         linear_extrude(height=2.401) polygon([
-                        [-0.3,0], [-0.3,3.76], [0.3,3.16], [0.3,0]
+                        // [-0.3,0], [-0.3,3.76], [0.3,3.16], [0.3,0]
+                        [-0.3,0], [-0.3,9.5], [0.3,9.5], [0.3,0]
                         ]);
                 }
 
@@ -594,6 +614,8 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                 }
             }
         }
+
+        // Edge bolts
         for (x=[1:numbut-1]) {
             translate([x*butsp, 0, 2.5]) rotate([45,0,0]) {
                 translate([0,0,-7]) cylinder(3.5, 3.4, 3.4, $fn=32);
@@ -604,6 +626,8 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                 translate([0,0,-4]) cylinder(3.5, boltrad, boltrad, $fn=32);
             }
         }
+
+        // Botton side cut off a bit
         bcut = 0.6;
         btl = 0.01;
         rotate([0,90,0]) linear_extrude(height=numbut*butsp) polygon([
@@ -613,6 +637,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             [-2-bcut-btl,0-btl],[-2+btl,0+bcut+btl],[-2+btl,0-btl]
         ]);
 
+        // Corner bolt
         xof = xsof*butsp;
         cdi = 10.8;  // Magic number
         translate([xof, xof, -xof+2.4])
