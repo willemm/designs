@@ -23,14 +23,14 @@ boltrad = 3/2+0.2;
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-backendback();
+*backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
 *cubecorner();
 *cubecornernut();
-*cubeside();
+cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
@@ -41,15 +41,15 @@ module cubeside() {
     
     translate([0,0,zof]) {
         *cubeedgeswhite(xof, bof, zof);
-        cubeedgesblack(xof, bof, zof);
+        *cubeedgesblack(xof, bof, zof);
         *cubebackedges(xof, bof, zof);
 
         *whiteside(xof, bof, zof);
         *sidefacets(zof, bof, zof);
 
-        cubeedgenuts(xof, bof, zof);
+        *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
+        *color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
         color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8]) backendback();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
@@ -602,14 +602,14 @@ module backendback(sd = numbut*butsp, thi = 3.6)
 
                 for (x=[0,1], y=[0,1]) {
                     mirror([x,0,0]) mirror([0,y,0])
-                    translate([3.9, (bwid+2.8), 1.2])
+                    translate([4.2, (bwid+2.8), 1.2])
                         linear_extrude(height=2.401) polygon([
                         // [-0.3,0], [-0.3,3.76], [0.3,3.16], [0.3,0]
                         [-0.3,0], [-0.3,9.5], [0.3,9.5], [0.3,0]
                         ]);
                 }
 
-                for (x=[-3.9,1,3.9]) {
+                for (x=[-4.2,1,4.2]) {
                     translate([ x, 0, 1.6]) cube([0.6, hl, 0.801], true);
                 }
             }
