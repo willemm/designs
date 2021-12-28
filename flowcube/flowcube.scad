@@ -24,16 +24,16 @@ boltrad = 3/2+0.2;
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-backendback();
+*backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-*cubecorner();
+color("#333") cubecorner();
 *cubecornernut();
-*cubeside();
-*rotate([90,90,0]) cubeside();
-*rotate([-90,0,90]) cubeside();
+cubeside();
+rotate([90,90,0]) cubeside();
+rotate([-90,0,90]) cubeside();
 
 module cubeside() {
     zof = -2.3;
@@ -41,18 +41,16 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        *cubeedgeswhite(xof, bof, zof);
-        *cubeedgesblack(xof, bof, zof);
-        *cubebackedges(xof, bof, zof);
+        cubeedgeswhite(xof, bof, zof);
+        cubeedgesblack(xof, bof, zof);
+        cubebackedges(xof, bof, zof);
 
-        *whiteside(xof, bof, zof);
-        *sidefacets(zof, bof, zof);
+        whiteside(xof, bof, zof);
+        sidefacets(zof, bof, zof);
 
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        *color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
-        *color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8]) backendback();
-        *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
+        color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
     }
 }
@@ -127,9 +125,6 @@ module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=16)
 
 module cubeedgesblack(xof, bof, zof)
 {
-    // TODO: This needs to be come one thing for all three sides
-    // color("#333") translate([xof, xof, -(zof+xof)]) cubeedge(sd = (butsp-ewid)/2-xof, thi = 1.0, rd=bof+zof+xof+1);
-
     color("#333") for (x=[1:numbut-1]) {
         translate([butsp*(x-0.5)+ewid/2, xof, -(zof+xof)]) cubeedgeblack(xof, bof, zof);
     }
@@ -386,7 +381,7 @@ module cubecornernut(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.1)
     }
 }
 
-module cubebackedges(xof, bof, zof)
+module cubebackedges(xof, bof, zof, tol=0.2)
 {
     color("#333") {
         cubebackedge(xof, bof, zof);
@@ -395,32 +390,53 @@ module cubebackedges(xof, bof, zof)
         sd = butsp-ewid;
         translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof+1);
         translate([numbut*butsp-xof, xof, -(zof+xof)]) cubeedge(sd = butsp/2-ewid/2+xof, thi = 1.2, rd=bof+zof+xof-.2);
-        translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof-1.2);
+        // translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof-1.2);
+
+        // Inside
+        translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedgeinside(butsp-ewid, bof-2.8, rd=bof+zof+xof-tol);
     }
 }
 
-module cubebackedge(xof, bof, zof, cp=32)
+module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
 {
     xo = butsp/2; // offset of hole centers
     backwid = butsp-ewid/2;
     endofs = (numbut-0.5)*butsp;
     whiteof = butsp/2-xof;
+    backof = butsp/2+tol;
 
     an = 90/cp;
     rd = butdia/2;
     esta = asin((ewid/2)/rd);
     cnf = floor((90-(esta*2)) / an);
     sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
-    for (z=[1,-1.2]) translate([(numbut-0.5)*butsp, 0, bof+z]) linear_extrude(height=1, convexity=4)
+
+    // Edge with cutouts for buttons
+    for (z=[1/*,-1.2*/]) translate([(numbut-0.5)*butsp, 0, bof+z]) linear_extrude(height=1, convexity=4)
         polygon(concat(
             [[ewid/2,xof], [backwid,xof], [backwid,endofs+backwid]],
             [for (x=[numbut-1:-1:0]) each arc( 0, butsp*(x+0.5), rd, (x==numbut-1?45:sta), 180-sta, an)]
         ));
 
+    // Middle bit of edge
     translate([(numbut-0.5)*butsp, 0, bof-0.2])
         linear_extrude(height=1.2) polygon([
             [whiteof,xof], [backwid,xof], [backwid, endofs+backwid], [whiteof, endofs+whiteof]
         ]);
+
+    // Back bit of edge
+    translate([(numbut-0.5)*butsp, 0, 0])
+        linear_extrude(height=bof) polygon([
+            [backof,xof], [backwid,xof], [backwid, endofs+backwid], [backof, endofs+backof]
+        ]);
+    // Back corner
+    translate([(numbut)*butsp+tol, -1, 0])
+        cube([backwid-backof,6,5], false);
+
+    // under bits between leds
+    for (x=[1:numbut-1]) {
+        translate([butsp*(numbut),butsp*x,bof-5]) rotate([0,0,90]) edgefacet(thi=xof+1-tol, xof=-0.2);
+    }
 }
 
 module whiteside(xof=xsof*butsp, bof=10, zof=-2.3, nh=numbut, thi=1, eof=0.5-xsof, cp=64)
