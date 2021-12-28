@@ -20,6 +20,7 @@ facetnutwid = 10;
 facetnuthei = 6;
 boltrad = 3/2+0.2;
 
+
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
@@ -50,9 +51,9 @@ module cubeside() {
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
         *color("#beb") render(convexity=10) translate([0, 0, ledz+1.8]) backendfront();
-        color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8]) backendback();
+        *color("#8c8") render(convexity=10) translate([0, 0, ledz-1.8]) backendback();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
-        *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
+        color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
     }
 }
 
@@ -513,7 +514,35 @@ module sidefacets(xof, bof, zof)
     }
 }
 
-module backendback(sd = numbut*butsp, thi = 3.6)
+module backendback(nb = numbut, thi = 3.6)
+{
+    cwid = butsp-8;
+    swid = 20;
+    twid = 10;
+    bwid = 3;
+    union() {
+        for (x=[1:nb-1], y=[1:nb-1]) {
+            translate([x*butsp, y*butsp, 0]) backend_back_midpiece(thi, cwid, swid, twid, bwid);
+        }
+        for (x=[0:nb-1], y=[0:nb-1]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) backend_back_butpiece(thi, cwid, swid, twid, bwid);
+        }
+        for (x=[1:nb-1]) {
+            translate([x*butsp, 0, 0]) backend_back_edgepiece(0, thi, cwid, swid, twid, bwid);
+            translate([x*butsp, nb*butsp, 0]) backend_back_edgepiece(180, thi, cwid, swid, twid, bwid);
+        }
+        for (y=[1:nb-1]) {
+            translate([0, y*butsp, 0]) backend_back_edgepiece(270, thi, cwid, swid, twid, bwid);
+            translate([nb*butsp, y*butsp, 0]) backend_back_edgepiece(90, thi, cwid, swid, twid, bwid);
+        }
+        for (x=[0,1], y=[0,1]) {
+            rot = x*90-y*90+x*y*180;
+            translate([x*nb*butsp, y*nb*butsp]) backend_back_cornerpiece(rot, thi, cwid, swid, twid, bwid);
+        }
+    }
+}
+
+module backendback_old(sd = numbut*butsp, thi = 3.6)
 {
     cwid = butsp-8;
     swid = 20;
@@ -637,7 +666,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
             }
         }
 
-        // Botton side cut off a bit
+        // Bottom side cut off a bit
         bcut = 0.6;
         btl = 0.01;
         rotate([0,90,0]) linear_extrude(height=numbut*butsp) polygon([
@@ -660,6 +689,203 @@ module backendback(sd = numbut*butsp, thi = 3.6)
     // Sacrificial layer
     for (x=[1:numbut-1], y=[1:numbut-1]) {
         #translate([x*butsp, y*butsp, 11.3-facetnutthi-1+0.1]) cube([6,6,0.2], true);
+    }
+}
+
+// One piece of the backendback, so it can be prerendered
+// (Hopefully it will only be rendered once)
+module backend_back_midpiece(thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bwid = 3)
+{
+    render(convexity=5) difference() {
+        union() {
+            // Large middle bit
+            translate([-cwid/2, -cwid/2, 0]) cube([cwid, cwid, thi]);
+            stubpyra(swid, swid, 11.2, 11.2, 8);
+
+            // wsled supports
+            for (an=[0:90:270], x=[-1,1]) rotate([0,0,an]) {
+                translate([x*(butsp/2-ledsp), butsp/2 - 4, 0]) cylinder(3, 1.6, 1.6, $fn=4);
+            }
+        }
+        // Cutouts for middle bits (with bolt holes)
+        translate([0, 0, -1]) stubpyra(swid, swid, twid, twid, 11.3-facetnutthi);
+        translate([0, 0, 11.3-facetnutthi-1.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
+        translate([0, 0, 11.2-facetnutthi+4.6/2]) cube([facetnutwid, facetnuthei, 4.6], true);
+
+        // Round cutout for wsleds
+        for (an=[0:90:270], y=[-1,1]) rotate([0,0,an]) {
+            translate([butsp/2,y*(butsp/2-ledsp), 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
+        }
+
+        // Extra cutouts to push the wire through straight
+        wireducts(cwid);
+
+        // Diagonal holes to cross connect gnd and 5v
+        // Calculate chord to wsled supports
+        // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
+        dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
+        for (an=[45:90:315]) {
+            rotate([0,0,an]) translate([0, dhoff+0.3, 1.6]) cube([7, 0.6, 0.8], true);
+        }
+    }
+    // Sacrificial layer
+    #translate([0, 0, 11.3-facetnutthi-1+0.1]) cube([6,6,0.2], true);
+}
+
+// Piece that button sits in
+module backend_back_butpiece(thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bwid = 3)
+{
+    render(convexity=5) difference() {
+        union() {
+            for (an=[0:90:270]) {
+                rotate([0,0,an]) {
+                    // Beams around buttons
+                    translate([2.8, -11.6/2, 0]) cube([bwid, 11.6, thi]);
+                }
+            }
+            // Extra bits under buttons
+            translate([-6/2, -3/2, 0]) cube([6,3,2]);
+            translate([-3/2+2.0, -6/2, 0]) cube([1.0,6,2]);
+        }
+        // Round cutout for wsleds
+        for (an=[0:90:270]) rotate([0,0,an]) {
+            translate([ledsp, 0, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
+        }
+        // Button cutout
+        translate([-3.5,-3.5,1.4]) cube([7,7,thi-1.4+0.01]);
+
+        hl = 2*bwid+6;
+        // Holes for wsled wiring
+        // Lower ducts (aligned with button pins)
+        for (x=[-1:1]) {
+            translate([0, x*3.9, 0.6]) cube([hl, 0.6, 0.801], true);
+        }
+
+        // Higher ducts (across button pins, with offset middle)
+        for (x=[-4.2,1,4.2]) {
+            translate([ x, 0, 1.6]) cube([0.6, hl, 0.801], true);
+        }
+    }
+}
+
+// Pieces along the edge
+module backend_back_edgepiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bwid = 3)
+{
+    rotate([0,0,rot]) render(convexity=5) difference() {
+        union() {
+            // Box bit
+            translate([0, cwid/4+1, thi/2]) cube([cwid,cwid/2-2,thi], true);
+
+            // wsled supports
+            for (x=[-1,1]) {
+                translate([x*(butsp/2-ledsp), butsp/2 - 4, 0]) cylinder(3, 1.6, 1.6, $fn=4);
+                translate([x*(butsp/2-4), butsp/2-ledsp, 0]) cylinder(3, 1.6, 1.6, $fn=4);
+            }
+        }
+
+        // Round cutout for wsleds
+        for (x=[-1,1]) {
+            translate([x*(butsp/2-ledsp), butsp/2, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
+            translate([x*(butsp/2), butsp/2-ledsp, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
+        }
+
+        // Diagonal holes to cross connect gnd and 5v
+        // Calculate chord to wsled supports
+        // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
+        dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
+        for (an=[-45:90:45]) {
+            rotate([0,0,an]) translate([0, dhoff+0.3, 1.6]) cube([7, 0.6, 0.8], true);
+        }
+
+        rotate([0,0,-(rot % 180)]) wireducts(cwid);
+
+        if (rot == 0 || rot == -90 || rot == 270) {
+            // Edge bolt
+            translate([0, 0, 2.5]) rotate([45,0,0]) {
+                translate([0,0,-7.4]) cylinder(3.5, 3.4, 3.4, $fn=32);
+                translate([0,0,-4]) cylinder(3.5, boltrad, boltrad, $fn=32);
+            }
+
+            // Bottom side cut off a bit
+            bcut = 0.6;
+            btl = 0.01;
+            rotate([0,90,0]) translate([0,0,-cwid/2-0.001]) linear_extrude(height=cwid+0.002) polygon([
+                [-bcut-btl,2-btl],[btl,2+bcut+btl],[btl,2-btl]
+            ]);
+        }
+    }
+}
+
+module backend_back_cornerpiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bwid = 3)
+{
+    rotate([0,0,rot]) render(convexity=5)
+    difference() {
+        union() {
+            // Box bit
+            translate([cwid/4+1, cwid/4+1, thi/2]) cube([cwid/2-2,cwid/2-2,thi], true);
+
+            // wsled supports
+            translate([(butsp/2-ledsp), butsp/2 - 4, 0]) cylinder(3, 1.6, 1.6, $fn=4);
+            translate([(butsp/2-4), butsp/2-ledsp, 0]) cylinder(3, 1.6, 1.6, $fn=4);
+        }
+        // Round cutout for wsleds
+        translate([(butsp/2-ledsp), butsp/2, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
+        translate([(butsp/2), butsp/2-ledsp, 2.2]) cylinder(thi-2.19, 5.5, 5.5, $fn=64);
+
+        // Diagonal holes to cross connect gnd and 5v
+        // Calculate chord to wsled supports
+        // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
+        dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
+        rotate([0,0,-45]) translate([0, dhoff+0.3, 1.6]) cube([7, 0.6, 0.8], true);
+
+        // Extra cutouts to push the wire through straight
+        rotate([0,0,-rot]) wireducts(cwid);
+
+        if (rot == 0) {
+            // Corner bolt
+            xof = xsof*butsp;
+            cdi = 10.8;  // Magic number
+            translate([xof, xof, -xof+2.4])
+            rotate([0,-atan(sqrt(2)),45]) {
+                translate([0,0,3.0]) cylinder(8, cdi/2, cdi/2, $fn=6);
+                translate([0,0,1]) cylinder(3, boltrad, boltrad, $fn=32);
+                translate([0,0,-2]) cylinder(3.8, 3.4, 3.4, $fn=32);
+            }
+        }
+        if (rot == 0 || rot == 270 || rot == -90) {
+            // Bottom side cut off a bit
+            bcut = 0.6;
+            btl = 0.01;
+            rotate([0,90,0]) translate([0,0,-0.001]) linear_extrude(height=cwid/2+0.002) polygon([
+                [-bcut-btl,2-btl],[btl,2+bcut+btl],[btl,2-btl]
+            ]);
+        }
+        if (rot == 0 || rot == 90 || rot == -270) {
+            // Bottom side cut off a bit
+            bcut = 0.6;
+            btl = 0.01;
+            rotate([90,0,180]) translate([0,0,-0.001]) linear_extrude(height=cwid/2+0.002) polygon([
+                [-2-bcut-btl,0-btl],[-2+btl,0+bcut+btl],[-2+btl,0-btl]
+            ]);
+        }
+    }
+}
+
+module wireducts(cwid)
+{
+    // Extra cutout (lower) to push the wire through in a straight line
+    for (y=[-1,1]) {
+        translate([0, y*(butsp/2-3.9), -0.001]) {
+            translate([0,0,0.5]) cube([cwid+0.001, 0.6, 1.001], true);
+            translate([-cwid/2-0.001,0,1]) rotate([0,90,0]) cylinder(cwid+0.002, 0.3, 0.3, $fn=4);
+        }
+    }
+
+    // Extra cutout (higher) to push the wire through in a straight line
+    for (x=[-1,1]) {
+        translate([x*(butsp/2-4.2), 0, 1.2]) {
+            translate([0,0,2.401/2]) cube([0.6, cwid+0.001, 2.401], true);
+        }
     }
 }
 
