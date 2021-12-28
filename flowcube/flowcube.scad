@@ -23,14 +23,14 @@ boltrad = 3/2+0.2;
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-*backendback();
+backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
 *cubecorner();
 *cubecornernut();
-cubeside();
+*cubeside();
 *rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
@@ -585,6 +585,7 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                 *for (x=[-1,1], y=[-1,1]) {
                     translate([x*3.15-0.351, y*2.0-1.5, 1.2]) cube([0.702,3.0,0.601]);
                 }
+                // Extra cutout (lower) to push the wire through in a straight line
                 for (x=[0,1], y=[0,1]) {
                     mirror([x,0,0]) mirror([0,y,0])
                     translate([(bwid+2.8), 3.9, -0.001]) {
@@ -596,10 +597,12 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                     }
                 }
 
+                // Lower ducts (aligned with button pins)
                 for (x=[-1:1]) {
                     translate([0, x*3.9, 0.6]) cube([hl, 0.6, 0.801], true);
                 }
 
+                // Extra cutout (higher) to push the wire through in a straight line
                 for (x=[0,1], y=[0,1]) {
                     mirror([x,0,0]) mirror([0,y,0])
                     translate([4.2, (bwid+2.8), 1.2])
@@ -609,8 +612,15 @@ module backendback(sd = numbut*butsp, thi = 3.6)
                         ]);
                 }
 
+                // Higher ducts (across button pins, with offset middle)
                 for (x=[-4.2,1,4.2]) {
                     translate([ x, 0, 1.6]) cube([0.6, hl, 0.801], true);
+                }
+
+                // Diagonal holes to cross connect gnd and 5v
+                for (x=[0,1], y=[0,1]) {
+                    mirror([x,0,0]) mirror([0,y,0])
+                    rotate([0,0,45]) translate([0, 8.48, 1.6]) cube([7, 0.6, 0.801], true);
                 }
             }
         }

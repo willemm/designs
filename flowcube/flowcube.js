@@ -178,3 +178,146 @@ function fill_connections(fid)
     others.attr('data-color', color)
     connectors.attr('data-color', color)
 }
+
+/* Folded out cube coords
+ *
+ * top  right
+ * TTTTRRRR
+ * TTTTRRRR
+ * TTTTRRRR
+ * TTTTRRRR
+ * FFFF....
+ * FFFF....
+ * FFFF....
+ * FFFF....
+ * front
+ *
+ * Index: y*w*2+x
+ *
+ */
+
+var points = []
+
+var endpoints = [
+    [0,0], [7,2], // red
+    [0,1], [5,2], // green
+    [4,0], [2,5]  // blue
+]
+
+function mkpoint(x, y, w)
+{
+    // neighbour points
+    var ngb = []
+    if (x > 0) { ngb.push([x-1,y]) }
+    if (y > 0) { ngb.push([x,y-1]) }
+    if (y < w-1) {
+        ngb.push([x,y+1])
+        if (x < w*2-1) { ngb.push([x+1,y]) }
+    } else if (y < w) {
+        if (x < w) { ngb.push([x,y+1]) }
+        else { ngb.push([y,x]) } // Edge between R and F
+        if (x < w*2-1) { ngb.push([x+1,y]) }
+    } else {
+        if (y < w*2-1) { ngb.push([x,y+1]) }
+        if (x < w-1) { ngb.push([x+1,y]) }
+        else { ngb.push([y,x]) } // Edge between R and F
+    }
+    epdir = []
+    var isep = -1
+    for (var c = 0; c < endpoints.length; c++) {
+        ept = endpoints[c]
+        ex = ept[0]
+        ey = ept[1]
+        if (x == ex && y == ey) {
+            epdir[c] = -1
+            isep = c
+            continue
+        }
+        if (x >= w && ey >= w) {
+            // across front edge, rotate endpoint coord to empty quad: anticlockwise
+            ex = ept[1]
+            ey = 2*w-1-ept[0]
+        }
+        if (y >= w && ex >= w) {
+            // across front edge, rotate endpoint coord to empty quad: clockwise
+            ex = 2*w-1-ept[1]
+            ey = ept[0]
+        }
+        var dx = ex - x
+        var dy = ey - y
+        var dirx = dx > 0 ? 1 : -1
+        var diry = dy > 0 ? 1 : -1
+        if (dx*dirx > dy*diry) {
+            epp = [x+dirx,y]
+        } else {
+            epp = [x,y+diry]
+        }
+        eppx = epp[0]
+        eppy = epp[1]
+        if (eppx >= w && eppy >= w) {
+            // Empty quadrant, rotate back
+            if (x >= w) {
+                // clockwise
+                eppx = 2*w-1-epp[1]
+                eppy = epp[0]
+            } else {
+                // anticlockwise
+                eppx = epp[1]
+                eppy = 2*w-1-epp[0]
+            }
+        }
+        var nidx = 0
+        for (; nidx < ngb.length; nidx++) {
+            if (ngb[nidx][0] == eppx && ngb[nidx][1] == eppy) { break }
+        }
+        epdir[c] = nidx
+    }
+    if (isep >= 0) {
+        for (var c = 0; c < endpoints.length; c++) {
+            if (c != (isep ^ 1)) {
+                epdir[c] = -1
+            }
+        }
+    }
+    return {
+        neighbours: ngb,
+        endpoints: epdir,
+        colour: isep
+    }
+}
+
+function initpoints()
+{
+    var w = 4
+
+    points = []
+    for (var x = 0; x < w*2; x++) {
+        var ye = x<w ? w*2 : w
+        points[x] = []
+        for (var y = 0; y < ye; y++) {
+            points[x][y] = mkpoint(x, y, w)
+        }
+    }
+    return points
+}
+
+// Try a step from x,y to neighbour n
+// x,y will be conected to an endpoint
+function trystep(x, y, x2, y2)
+{
+    var c = points[x][y].colour
+    var pt = points[x2][y2]
+    // Set new point colour
+    pt.colour = c
+    // Disconnect and reflow neighbours of other colours
+    var ngb = pt.neighbours
+    for (var n = 0; n < ngb.length; n++) {
+        var pt2 = points[ngb[n][0]][ngb[n][1]]
+        var rvn = 3-n // ????
+        for (var c = 0; c < endpoints.length; c++) {
+            if (pt2.endpoints[c] == rvn) {
+                reflow(ngb[n][0], ngb[n][1])
+            }
+        }
+    }
+}
