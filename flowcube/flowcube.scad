@@ -24,16 +24,16 @@ boltrad = 3/2+0.2;
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-*backendback();
+backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-color("#333") cubecorner();
+*color("#333") cubecorner();
 *cubecornernut();
-cubeside();
-rotate([90,90,0]) cubeside();
-rotate([-90,0,90]) cubeside();
+*cubeside();
+*rotate([90,90,0]) cubeside();
+*rotate([-90,0,90]) cubeside();
 
 module cubeside() {
     zof = -2.3;
@@ -741,7 +741,7 @@ module backend_back_midpiece(thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bw
         // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
         dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
         for (an=[45:90:315]) {
-            rotate([0,0,an]) translate([0, dhoff+0.3, 1.6]) cube([7, 0.6, 0.8], true);
+            rotate([0,0,an]) translate([0, dhoff+0.4, 1.6]) cube([7, 0.8, 0.8], true);
         }
     }
     // Sacrificial layer
@@ -778,8 +778,8 @@ module backend_back_butpiece(thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bw
         }
 
         // Higher ducts (across button pins, with offset middle)
-        for (x=[-4.2,1,4.2]) {
-            translate([ x, 0, 1.6]) cube([0.6, hl, 0.801], true);
+        for (x=[-4.25,1,4.25]) {
+            translate([ x, 0, 1.6]) cube([0.7, hl, 0.801], true);
         }
     }
 }
@@ -810,7 +810,7 @@ module backend_back_edgepiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, twi
         // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
         dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
         for (an=[-45:90:45]) {
-            rotate([0,0,an]) translate([0, dhoff+0.3, 1.6]) cube([7, 0.6, 0.8], true);
+            rotate([0,0,an]) translate([0, dhoff+0.4, 1.6]) cube([7, 0.8, 0.8], true);
         }
 
         rotate([0,0,-(rot % 180)]) wireducts(cwid);
@@ -852,7 +852,7 @@ module backend_back_cornerpiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, t
         // Calculate chord to wsled supports
         // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
         dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
-        rotate([0,0,-45]) translate([0, dhoff+0.3, 1.6]) cube([7, 0.6, 0.8], true);
+        rotate([0,0,-45]) translate([0, dhoff+0.4, 1.6]) cube([7, 0.8, 0.8], true);
 
         // Extra cutouts to push the wire through straight
         rotate([0,0,-rot]) wireducts(cwid);
@@ -891,16 +891,16 @@ module wireducts(cwid)
 {
     // Extra cutout (lower) to push the wire through in a straight line
     for (y=[-1,1]) {
-        translate([0, y*(butsp/2-3.9), -0.001]) {
-            translate([0,0,0.5]) cube([cwid+0.001, 0.6, 1.001], true);
-            translate([-cwid/2-0.001,0,1]) rotate([0,90,0]) cylinder(cwid+0.002, 0.3, 0.3, $fn=4);
+        translate([0, y*(butsp/2-3.85), -0.001]) {
+            translate([0,0,0.5]) cube([cwid+0.001, 0.7, 1.001], true);
+            translate([-cwid/2-0.001,0,1]) rotate([0,90,0]) cylinder(cwid+0.002, 0.35, 0.35, $fn=4);
         }
     }
 
     // Extra cutout (higher) to push the wire through in a straight line
     for (x=[-1,1]) {
-        translate([x*(butsp/2-4.2), 0, 1.2]) {
-            translate([0,0,2.401/2]) cube([0.6, cwid+0.001, 2.401], true);
+        translate([x*(butsp/2-4.25), 0, 1.2]) {
+            translate([0,0,2.401/2]) cube([0.7, cwid+0.001, 2.401], true);
         }
     }
 }
