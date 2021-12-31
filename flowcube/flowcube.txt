@@ -1,0 +1,107 @@
+Recursive solve with heuristics:
+
+Order:
+
+Start in the upper left corner, do diagonals from upper right to lower left,
+diagonal by diagonal until you're in the lower right.
+For each cell, consider the possibilities, which should be quite limited
+by the cells above and to the left of it.
+
+Extra observations:
+
+- An optimal solution never has a line that touches itself orthogonally.
+  If it had, then you could shortcut the touching bit to get a better solution
+  Therefore, don't add a candidate that would make a line touch itself.
+
+Possibilities:
+
+- Cell is an endpoint:
+  - If it has connection from top or left: Go to next
+  - Otherwise try right and down as connections, if possible
+- Cell has connection from both top and left: Go to next
+- Cell has connection from either top or left: Try either right and down
+- Cell has no connections: Try right-down corner, and blank cell
+
+When trying connections right or down:
+- If an uncolored line hits an endpoint, check if it is already connected
+  to another endpoint and if that is not the matching one, fail this branch.
+- Avoid touching:  TODO ???
+
+
+Special consideration:
+Cells on folded cube edge connect down to right and vv.
+
+Assuming that any visited cell already should have its top and left
+neighbours visited, and the down and right still to do, that means
+the fold should connect right to top, or left to down, because
+if it connects right to down then the first of two cells visited
+will be either to the right or down of the second.
+
+So something like this:
+
+.....
+.....
+.....
+.....
+.....
+..........
+..........
+..........
+..........
+..........
+
+
+Pseudocode:
+
+data: foreach cell, number of cells it is connected to, first and second connection.
+      (endpoint has first element initialized as special 'color' value)
+
+loop over r = 0 .. W+H-2 (0 .. 2*N-2):
+  loop over x = 0 .. r:
+    y = r-x
+    calc index of cell x,y and also its right and down neighbours
+    add this to queue
+
+idx = 0
+repeat while idx >= 0:
+  get cell from queue at idx
+  if forward step: (last idx was smaller or someting?)
+    check number of connections:
+      0:
+        if right and down both possible:
+          connect both right and down
+      1:
+        if right possible:
+          connect right
+        else if down possible:
+          connect down
+        else 
+          set reverse
+      2:
+        nothing
+  else: (reverse step)
+    if connected to right
+      if connected to down: (so both right and down)
+        disconnect right and down (i.e. try blank)
+      else:
+        disconnect right
+        if down is possible:
+          connect down
+        else:
+          set reverse
+   else if connected to down:
+     disconnect down
+     set reverse
+   else:
+     set reverse
+  if reverse is not set:
+    if check for misconnected endpoints and touching lines:
+      set reverse
+    else if idx = last of queue:
+      store this as solution
+      set reverse
+  if reverse is set:
+    idx - 1
+  else:
+    idx + 1
+end repeat

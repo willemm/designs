@@ -71,9 +71,9 @@ function load()
     $('#front').html(facehtml('f'))
     $('#right').html(facehtml('r'))
     // $('#view').on('mousemove', set_perspective)
-    $('.button#t00,.button#f32').addClass('endpoint').attr('data-color', '1')
-    $('.button#t01,.button#f12').addClass('endpoint').attr('data-color', '2')
-    $('.button#f00,.button#r11').addClass('endpoint').attr('data-color', '3')
+    // $('.button#t00,.button#f32').addClass('endpoint').attr('data-color', '1')
+    // $('.button#t01,.button#f12').addClass('endpoint').attr('data-color', '2')
+    // $('.button#f00,.button#r11').addClass('endpoint').attr('data-color', '3')
     $('#view').on('click', '.button', push_button)
 }
 
