@@ -1,6 +1,7 @@
 
 var board = []
 var size = 4
+var solutions = []
 
 make_cube_board()
 var endpoints = [
@@ -64,21 +65,21 @@ function set_board_endpoints(pts)
   }
 }
 
-function draw_board()
+function draw_board(brd)
 {
   $('#view .button').removeClass('endpoint')
   $('#view .button').removeAttr('data-color')
   $('#view .connector').removeClass('on')
   $('#view .connector').removeAttr('data-color')
   var endpoints = []
-  for (var i = 0; i < board.length; i++) {
-    var cell = board[i]
+  for (var i = 0; i < brd.length; i++) {
+    var cell = brd[i]
     if (cell) {
       for (var nb = 0; nb < cell.numconns; nb++) {
         if (cell.conns[nb] < 0) {
           endpoints.push(i)
         } else {
-          nextcell = board[cell.conns[nb]]
+          nextcell = brd[cell.conns[nb]]
           con = $('#view .connector.'+cell.id+'.'+nextcell.id)
           con.addClass('on')
         }
@@ -86,14 +87,14 @@ function draw_board()
     }
   }
   for (var i = 0; i < endpoints.length; i++) {
-    traverse_line_color(endpoints[i])
+    traverse_line_color(brd, endpoints[i])
   }
 }
 
 // Assumes connections are two way consistent
-function traverse_line_color(idx)
+function traverse_line_color(brd, idx)
 {
-  var cell = board[idx]
+  var cell = brd[idx]
   if (cell.conns[0] >= 0) return
   var color = -cell.conns[0]
   var prv = cell.conns[0]
@@ -109,8 +110,8 @@ function traverse_line_color(idx)
     if (n < 0) { break }
     idx = cell.conns[n]
     if (idx <= 0) { break }
-    // console.log('traverse', prv, idx, next)
-    var nextcell = board[idx]
+    // logline('traverse', prv, idx, next)
+    var nextcell = brd[idx]
     con = $('#view .connector.'+cell.id+'.'+nextcell.id)
     con.attr('data-color', color)
 
@@ -146,7 +147,7 @@ function solve_board_anim(animate = true)
       diagonals.push(idx)
     }
   }
-  var solutions = []
+  solutions = []
   var didx = 0
   var reverse = false
   var anim_interval = 0
@@ -154,7 +155,7 @@ function solve_board_anim(animate = true)
     try {
     var idx = diagonals[didx]
     var cell = board[idx]
-    if (animate) { console.log("Step on idx", didx, idx, JSON.stringify(cell)) }
+    if (animate) { logline("Step on idx", didx, idx, JSON.stringify(cell)) }
     var cright = cell.right ? board[cell.right] : null
     var cdown  = cell.down  ? board[cell.down ] : null
     if (!reverse) {
@@ -185,7 +186,7 @@ function solve_board_anim(animate = true)
     } else {
       reverse = false
       if (cell.numconns == 1) {
-        console.log(JSON.stringify(board))
+        logline(JSON.stringify(board))
         throw("One cell connected on reverse, should not happen: "+idx)
       }
       if (cell.numconns == 2) {
@@ -250,16 +251,17 @@ function solve_board_anim(animate = true)
       }
     }
     if (animate) {
-      console.log("Step on idx done", didx, idx, JSON.stringify(cell))
-      draw_board()
+      logline("Step on idx done", didx, idx, JSON.stringify(cell))
+      draw_board(board)
     }
     if (didx < 0) {
+      logline("Finished")
       clearInterval(anim_interval)
       return false
     }
     return true
     } catch(e) {
-      console.log("Error happened", e)
+      logline("Error happened", e)
       clearInterval(anim_interval)
       return false
     }
@@ -280,7 +282,7 @@ function check_solution(solutions)
       var idx = i
       var color = cell.conns[0]
       var prv = cell.conns[0]
-      console.log("Check color from endpoint", color, idx)
+      logline("Check color from endpoint", color, idx)
       var stp = 0
       while (stp < 1000) {
         stp = stp + 1
@@ -289,28 +291,30 @@ function check_solution(solutions)
         while (n-- > 0) {
           if (cell.conns[n] != prv) { break }
         }
-        console.log("Check step", prv, idx, n)
+        logline("Check step", stp, prv, idx, n)
         prv = idx
         if (n >= 0) {
           idx = cell.conns[n]
           if (idx < 0) {
             if (idx != color) {
-              console.log("Color clash")
+              logline("Color clash")
               return  // Solution failed
             }
             break
           }
         } else {
-          console.log("Not connected")
+          logline("Not connected")
           return  // Solution failed
         }
       }
-      throw("Ran out of steps")
+      if (stp >= 1000) {
+        throw("Ran out of steps")
+      }
     }
   }
   var sol = JSON.stringify(board)
   solutions.push(sol)
-  console.log('solution', sol)
+  logline('solution', sol)
 }
 
 // Assume the rest of the board was OK, just check the cell at idx 
@@ -363,3 +367,23 @@ function check_partial_solution(sidx)
   }
   return true
 }
+
+function logline()
+{
+  var html = ['<p>']
+  for (var i = 0; i < arguments.length; i++) {
+    html.push(htmlize(arguments[i].toString()))
+  }
+  html.push('</p>')
+  var lg = $('#logging')
+  lg.append(html.join(' '))
+  var lge = lg.get(0)
+  lge.scrollTop = lge.scrollHeight
+}
+
+function htmlize(text)
+{
+    if (!text) return ''
+    return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
+}
+
