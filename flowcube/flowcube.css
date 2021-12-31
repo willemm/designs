@@ -10,14 +10,14 @@
 
 .face {
     display: grid;
-    grid-template-columns: 30px repeat(3, 50px 30px) 50px 30px;
-    grid-template-rows: 30px repeat(3, 50px 30px) 50px 30px;
+    grid-template-columns: 30px repeat(4, 50px 30px) 50px 30px;
+    grid-template-rows: 30px repeat(4, 50px 30px) 50px 30px;
     background-color: #444;
     align-items: center;
     justify-items: center;
     border: 1px solid #858;
-    width: 352px;
-    height: 352px;
+    width: calc(32px + 5 * 80px);
+    height: calc(32px + 5 * 80px);
 }
 
 #top {

@@ -1,6 +1,6 @@
 
 var board = []
-var size = 4
+// var boardsize = 5
 var solutions = []
 var almost = []
 
@@ -9,10 +9,11 @@ var donearmiss = false
 var anim_interval = 0
 
 var endpoints = [
-    [0,0], [7,2], // red
-    [0,1], [5,2], // green
-    [3,1], [5,5],  // blue
-    [7,1], [2,2]  // yellow
+    [1,1], [7,2], // red
+    [1,2], [5,2], // green
+    [3,1], [5,5], // blue
+    [7,1], [2,2], // yellow
+    [5,1], [7,7]  // purple
 ]
 make_cube_board()
 set_board_endpoints(endpoints)
@@ -292,7 +293,6 @@ function solve_board(animate = true)
     }
     if (animate) {
       logline("Step on idx done", didx, idx, JSON.stringify(cell))
-      draw_board(board)
     }
     if (didx < 0) {
       var solnum = $('#solution')
@@ -315,7 +315,22 @@ function solve_board(animate = true)
     }
   }
   if (animate) {
-    anim_interval = setInterval(anim, 100)
+    var animsteps = 1
+    var animps = $('#animspeed').val()
+    if (animps <= 0) {
+      animps = 0.1
+    }
+    if (animps > 40) {
+      animsteps = animps/40
+      animps = 40
+    }
+    var animms = 1000/animps
+    anim_interval = setInterval(function() {
+      for (var st = 0; st < animsteps; st++) {
+        if (!anim()) { break }
+      }
+      draw_board(board)
+    }, animms)
   } else {
     while (anim()) { }
   }

@@ -1,24 +1,25 @@
 $(load)
+var size = 5
 
 function facehtml(face)
 {
     var html = []
     html.push('<div class="nothing"></div>')
-    for (var x = 0; x < 4; x++) {
+    for (var x = 0; x < size; x++) {
         if (face != 't') {
             var c1 = face+'0'+x
             var c2
-            if (face == 'f') { c2 = 't3'+x }
-            if (face == 'r') { c2 = 't'+(3-x)+'3' }
+            if (face == 'f') { c2 = 't'+(size-1)+x }
+            if (face == 'r') { c2 = 't'+(size-1-x)+(size-1) }
             html.push('<div class="connector vertical ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
         } else {
             html.push('<div class="nothing"></div>')
         }
         html.push('<div class="nothing"></div>')
     }
-    for (var y = 0; y <= 4; y++) {
-        if (y > 0 && y < 4) {
-            for (var x = 0; x < 4; x++) {
+    for (var y = 0; y <= size; y++) {
+        if (y > 0 && y < size) {
+            for (var x = 0; x < size; x++) {
                 var c1 = face+(y-1)+x
                 var c2 = face+y+x
                 html.push('<div class="nothing"></div>')
@@ -26,24 +27,24 @@ function facehtml(face)
             }
             html.push('<div class="nothing"></div>')
         }
-        if (y < 4) {
+        if (y < size) {
             if (face == 'r') {
                 var c1 = face+y+'0'
-                var c2 = 'f'+y+'3'
+                var c2 = 'f'+y+(size-1)
                 html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
             } else {
                 html.push('<div class="nothing"></div>')
             }
-            for (var x = 0; x < 4; x++) {
+            for (var x = 0; x < size; x++) {
                 var c1 = face+y+(x-1)
                 var c2 = face+y+x
                 if (x > 0) html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
                 html.push('<div class="button" id="',face,y,x,'"',face,y,x,'"></div>')
             }
             if (face != 'r') {
-                var c1 = face+y+'3'
+                var c1 = face+y+(size-1)
                 var c2
-                if (face == 't') { c2 = 'r0'+(3-y) }
+                if (face == 't') { c2 = 'r0'+(size-1-y) }
                 if (face == 'f') { c2 = 'r'+y+'0' }
                 html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
             } else {
@@ -52,9 +53,9 @@ function facehtml(face)
         }
     }
     html.push('<div class="nothing"></div>')
-    for (var x = 0; x < 4; x++) {
+    for (var x = 0; x < size; x++) {
         if (face == 't') {
-            var c1 = face+'3'+x
+            var c1 = face+(size-1)+x
             var c2 = 'f0'+x
             html.push('<div class="connector vertical ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
         } else {
@@ -198,11 +199,13 @@ function fill_connections(fid)
 
 var points = []
 
+/*
 var endpoints = [
     [0,0], [7,2], // red
     [0,1], [5,2], // green
     [4,0], [2,5]  // blue
 ]
+*/
 
 function mkpoint(x, y, w)
 {
@@ -288,7 +291,7 @@ function mkpoint(x, y, w)
 
 function initpoints()
 {
-    var w = 4
+    var w = size
 
     points = []
     for (var x = 0; x < w*2; x++) {
@@ -313,7 +316,7 @@ function trystep(x, y, x2, y2)
     var ngb = pt.neighbours
     for (var n = 0; n < ngb.length; n++) {
         var pt2 = points[ngb[n][0]][ngb[n][1]]
-        var rvn = 3-n // ????
+        var rvn = size-1-n // ????
         for (var c = 0; c < endpoints.length; c++) {
             if (pt2.endpoints[c] == rvn) {
                 reflow(ngb[n][0], ngb[n][1])

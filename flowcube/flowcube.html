@@ -26,7 +26,7 @@
   height: 90%;
   overflow: auto;
 }
-#solution, #almost {
+#solution, #almost, #animspeed {
   width: 4em;
 }
 </style>
@@ -44,6 +44,7 @@
         <label for="solution" id="solutionnum"></label>
         <input type="checkbox" id="animate" name="animate">
         <label for="animate">Animate</label>
+        <input type="number" id="animspeed" name="animspeed" min="1" max="10000">
         <input type="checkbox" id="verbose" name="verbose">
         <label for="verbose">Verbose</label>
         <input type="button" id="solve" name="solve" value="Solve">
