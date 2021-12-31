@@ -13,6 +13,22 @@
 #logging p {
     margin: 0;
 }
+.inputs {
+  position: absolute;
+  right: 0px;
+  width: 50vw;
+}
+#logging {
+  position: absolute;
+  right: 0;
+  top: 10%;
+  width: 50vw;
+  height: 90%;
+  overflow: auto;
+}
+#solution, #almost {
+  width: 4em;
+}
 </style>
 </head>
 <body>
@@ -22,7 +38,23 @@
         <div class="face" id="front"></div>
         <div class="face" id="right"></div>
     </div>
-    <div id="logging" style="position: absolute; right: 0; width: 50vw; height: 90%; overflow: auto; "/>
+    <div class="inputs">
+        <label for="solution">Solution</label>
+        <input type="number" id="solution" name="solution" min="0" max="0">
+        <label for="solution" id="solutionnum"></label>
+        <input type="checkbox" id="animate" name="animate">
+        <label for="animate">Animate</label>
+        <input type="checkbox" id="verbose" name="verbose">
+        <label for="verbose">Verbose</label>
+        <input type="button" id="solve" name="solve" value="Solve">
+        <input type="button" id="stopsolve" name="stopsolve" value="Stop">
+        <input type="checkbox" id="doalmost" name="doalmost">
+        <label for="almost">Near miss</label>
+        <input type="number" id="almost" name="almost" min="0" max="0">
+        <label for="almost" id="almostnum"></label>
+    </div>
+    <div id="logging" style="position: absolute; right: 0; width: 50vw; height: 90%; overflow: auto; ">
+    </div>
     </main>
 </body>
 </html>
