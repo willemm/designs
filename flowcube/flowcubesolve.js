@@ -34,11 +34,11 @@ $(function()
     }
     })
   $('#verbose').change(function() { verbose = $('#verbose').is(':checked') })
-  $('#doalmost').change(function() { donearmiss = $('#verbose').is(':checked') })
+  $('#doalmost').change(function() { donearmiss = $('#doalmost').is(':checked') })
   $('#stopsolve').click(function() { clearInterval(anim_interval) })
 
   verbose = $('#verbose').is(':checked')
-  donearmiss = $('#verbose').is(':checked')
+  donearmiss = $('#doalmost').is(':checked')
 })
 
 function make_cube_board()
@@ -108,10 +108,10 @@ function draw_board(brd)
       for (var nb = 0; nb < cell.numconns; nb++) {
         if (cell.conns[nb] < 0) {
           endpoints.push(i)
+          $('#'+cell.id).addClass('endpoint')
         } else {
           nextcell = brd[cell.conns[nb]]
-          con = $('#view .connector.'+cell.id+'.'+nextcell.id)
-          con.addClass('on')
+          $('#view .connector.'+cell.id+'.'+nextcell.id).addClass('on')
         }
       }
     }
@@ -142,8 +142,7 @@ function traverse_line_color(brd, idx)
     if (idx <= 0) { break }
     // logline('traverse', prv, idx, next)
     var nextcell = brd[idx]
-    con = $('#view .connector.'+cell.id+'.'+nextcell.id)
-    con.attr('data-color', color)
+    $('#view .connector.'+cell.id+'.'+nextcell.id).attr('data-color', color)
 
     cell = nextcell
   }
