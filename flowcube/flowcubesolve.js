@@ -223,6 +223,7 @@ function solve_board(animate = true)
       } else if (cell.numconns == 2) {
         if ((cell.conns[0] == cell.right) && (cell.conns[1] == cell.down)) {
           cell.numconns = 0
+          /*
           // Remove assertions when this is slow but working
           if (cright.numconns == 0) {
             throw("Disconnect but not connected r1: "+cell.right +" - "+ idx)
@@ -230,22 +231,29 @@ function solve_board(animate = true)
           if (cdown.numconns == 0) {
             throw("Disconnect but not connected d1: "+cell.down +" - "+ idx)
           }
+          */
           cright.numconns--
           cdown.numconns--
+          /*
           if (cright.conns[cright.numconns] != idx) {
             throw("Disconnect from wrong cell r1: "+ cell.right +" - "+ idx)
           }
           if (cdown.conns[cdown.numconns] != idx) {
             throw("Disconnect from wrong cell d1: "+ cell.down +" - "+ idx)
           }
+          */
         } else if (cell.conns[1] == cell.right) {
+          /*
           if (cright.numconns == 0) {
             throw("Disconnect but not connected r2: "+cell.right +" - "+ idx)
           }
+          */
           cright.numconns--
+          /*
           if (cright.conns[cright.numconns] != idx) {
             throw("Disconnect from wrong cell r2: "+ cell.right +" - "+ idx)
           }
+          */
           if (cdown && cdown.numconns < 2) {
             cell.conns[1] = cell.down
             cdown.conns[cdown.numconns++] = idx
@@ -255,13 +263,17 @@ function solve_board(animate = true)
           }
         } else if (cell.conns[1] == cell.down) {
           cell.numconns = 1
+          /*
           if (cdown.numconns == 0) {
             throw("Disconnect but not connected d1: "+cell.down +" - "+ idx)
           }
+          */
           cdown.numconns--
+          /*
           if (cdown.conns[cdown.numconns] != idx) {
             throw("Disconnect from wrong cell d2: "+ cell.down +" - "+ idx)
           }
+          */
           if ((cell.conns[0] >= 0) || (nearmisscol && (cell.conns[0] != nearmisscol))) {
             // With near miss checking, also go on with one unconnected endpoint
             reverse = true
@@ -283,7 +295,7 @@ function solve_board(animate = true)
         if (didx == diagonals.length-1) {
           reverse = true
           didx = didx - 1
-          check_solution(solutions, almost)
+          check_solution(solutions, almost, nearmissct)
         } else {
           didx = didx + 1
         }
@@ -336,8 +348,10 @@ function solve_board(animate = true)
   }
 }
 
-function check_solution(solutions, almost)
+function check_solution(solutions, almost, nearmissct)
 {
+  // Solution should always be good (unless there is a near miss count > 0)
+  /*
   var colors = []
   var colcount = 0
   var epcount = 0
@@ -381,9 +395,11 @@ function check_solution(solutions, almost)
       }
     }
   }
-  if (epcount >= colcount-2) {
+  */
+  //if (epcount >= colcount-2) {
     var sol = JSON.stringify(board)
-    if (epcount == colcount) {
+    //if (epcount == colcount) {
+    if (nearmissct == 0) {
       solutions.push(sol)
       logline('solution', sol)
       var solnum = $('#solution')
@@ -398,7 +414,7 @@ function check_solution(solutions, almost)
       solnum.prop('max', almost.length)
       $('#almostnum').text('of '+almost.length)
     }
-  }
+  //}
 }
 
 // Assume the rest of the board was OK, just check the cell at idx 
@@ -437,14 +453,14 @@ function check_partial_solution(sidx)
     if (cell.right && !c[cell.right]) {
       if (line[cell.right]) {
         // Line is touching itself
-        return 
+        return false
       }
       touchline[cell.right] = true
     }
     if (cell.down && !c[cell.down]) {
       if (line[cell.down]) {
         // Line is touching itself
-        return 
+        return false
       }
       touchline[cell.down] = true
     }

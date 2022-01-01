@@ -17,7 +17,7 @@ function facehtml(face)
         }
         html.push('<div class="nothing"></div>')
     }
-    for (var y = 0; y <= size; y++) {
+    for (var y = 0; y < size; y++) {
         if (y > 0 && y < size) {
             for (var x = 0; x < size; x++) {
                 var c1 = face+(y-1)+x
@@ -27,29 +27,27 @@ function facehtml(face)
             }
             html.push('<div class="nothing"></div>')
         }
-        if (y < size) {
-            if (face == 'r') {
-                var c1 = face+y+'0'
-                var c2 = 'f'+y+(size-1)
-                html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
-            } else {
-                html.push('<div class="nothing"></div>')
-            }
-            for (var x = 0; x < size; x++) {
-                var c1 = face+y+(x-1)
-                var c2 = face+y+x
-                if (x > 0) html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
-                html.push('<div class="button" id="',face,y,x,'"',face,y,x,'"></div>')
-            }
-            if (face != 'r') {
-                var c1 = face+y+(size-1)
-                var c2
-                if (face == 't') { c2 = 'r0'+(size-1-y) }
-                if (face == 'f') { c2 = 'r'+y+'0' }
-                html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
-            } else {
-                html.push('<div class="nothing"></div>')
-            }
+        if (face == 'r') {
+            var c1 = face+y+'0'
+            var c2 = 'f'+y+(size-1)
+            html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
+        } else {
+            html.push('<div class="nothing"></div>')
+        }
+        for (var x = 0; x < size; x++) {
+            var c1 = face+y+(x-1)
+            var c2 = face+y+x
+            if (x > 0) html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
+            html.push('<div class="button" id="',face,y,x,'"></div>')
+        }
+        if (face != 'r') {
+            var c1 = face+y+(size-1)
+            var c2
+            if (face == 't') { c2 = 'r0'+(size-1-y) }
+            if (face == 'f') { c2 = 'r'+y+'0' }
+            html.push('<div class="connector horizontal ',c1,' ',c2,'" data-c1="',c1,'" data-c2="',c2,'"></div>')
+        } else {
+            html.push('<div class="nothing"></div>')
         }
     }
     html.push('<div class="nothing"></div>')
