@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct cell {
     int right, down;
@@ -255,7 +256,10 @@ void draw_vertical_blank(FILE *out)
 void draw_board(FILE *out, board_t board)
 {
     int sz = board.size;
+    // fprintf(out, "\n");
+    fprintf(out, "\x1b[2;1H");
     for (int y = 0; y < sz*2; y++) {
+        fprintf(out, "   ");
         int xe = (y >= sz) ? sz * 2 : sz;
         // Draw button row and right connectors
         for (int x = 0; x < xe; x++) {
@@ -274,7 +278,7 @@ void draw_board(FILE *out, board_t board)
                 }
             }
         }
-        fprintf(out, "\n");
+        fprintf(out, "\n   ");
         if (y < sz*2-1) {
             for (int x = 0; x < xe; x++) {
                 int idx = xyindex(y, x, sz);
@@ -313,7 +317,7 @@ void draw_board(FILE *out, board_t board)
 void color_traverse_cell(board_t board, int idx, int color)
 {
     int prv = -color;
-    for (int stp = 0; stp < 1000; stp++) { // Prevent infiite loop
+    for (int stp = 0; stp < 1000; stp++) { // Prevent infinite loop
         cell_t *cell = &board.cells[idx];
         cell->color = color;
         int n = cell->nc;
@@ -323,7 +327,7 @@ void color_traverse_cell(board_t board, int idx, int color)
         prv = idx;
         if (n < 0) break;
         idx = cell->conns[n];
-        if (idx <= 0) break;
+        if (idx < 0) break;
     }
 }
 
@@ -344,16 +348,25 @@ void color_board(board_t board)
 
 #define CAN_CONNECT(cell) ((cell) && ((cell)->nc < 2))
 #define CONNECT_CELLS(cell,idx,cell2,idx2) (cell)->conns[(cell)->nc++] = (idx2); (cell2)->conns[(cell2)->nc++] = (idx)
-
 #define DISCONNECT_CELLS(cell,idx,cell2,idx2) (cell)->nc--; (cell2)->nc--
 
+// Check if this partial solution is valid
+//   Assuming the previous partial solution was valid,
+//   only check the stuff connected to the just added cell
 int check_partial_solution(board_t board, int sidx)
 {
     int sz = board.size*board.size*4;
+    // Set of visited cells (1 = visited, 0 = not visited)
     char lineset[sz];
-    for (int i = 0; i < sz; i++) { lineset[i] = 0; }
+    memset(lineset, 0, sz);
+
+    // Set of cells that are down or right from visited cells but not connected
+    // i.e. cels touched by the line
+    // (This is because if a line touches itself in a valid solution, you can connect
+    //  through the touch and then cut off the loop bit and get a 'better' solution)
     char touchline[sz];
-    for (int i = 0; i < sz; i++) { touchline[i] = 0; }
+    memset(touchline, 0, sz);
+
     int queue[sz];
     int qidx = 0;
     int qend = 1;
@@ -366,7 +379,7 @@ int check_partial_solution(board_t board, int sidx)
             return 0;
         }
         cell_t *cell = &board.cells[idx];
-        // Indexes of touchhing but not connected cells (only right and down)
+        // Indexes of touching but not connected cells (only right and down)
         int touch[] = { cell->right, cell->down };
         for (int n = 0; n < cell->nc; n++) {
             int next = cell->conns[n];
@@ -396,7 +409,7 @@ int check_partial_solution(board_t board, int sidx)
         for (int i = 0; i < 2; i++) {
             if (touch[i]) {
                 if (lineset[touch[i]]) {
-                    // Line is touching itself
+                    // The touched cell has been visited so the line is touching itself
                     return 0;
                 }
                 touchline[touch[i]] = 1;
@@ -406,13 +419,65 @@ int check_partial_solution(board_t board, int sidx)
     return 1;
 }
 
-void check_solution(board_t board)
+char *solve_traverse_cell(char *ptr, board_t board, int idx, int prv, char *cellset)
 {
-    color_board(board);
-    // draw_board(stdout, board);
+    if (cellset[idx]) return ptr;
+    ptr += sprintf(ptr, "%d", idx);
+    cellset[idx] = 1;
+    while (1) {
+        cell_t *cell = &board.cells[idx];
+        int n = cell->nc;
+        while (n-- > 0) {
+            if (cell->conns[n] != prv) break;
+        }
+        prv = idx;
+        if (n < 0) break;
+        idx = cell->conns[n];
+        if (idx < 0) break;
+        if (cellset[idx]) break;
+        cellset[idx] = 1;
+        ptr += sprintf(ptr, ",%d", idx);
+    }
+    ptr += sprintf(ptr, "\n");
+    return ptr;
 }
 
-void solve_board(board_t board)
+// Print solution as strings of cells from each endpoint
+char *make_solution_string(board_t board)
+{
+    // four bytes per cell should do (three for number, one for separator)
+    char buf[board.size*board.size*32];
+    char *ptr = buf;
+    char cellset[board.size*board.size*4];
+    memset(cellset, 0, board.size*board.size*4);
+
+    for (int i = 0; i < board.size*board.size*4; i++) {
+        cell_t *cell = &board.cells[i];
+        for (int c = 0; c < cell->nc; c++) {
+            // The empty quadrant should still be zero'd (calloc) and therefore not hit this
+            int color = cell->conns[c];
+            if (color < 0) {
+                // Negative numbvers are colors
+                if (!cellset[i]) {
+                    ptr += sprintf(ptr,"%d:",-color);
+                    ptr = solve_traverse_cell(ptr, board, i, color, cellset);
+                }
+            }
+        }
+    }
+    return strdup(buf);
+}
+
+void add_solution(board_t board, int num)
+{
+    color_board(board);
+    draw_board(stdout, board);
+    char *sol = make_solution_string(board);
+    printf("Solution %d\n%s\n", num, sol);
+    free(sol);
+}
+
+int solve_board(board_t board)
 {
     int sz = board.size;
     int diagonals[sz*sz*4];
@@ -427,6 +492,7 @@ void solve_board(board_t board)
     }
     int reverse = 0;
     int didx = 0;
+    int num_solutions = 0;
     while (didx >= 0) {
         int idx = diagonals[didx];
         // printf("Process %d (%d,%d)\n", didx, (idx/sz*2), (idx % (sz*2)));
@@ -495,8 +561,9 @@ void solve_board(board_t board)
         } else {
             if (check_partial_solution(board, idx)) {
                 if (didx == dmax-1) {
-                    // Board is full, check this and reverse
-                    check_solution(board);
+                    // Board is full, print this and reverse
+                    add_solution(board, num_solutions);
+                    num_solutions++;
                     reverse = 1;
                     didx--;
                 } else {
@@ -509,6 +576,7 @@ void solve_board(board_t board)
             }
         }
     }
+    return num_solutions;
 }
 
 int main(int argc, char *argv[])
@@ -517,10 +585,12 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: flowsolve <board>\n");
         return 1;
     }
+    printf("\x1b[2J");
     board_t board = read_board(argv[1]);
-    solve_board(board);
-    color_board(board);
-    draw_board(stdout, board);
+    int ns = solve_board(board);
+    printf("Number of solutions: %d\n", ns);
+    // color_board(board);
+    // draw_board(stdout, board);
     free(board.cells);
     return 0;
 }
