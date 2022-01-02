@@ -8,12 +8,19 @@ var verbose = false
 var donearmiss = false
 var anim_interval = 0
 
+var endpoints2 = [
+    [1,1], [6,3] // red
+   ,[1,2], [7,2]  // green
+   ,[3,1], [6,6]  // blue
+   ,[2,4], [7,1]  // yellow
+   ,[5,1], [5,7]  // purple
+]
 var endpoints = [
-    [1,1], [7,2], // red
-    [1,2], [5,2], // green
-    [3,1], [5,5], // blue
-    [7,1], [2,2], // yellow
-    [5,1], [7,7]  // purple
+    [3,1], [5,5] // red
+   ,[1,2], [7,2]  // green
+   ,[6,5], [5,6]  // blue
+   ,[5,9], [9,9]  // yellow
+   ,[1,1], [6,6]  // purple
 ]
 make_cube_board()
 set_board_endpoints(endpoints)
@@ -140,7 +147,7 @@ function traverse_line_color(brd, idx)
     prv = idx
     if (n < 0) { break }
     idx = cell.conns[n]
-    if (idx <= 0) { break }
+    if (idx < 0) { break }
     // logline('traverse', prv, idx, next)
     var nextcell = brd[idx]
     $('#view .connector.'+cell.id+'.'+nextcell.id).attr('data-color', color)

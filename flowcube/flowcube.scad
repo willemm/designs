@@ -20,19 +20,21 @@ facetnutwid = 10;
 facetnuthei = 6;
 boltrad = 3/2+0.2;
 
+backboltoff = 6.5;
 
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
-backendback();
+*backendback();
 *button();
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
 *color("#333") cubecorner();
 *cubecornernut();
-*cubeside();
-*rotate([90,90,0]) cubeside();
+
+cubeside();
+rotate([90,90,0]) cubeside();
 *rotate([-90,0,90]) cubeside();
 
 module cubeside() {
@@ -50,7 +52,8 @@ module cubeside() {
 
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        color("#beb") translate([0, 0, ledz+1.8]) backendfront();
+        color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
+        *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
         color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
     }
 }
@@ -144,8 +147,10 @@ module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
 
             // Outer pieces
             for (m=[0,1]) mirror([0,m,m]) {
-                translate([butsp/2-ewid/2,-xof,bof+zof+xof+1]) edgefacet(thi=1);
-                translate([butsp/2-ewid/2,-xof,bof+zof-0.5]) edgefacet(thi=xof+0.5-tol);
+                translate([butsp/2-ewid/2,-xof,bof+zof+xof+1])
+                    edgefacet(thi=1,xof=xsof*holesp*12-0.0101);
+                translate([butsp/2-ewid/2,-xof,bof+zof-0.5])
+                    edgefacet(thi=xof+0.5-tol,xof=xsof*holesp*12-0.0101);
             }
         }
         nhsz = (6/2)+(butsp-ewid)/2;
@@ -402,7 +407,7 @@ module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
     xo = butsp/2; // offset of hole centers
     backwid = butsp-ewid/2;
     endofs = (numbut-0.5)*butsp;
-    whiteof = butsp/2-xof;
+    whiteof = butsp/2-xof+tol;
     backof = butsp/2+tol;
 
     an = 90/cp;
@@ -433,9 +438,21 @@ module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
     translate([(numbut)*butsp+tol, -1, 0])
         cube([backwid-backof,6,5], false);
 
+    // TODO: Magic number 5.075
+    // Under bit at beginning
+    translate([butsp*(numbut),0,bof-5.075]) rotate([0,0,90]) {
+        cornerfacet(thi=xof+0.5-tol, xof=4.499, yof=-0.2);
+    }
+
     // under bits between leds
     for (x=[1:numbut-1]) {
-        translate([butsp*(numbut),butsp*x,bof-5]) rotate([0,0,90]) edgefacet(thi=xof+1-tol, xof=-0.2);
+        translate([butsp*(numbut),butsp*x,bof-5.075]) rotate([0,0,90]) {
+            difference() {
+                edgefacet(thi=xof+0.5-tol, xof=-0.2);
+                translate([0, backboltoff, -0.01]) cylinder(5, boltrad, boltrad, $fn=32);
+                translate([0, backboltoff+0.5, 1.2+2.6/2]) cube([5.5, 5.5+1.4, 2.6], true);
+            }
+        }
     }
 }
 
@@ -828,6 +845,9 @@ module backend_back_edgepiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, twi
             rotate([0,90,0]) translate([0,0,-cwid/2-0.001]) linear_extrude(height=cwid+0.002) polygon([
                 [-bcut-btl,2-btl],[btl,2+bcut+btl],[btl,2-btl]
             ]);
+        } else {
+            // Backend bolt
+            translate([0, backboltoff, -0.01]) cylinder(8.501, boltrad, boltrad, $fn=32);
         }
     }
 }
@@ -944,12 +964,19 @@ module backendfront(sd = numbut*butsp, thi = 1.4, gap=6.4)
             translate([(x)*butsp, (y)*butsp, -0.01]) stubpyra(18,18,10,10,gap+0.0-thi+0.01);
             translate([(x)*butsp, (y)*butsp, gap+1-thi]) cube([facetnutwid,facetnuthei+0.2,2.02], true);
         }
+        // Bolt hole cutout
         for (x=[1:numbut-1]) {
             translate([x*butsp, 0, -1.2]) rotate([45,0,0]) {
-                translate([0,0,0]) cylinder(2, boltrad+0.2, boltrad+0.2, $fn=32);
+                translate([0,0,-0.2]) cylinder(2.2, boltrad+0.2, boltrad+0.2, $fn=32);
             }
             translate([0, x*butsp, -1.2]) rotate([0,-45,0]) {
-                translate([0,0,0]) cylinder(2, boltrad+0.2, boltrad+0.2, $fn=32);
+                translate([0,0,-0.2]) cylinder(2.2, boltrad+0.2, boltrad+0.2, $fn=32);
+            }
+            translate([x*butsp, numbut*butsp-backboltoff, -0.01]) {
+                cylinder(thi+0.02, boltrad+0.2, boltrad+0.2, $fn=32);
+            }
+            translate([numbut*butsp-backboltoff, x*butsp, -0.01]) {
+                cylinder(thi+0.02, boltrad+0.2, boltrad+0.2, $fn=32);
             }
         }
         xof = xsof*butsp;
@@ -1043,6 +1070,22 @@ module edgefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12
             [bface(ss, ss)],
             []
         ));
+}
+
+module cornerfacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12, yof=xsof*holesp*12)
+{
+    an = 90/cp;
+    xo = butsp/2; // offset of hole centers
+    esta = asin((ewid/2)/rd);
+    cnf = floor((90-(esta*2)) / an);
+    sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
+
+    // TODO: Magic numbers!
+    linear_extrude(convexity=5, height=thi) polygon(concat(
+        [[ xof, xo-ewid/2], [xof,yof],[ xo-ewid/2, yof ]],
+        arc( xo, xo, rd, 180+sta, 270-sta, an),
+        []
+    ));
 }
 
 module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
