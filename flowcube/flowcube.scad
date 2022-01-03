@@ -5,7 +5,7 @@ holedia = 1;
 boardth = 1.2;
 ewid = 10;
 
-numbut = 3;
+numbut = 5;
 
 ledsp = holesp * 4;
 ledz = boardth+0.5;
@@ -30,12 +30,19 @@ backboltoff = 6.5;
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-*color("#333") cubecorner();
-*cubecornernut();
+*cubebackedges();
 
-cubeside();
-rotate([90,90,0]) cubeside();
-*rotate([-90,0,90]) cubeside();
+rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+    color("#333") cubecorner();
+    *cubecornernut();
+
+    cubeside();
+    rotate([90,90,0]) cubeside();
+    rotate([-90,0,90]) cubeside();
+}
+
+psu();
+bottomside();
 
 module cubeside() {
     zof = -2.3;
@@ -45,20 +52,76 @@ module cubeside() {
     translate([0,0,zof]) {
         cubeedgeswhite(xof, bof, zof);
         cubeedgesblack(xof, bof, zof);
-        cubebackedges(xof, bof, zof);
+        color("#333") cubebackedges(xof, bof, zof);
 
         whiteside(xof, bof, zof);
         sidefacets(zof, bof, zof);
 
+        *cubebacknuts(xof, bof, zof);
         *cubeedgenuts(xof, bof, zof);
-        *buttonseries(xof, bof, zof);
-        color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
+        buttonseries(xof, bof, zof);
+        *partseries(xof, bof, zof);
+        *color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
-        color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
+        *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
     }
 }
 
+module psu(xof=xsof*butsp, bof=10, zof=-2.3)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    color("#543") translate([0,0,rcz+43/2+1]) cube([158, 98, 43], true);
+}
+
+/* 
+ Cube is rotated so diagonal is towards Z axis
+ Position of cube corner before rotation:
+
+*/
+module bottomside(xof=xsof*butsp, bof=10, zof=-2.3)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    /*
+    // Position of cube corners before rotation (backedge far corner)
+    cc = [cxy, cxy, cz];
+
+    // Check position
+    *#rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) translate(cc) sphere(0.001,$fn=10);
+
+    // cc1 = [(cc[0]+cc[1])/sqrt(2), (cc[0]-cc[1])/sqrt(2), cc[2]];
+    cc1 = [cxy*sqrt(2), 0, cz];
+
+    // Check position
+    *#rotate([0,atan(sqrt(2)),0]) translate(cc1) sphere(0.01,$fn=10);
+
+    san = sqrt(2/3);
+    can = sqrt(1/3);
+    // cc2 = [cc1[0]*can+cc1[2]*san, cc1[1], -cc1[0]*san+cc1[2]*can];
+    cc2 = [cxy*sqrt(2)*sqrt(1/3) + cz*sqrt(2/3), 0, cz*sqrt(1/3) - cxy*sqrt(4/3)];
+
+    // #translate(cc2) sphere(0.01,$fn=10);
+    */
+
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    // #translate([rcx, 0, rcz]) sphere(1,$fn=10); // THis hits the corner
+    translate([0,0,rcz-10]) cylinder(10, rcx, rcx, $fn=120);
+}
+
 module buttonseries(xof, bof, zof)
+{
+    color("#eee") {
+        for (x=[0:numbut-1], y=[0:numbut-1]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp, ledz+9.101]) button();
+        }
+    }
+}
+
+module partseries(xof, bof, zof)
 {
     for (x=[0:numbut-1], y=[0:numbut-1]) {
         translate([(x+0.5)*butsp, (y+0.5)*butsp, 0]) buttonset();
@@ -386,9 +449,20 @@ module cubecornernut(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.1)
     }
 }
 
-module cubebackedges(xof, bof, zof, tol=0.2)
+module cubebacknuts(xof = xsof*butsp, bof = 10, zof = -2.3)
 {
-    color("#333") {
+    color("#773")
+    for (y=[1:numbut-1]) translate([numbut*butsp-backboltoff, y*butsp, 0]) {
+        #translate([0,0,6.2+2.4/2]) cube([5.5,5.5,2.4], true);
+
+        translate([0,0,6.2-7.5]) cylinder(10, 1.5, 1.5, $fn=32);
+        translate([0,0,6.2-8.5]) cylinder(1,2.9,2.9, $fn=32);
+    }
+}
+
+module cubebackedges(xof = xsof*butsp, bof = 10, zof = -2.3, tol=0.2)
+{
+    union() {
         cubebackedge(xof, bof, zof);
         translate([0,-zof, -zof]) mirror([0,1,1]) cubebackedge(xof, bof, zof);
 
@@ -1165,7 +1239,7 @@ module button(ptol1=0.4, ptol2=0.0, show=false)
             faces = concat(
                 [tface(0, cp)],
                 [bface(cp*(lc*2+1), cp)],
-                [for (l=[0:lc*2+1]) each qface(l*cp, cp, cp)],
+                [for (l=[0:lc*2]) each qface(l*cp, cp, cp)],
                 []
             ));
         difference() {
