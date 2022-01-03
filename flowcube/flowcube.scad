@@ -32,6 +32,18 @@ backboltoff = 6.5;
 
 *cubebackedges();
 
+/*
+intersection() {
+    rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+        minkowski() {
+            cube(20, true);
+            sphere(1, $fn=60);
+        }
+    }
+    cylinder(20, 10, 10, $fn=120);
+}
+*/
+
 rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     color("#333") cubecorner();
     *cubecornernut();
@@ -109,8 +121,31 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3)
     rcx = (cxy+cz)*sqrt(2/3);
     rcz = (cz-2*cxy)/sqrt(3);
     // #translate([rcx, 0, rcz]) sphere(1,$fn=10); // THis hits the corner
-    translate([0,0,rcz-10]) cylinder(10, rcx, rcx, $fn=120);
+    // translate([0,0,rcz-10]) cylinder(10, rcx, rcx, $fn=192);
+
+    cbof = bof+zof+2;
+    color("#333")
+    render(convexity=4) difference() {
+        intersection() {
+            translate([0,0,rcz-20]) cylinder((-rcz)/2+20+bof, rcx+1.3, rcx+1.3, $fn=120);
+            rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
+                // translate([-cbof,-cbof,-cbof]) cube(cxy+cxy/2);
+                translate([-zof+2.3, -zof+2.3, -zof+2.3]) minkowski() {
+                    cube(cxy+cxy/2);
+                    sphere(bof+4.3, $fn=120);
+                }
+            }
+        }
+        rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
+            translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) cube(cxy+cbof+0.2);
+        }
+        translate([0,0,rcz-20.1]) cylinder((-rcz)/2+5.1, rcx-2, rcx-2, $fn=6);
+    }
 }
+
+function bottom_intersect(xof, bof, zof, cp=32) = [
+    
+];
 
 module buttonseries(xof, bof, zof)
 {
