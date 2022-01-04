@@ -44,8 +44,8 @@ intersection() {
 }
 */
 
-rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
-    color("#333") cubecorner();
+*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+    *color("#333") cubecorner();
     *cubecornernut();
 
     cubeside();
@@ -53,7 +53,7 @@ rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     rotate([-90,0,90]) cubeside();
 }
 
-psu();
+*psu();
 bottomside();
 
 module cubeside() {
@@ -62,16 +62,16 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        cubeedgeswhite(xof, bof, zof);
-        cubeedgesblack(xof, bof, zof);
+        *cubeedgeswhite(xof, bof, zof);
+        *cubeedgesblack(xof, bof, zof);
         color("#333") cubebackedges(xof, bof, zof);
 
-        whiteside(xof, bof, zof);
-        sidefacets(zof, bof, zof);
+        *whiteside(xof, bof, zof);
+        *sidefacets(zof, bof, zof);
 
         *cubebacknuts(xof, bof, zof);
         *cubeedgenuts(xof, bof, zof);
-        buttonseries(xof, bof, zof);
+        *buttonseries(xof, bof, zof);
         *partseries(xof, bof, zof);
         *color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
@@ -93,7 +93,7 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
  Position of cube corner before rotation:
 
 */
-module bottomside(xof=xsof*butsp, bof=10, zof=-2.3)
+module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -124,28 +124,65 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3)
     // translate([0,0,rcz-10]) cylinder(10, rcx, rcx, $fn=192);
 
     cbof = bof+zof+2;
-    color("#333")
-    render(convexity=4) difference() {
-        intersection() {
-            translate([0,0,rcz-20]) cylinder((-rcz)/2+20+bof, rcx+1.3, rcx+1.3, $fn=120);
+    //color("#333")
+    cw = cxy+cbof+tol;
+    ct = bof+2+tol;
+    bothi = 22;
+    render(convexity=4)
+    difference() {
+        union() {
+            difference() {
+                intersection() {
+                    translate([0,0,rcz-bothi]) cylinder((-rcz)/2+bothi+bof, rcx+1.3, rcx+1.3, $fn=120);
+                    rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
+                        translate([-zof+2.3, -zof+2.3, -zof+2.3]) minkowski() {
+                            cube(cxy+cxy/2);
+                            sphere(bof+4.3, $fn=120);
+                        }
+                    }
+                }
+                translate([0,0,rcz-bothi-0.1]) cylinder((-rcz)/2+bothi-1.9, rcx-2, rcx-2, $fn=6);
+            }
             rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
-                // translate([-cbof,-cbof,-cbof]) cube(cxy+cxy/2);
-                translate([-zof+2.3, -zof+2.3, -zof+2.3]) minkowski() {
-                    cube(cxy+cxy/2);
-                    sphere(bof+4.3, $fn=120);
+                translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) {
+                    bottomsupport(cw, ct);
+                    rotate([-90,-90,0]) bottomsupport(cw, ct);
+                    rotate([90,0,90]) bottomsupport(cw, ct);
                 }
             }
         }
         rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
-            translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) cube(cxy+cbof+0.2);
+            // translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) cube(cxy+cbof+0.2);
+            translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) {
+                cube([cw, cw, ct]);
+                cube([cw, ct, cw]);
+                cube([ct, cw, cw]);
+                cube(cw-10);
+            }
         }
-        translate([0,0,rcz-20.1]) cylinder((-rcz)/2+5.1, rcx-2, rcx-2, $fn=6);
     }
 }
 
-function bottom_intersect(xof, bof, zof, cp=32) = [
-    
-];
+module bottomsupport(cw, ct)
+{
+    tt = ct+2;
+    yw = 14;
+    for (m=[0,1]) mirror([-m,m,0])
+        translate([cw,cw,0]) rotate([90,0,0])
+            linear_extrude(height=cw-12) polygon([
+                [0.4,0.4],[yw,tt],[-12,tt],[-12,10]
+            ]);
+    cut=9.8;
+    polyhedron(
+        points=[[cw,cw,tt],[cw+yw,cw,tt],
+            [cw+yw,cw+cut,tt],[cw+cut,cw+yw,tt],
+            [cw,cw+yw,ct+2],[cw,cw,2]],
+        faces=[[1,0,2],[2,0,3],[3,0,4],
+            [0,1,5],[1,2,5],[2,3,5],[3,4,5],[4,0,5]]);
+    polyhedron(
+        points=[[0.4,cw-0.1,ct-0.2],[ct,cw-0.1,ct],[ct-0.2,cw,0.4],[5,cw+6,5],[ct,cw+yw-1,ct]],
+        faces=[[0,1,2],[0,2,3],[1,0,4],[2,1,4],[3,2,4],[0,3,4]]);
+}
 
 module buttonseries(xof, bof, zof)
 {
