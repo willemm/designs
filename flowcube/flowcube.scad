@@ -52,9 +52,11 @@ rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     rotate([90,90,0]) cubeside();
     rotate([-90,0,90]) cubeside();
 }
+for (an=[0:120:240]) rotate([0,0,an]) {
+    bottomsidepart();
+}
 
 *psu();
-bottomside();
 
 module cubeside() {
     zof = -2.3;
@@ -128,7 +130,7 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
     cw = cxy+cbof+tol;
     ct = bof+2+tol;
     bothi = 22;
-    render(convexity=4)
+    // render(convexity=4)
     difference() {
         union() {
             difference() {
@@ -149,6 +151,17 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                     bottomsupport(cw, ct);
                 }
             }
+            // For connecting bottom in 3 parts
+            for (an=[0:120:240]) rotate([0,0,an]) {
+                translate([rcx-7, 0, rcz-bothi+7.3]) cube([10,35,14.6], true);
+            }
+        }
+        for (an=[0:120:240]) rotate([0,0,an]) {
+            translate([rcx-5, 0, rcz-bothi+3-0.1]) {
+                cube([2,10,6+0.1], true);
+                translate([0, 5,0]) cube([6,2,6+0.1], true);
+                translate([0,-5,0]) cube([6,2,6+0.1], true);
+            }
         }
         rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
             // translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) cube(cxy+cbof+0.2);
@@ -166,6 +179,29 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                 translate([botboltoff, (y+0.5)*butsp, 2.3]) cylinder(2.2, boltrad, boltrad, $fn=32);
                 translate([(y+0.5)*butsp, botboltoff, 2.3]) cylinder(2.2, boltrad, boltrad, $fn=32);
             }
+        }
+    }
+}
+
+module bottomsidepart(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
+{
+    bothi = 22;
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+
+    holeof = rcx/sqrt(3);
+
+    render(convexity=4)
+    difference() {
+        intersection() {
+            bottomside(xof,bof,zof,tol);
+            translate([-(rcx+2),0,rcz-bothi-0.1]) cylinder(-rcz, rcx+2, rcx+2, $fn=6);
+        }
+        for (m=[0,1], z=[[2.5,2],[2.5,17.5],[9,13]]) mirror([0,m,0]) {
+            rotate([0,0,60]) translate([-rcx-1.3 + z[0], 0, rcz-bothi + z[1]])
+                rotate([-90,0,0]) translate([0,0,-0.1]) cylinder(10.1, 0.5, 0.5, $fn=8);
         }
     }
 }
