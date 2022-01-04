@@ -44,8 +44,8 @@ intersection() {
 }
 */
 
-*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
-    *color("#333") cubecorner();
+rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+    color("#333") cubecorner();
     *cubecornernut();
 
     cubeside();
@@ -62,16 +62,16 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        *cubeedgeswhite(xof, bof, zof);
-        *cubeedgesblack(xof, bof, zof);
+        cubeedgeswhite(xof, bof, zof);
+        cubeedgesblack(xof, bof, zof);
         color("#333") cubebackedges(xof, bof, zof);
 
-        *whiteside(xof, bof, zof);
-        *sidefacets(zof, bof, zof);
+        whiteside(xof, bof, zof);
+        sidefacets(zof, bof, zof);
 
         *cubebacknuts(xof, bof, zof);
         *cubeedgenuts(xof, bof, zof);
-        *buttonseries(xof, bof, zof);
+        buttonseries(xof, bof, zof);
         *partseries(xof, bof, zof);
         *color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
@@ -133,7 +133,7 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
         union() {
             difference() {
                 intersection() {
-                    translate([0,0,rcz-bothi]) cylinder((-rcz)/2+bothi+bof, rcx+1.3, rcx+1.3, $fn=120);
+                    translate([0,0,rcz-bothi]) cylinder((-rcz)/2+bothi+bof, rcx+1.3, rcx+1.3, $fn=240);
                     rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
                         translate([-zof+2.3, -zof+2.3, -zof+2.3]) minkowski() {
                             cube(cxy+cxy/2);
@@ -143,11 +143,10 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                 }
                 translate([0,0,rcz-bothi-0.1]) cylinder((-rcz)/2+bothi-1.9, rcx-2, rcx-2, $fn=6);
             }
+            for (an=[0:120:240]) rotate([0,0,an])
             rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
                 translate([-cbof-0.1,-cbof-0.1,-cbof-0.1]) {
                     bottomsupport(cw, ct);
-                    rotate([-90,-90,0]) bottomsupport(cw, ct);
-                    rotate([90,0,90]) bottomsupport(cw, ct);
                 }
             }
         }
@@ -158,6 +157,14 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                 cube([cw, ct, cw]);
                 cube([ct, cw, cw]);
                 cube(cw-10);
+            }
+        }
+        botboltoff = (numbut+0.5)*butsp-ewid/2-3;
+        for (an=[0:120:240]) rotate([0,0,an])
+        rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
+            for (y=[1:2:numbut-1]) {
+                translate([botboltoff, (y+0.5)*butsp, 2.3]) cylinder(2.2, boltrad, boltrad, $fn=32);
+                translate([(y+0.5)*butsp, botboltoff, 2.3]) cylinder(2.2, boltrad, boltrad, $fn=32);
             }
         }
     }
@@ -525,10 +532,19 @@ module cubebacknuts(xof = xsof*butsp, bof = 10, zof = -2.3)
 {
     color("#773")
     for (y=[1:numbut-1]) translate([numbut*butsp-backboltoff, y*butsp, 0]) {
-        #translate([0,0,6.2+2.4/2]) cube([5.5,5.5,2.4], true);
+        translate([0,0,6.2+2.4/2]) cube([5.5,5.5,2.4], true);
 
         translate([0,0,6.2-7.5]) cylinder(10, 1.5, 1.5, $fn=32);
         translate([0,0,6.2-8.5]) cylinder(1,2.9,2.9, $fn=32);
+    }
+
+    botboltoff = (numbut+0.5)*butsp-ewid/2-3;
+    color("#773")
+    for (y=[1:2:numbut-1]) translate([botboltoff, (y+0.5)*butsp, 0]) {
+        translate([0,0,2.1+2.4/2]) cube([5.5,5.5,2.4], true);
+
+        translate([0,0,2.1-4.4]) cylinder(8, 1.5, 1.5, $fn=32);
+        translate([0,0,2.1-5.4]) cylinder(1,2.9,2.9, $fn=32);
     }
 }
 
@@ -576,10 +592,16 @@ module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
         ]);
 
     // Back bit of edge
-    translate([(numbut-0.5)*butsp, 0, 0])
+    translate([(numbut-0.5)*butsp, 0, 0]) difference() {
         linear_extrude(height=bof) polygon([
             [backof,xof], [backwid,xof], [backwid, endofs+backwid], [backof, endofs+backof]
         ]);
+        // Bolt holes
+        for (y=[1:2:numbut-1]) {
+            translate([backwid-3, (y+0.5)*butsp, -0.01]) cylinder(8, boltrad, boltrad, $fn=32);
+            translate([backwid-3, (y+0.5)*butsp, 2.0+2.6/2]) cube([5.5+0.501, 5.5, 2.6], true);
+        }
+    }
     // Back corner
     translate([(numbut)*butsp+tol, -1, 0])
         cube([backwid-backof,6,5], false);
