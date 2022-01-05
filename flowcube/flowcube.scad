@@ -30,7 +30,11 @@ backboltoff = 6.5;
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-*cubebackedges();
+rotate([0,90,0]) cubebackedges();
+*bottomsidepart();
+
+*color("#eee") translate([0,0,ledz+1.8]) backendfront();
+*color("#444") cubebackedges();
 
 /*
 intersection() {
@@ -44,18 +48,19 @@ intersection() {
 }
 */
 
-rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
-    color("#333") cubecorner();
+*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+    *color("#333") cubecorner();
     *cubecornernut();
 
     cubeside();
     rotate([90,90,0]) cubeside();
     rotate([-90,0,90]) cubeside();
 }
-for (an=[0:120:240]) rotate([0,0,an]) {
-    bottomsidepart();
-}
 
+*render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
+    bottomsidepart();
+
+*translate([0,0,-1]) bottomside();
 *psu();
 
 module cubeside() {
@@ -87,7 +92,7 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
     cz = bof+zof+2;
     rcx = (cxy+cz)*sqrt(2/3);
     rcz = (cz-2*cxy)/sqrt(3);
-    color("#543") translate([0,0,rcz+43/2+1]) cube([158, 98, 43], true);
+    color("#543") translate([0,0,rcz+43/2-19]) cube([158, 98, 43], true);
 }
 
 /* 
@@ -130,7 +135,7 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
     cw = cxy+cbof+tol;
     ct = bof+2+tol;
     bothi = 22;
-    // render(convexity=4)
+    render(convexity=4)
     difference() {
         union() {
             difference() {
@@ -143,7 +148,7 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                         }
                     }
                 }
-                translate([0,0,rcz-bothi-0.1]) cylinder((-rcz)/2+bothi-1.9, rcx-2, rcx-2, $fn=6);
+                translate([0,0,rcz-bothi-0.1]) cylinder((-rcz)/2+bothi-1.9, rcx-5, rcx-5, $fn=6);
             }
             for (an=[0:120:240]) rotate([0,0,an])
             rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
@@ -156,11 +161,12 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                 translate([rcx-7, 0, rcz-bothi+7.3]) cube([10,35,14.6], true);
             }
         }
+        connh = 10;
         for (an=[0:120:240]) rotate([0,0,an]) {
-            translate([rcx-5, 0, rcz-bothi+3-0.1]) {
-                cube([2,10,6+0.1], true);
-                translate([0, 5,0]) cube([6,2,6+0.1], true);
-                translate([0,-5,0]) cube([6,2,6+0.1], true);
+            translate([rcx-5, 0, rcz-bothi+connh/2-0.1]) {
+                cube([2,10,connh+0.1], true);
+                translate([0, 5,0]) cube([6,2,connh+0.1], true);
+                translate([0,-5,0]) cube([6,2,connh+0.1], true);
             }
         }
         rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
@@ -199,7 +205,7 @@ module bottomsidepart(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
             bottomside(xof,bof,zof,tol);
             translate([-(rcx+2),0,rcz-bothi-0.1]) cylinder(-rcz, rcx+2, rcx+2, $fn=6);
         }
-        for (m=[0,1], z=[[2.5,2],[2.5,17.5],[9,13]]) mirror([0,m,0]) {
+        for (m=[0,1], z=[[2.5,2],[2.5,17.5],[10,12]]) mirror([0,m,0]) {
             rotate([0,0,60]) translate([-rcx-1.3 + z[0], 0, rcz-bothi + z[1]])
                 rotate([-90,0,0]) translate([0,0,-0.1]) cylinder(10.1, 0.5, 0.5, $fn=8);
         }
@@ -655,6 +661,9 @@ module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
                 edgefacet(thi=xof+0.5-tol, xof=-0.2);
                 translate([0, backboltoff, -0.01]) cylinder(5, boltrad, boltrad, $fn=32);
                 translate([0, backboltoff+0.5, 1.2+2.6/2]) cube([5.5, 5.5+1.4, 2.6], true);
+                for (m=[0,1]) mirror([m,0,0])
+                    translate([8.2, -tol, -0.01]) rotate([0,-90,0])
+                        linear_extrude(height=4.4) polygon([ [0,0],[0,3],[3,0] ]);
             }
         }
     }
@@ -1160,6 +1169,12 @@ module backendfront(sd = numbut*butsp, thi = 1.4, gap=6.4)
             translate([             5, numbut*butsp-5, thi]) stubpyra(10,10,6,6,7.7-thi);
             translate([numbut*butsp-5, numbut*butsp-5, thi]) stubpyra(10,10,6,6,7.7-thi);
             */
+
+            for (x=[1:numbut-1], m=[0,1], xy=[0,1]) mirror([-xy,xy,0])
+                translate([x*butsp, numbut*butsp, 0]) {
+                    mirror([m,0,0]) translate([-4, 0, thi]) rotate([0,-90,0])
+                        linear_extrude(height=4) polygon([ [0,0],[0,-3.2],[3.2,0] ]);
+            }
         }
         for (x=[0:numbut-1], y=[0:numbut-1]) {
             translate([(x+0.5)*butsp, (y+0.5)*butsp, -ledz-(8-gap)]) buttonholes();
