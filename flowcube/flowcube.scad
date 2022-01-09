@@ -53,14 +53,14 @@ rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     *cubecornernut();
 
     cubeside();
-    rotate([90,90,0]) cubeside();
-    rotate([-90,0,90]) cubeside();
+    *rotate([90,90,0]) cubeside();
+    *rotate([-90,0,90]) cubeside();
 }
 
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     bottomsidepart();
 
-color("#333") translate([0,0,-1]) bottomside();
+*color("#333") translate([0,0,-1]) bottomside();
 *psu();
 
 module cubeside() {
@@ -78,7 +78,7 @@ module cubeside() {
 
         *cubebacknuts(xof, bof, zof);
         *cubeedgenuts(xof, bof, zof);
-        buttonseries(xof, bof, zof);
+        *buttonseries(xof, bof, zof);
         *partseries(xof, bof, zof);
         *color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
@@ -318,13 +318,13 @@ module cubeedgesblack(xof, bof, zof)
     }
 }
 
-module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
+module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, thi=1.2, tol=0.2)
 {
     sd = xof*2-0.2;
     difference() {
         union() {
             // Outside
-            cubeedge(sd = butsp-ewid, thi = 1.0, rd=bof+zof+xof+1);
+            cubeedge(sd = butsp-ewid, thi = 1.2, rd=bof+zof+xof+1);
             // Middle
             translate([butsp/2-ewid/2-sd/2, 0, 0]) cubeedge(sd = sd, thi = 1.0+tol, rd=bof+zof+xof-tol);
             // Inside
@@ -333,10 +333,15 @@ module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
             // Outer pieces
             for (m=[0,1]) mirror([0,m,m]) {
                 translate([butsp/2-ewid/2,-xof,bof+zof+xof+1])
-                    edgefacet(thi=1,xof=xsof*holesp*12-0.0101);
+                    edgefacet(thi=1.2,xof=xsof*holesp*12-0.0101);
                 translate([butsp/2-ewid/2,-xof,bof+zof-0.5])
                     edgefacet(thi=xof+0.5-tol,xof=xsof*holesp*12-0.0101);
+
+                // Bits around buttons
+                for (m2=[0,1]) translate([butsp/2-ewid/2,-xof,bof+zof+xof-0.3])
+                    mirror([m2,0,0]) edgeinset(thi=1.4,xof=xsof*holesp*12);
             }
+
         }
         nhsz = (6/2)+(butsp-ewid)/2;
         rotate([45,0,0]) {
@@ -345,6 +350,7 @@ module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
         }
         // Hole to push nut back out
         rotate([45,0,0]) rotate([0,90,0]) translate([-10.8, 0, (butsp-ewid)/2+0.01]) rotate([0,0,45]) cylinder((butsp-ewid)/2, 1.3*sqrt(2), 1.3*sqrt(2), $fn=4);
+
     }
 }
 
@@ -357,7 +363,7 @@ module cubeedgeinside(sd, ins, rd=10, cp=16)
     ));
 }
 
-module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
+module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, thi=1.2, tol=0.2)
 {
     sd = (butsp-ewid)/2-xof;
     /*
@@ -377,7 +383,7 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
      * Faces:  triangular numbers
      */
     an = 90/cp;
-    rd = xof+bof+zof+2;
+    rd = xof+bof+zof+1+thi;
     pqsphere = concat(
         // Sphere corner
         [[0,0,rd]], // Avoid div by zero on zi=0
@@ -403,10 +409,10 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
     parcs = concat(
         // Extended sphere arcs
         xyzarcs(rd,   -sd, cp),
-        xyzarcs(rd-1, -sd, cp),
-        xyzarcs(rd-1,   0, cp),
-        xyzarcs(rd-2-tol,   0, cp),
-        xyzarcs(rd-2-tol, -sd, cp),
+        xyzarcs(rd-thi, -sd, cp),
+        xyzarcs(rd-thi,   0, cp),
+        xyzarcs(rd-thi-1-tol,   0, cp),
+        xyzarcs(rd-thi-1-tol, -sd, cp),
         []
     );
     csp = len(pqsphere);
@@ -425,7 +431,7 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
     );
     fqsides = [for (o=[0:11]) each qfacei(csp+car*o, car, car*3, (o%3==1)?1:0)];
 
-    br = rd-2-tol;
+    br = rd-thi-1-tol;
     bro = 1;
     pqback = [
         [-bro,-sd,br], [-sd,-bro,br],
@@ -464,11 +470,11 @@ module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, tol=0.2)
     xo = butsp/2-xof;
     pinst = concat(
         zarc(-xo, -xo, rd,   hrd, sta, 90-sta, an2),
-        zarc(-xo, -xo, rd-1, hrd, sta, 90-sta, an2),
+        zarc(-xo, -xo, rd-thi, hrd, sta, 90-sta, an2),
         yarc(-xo, rd,   -xo, hrd, 90-sta, sta, -an2),
-        yarc(-xo, rd-1, -xo, hrd, 90-sta, sta, -an2),
+        yarc(-xo, rd-thi, -xo, hrd, 90-sta, sta, -an2),
         xarc(rd,   -xo, -xo, hrd, sta, 90-sta, an2),
-        xarc(rd-1, -xo, -xo, hrd, sta, 90-sta, an2),
+        xarc(rd-thi, -xo, -xo, hrd, sta, 90-sta, an2),
         []
     );
     cpi = len(pqsphere)+len(parcs)+len(pqback);
@@ -591,14 +597,14 @@ module cubebacknuts(xof = xsof*butsp, bof = 10, zof = -2.3)
     }
 }
 
-module cubebackedges(xof = xsof*butsp, bof = 10, zof = -2.3, tol=0.2)
+module cubebackedges(xof = xsof*butsp, bof = 10, zof = -2.3, thi=1.2, tol=0.2)
 {
     union() {
-        cubebackedge(xof, bof, zof);
+        cubebackedge(xof, bof, zof, thi);
         translate([0,-zof, -zof]) mirror([0,1,1]) cubebackedge(xof, bof, zof);
 
         sd = butsp-ewid;
-        translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof+1);
+        translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = thi, rd=bof+zof+xof+1);
         translate([numbut*butsp-xof, xof, -(zof+xof)]) cubeedge(sd = butsp/2-ewid/2+xof, thi = 1.2, rd=bof+zof+xof-.2);
         // translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof-1.2);
 
@@ -607,7 +613,7 @@ module cubebackedges(xof = xsof*butsp, bof = 10, zof = -2.3, tol=0.2)
     }
 }
 
-module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
+module cubebackedge(xof, bof, zof, thi=1.2, tol=0.2, cp=32)
 {
     xo = butsp/2; // offset of hole centers
     backwid = butsp-ewid/2;
@@ -622,7 +628,7 @@ module cubebackedge(xof, bof, zof, tol=0.2, cp=32)
     sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
 
     // Edge with cutouts for buttons
-    for (z=[1/*,-1.2*/]) translate([(numbut-0.5)*butsp, 0, bof+z]) linear_extrude(height=1, convexity=4)
+    for (z=[1/*,-1.2*/]) translate([(numbut-0.5)*butsp, 0, bof+z]) linear_extrude(height=thi, convexity=4)
         polygon(concat(
             [[ewid/2,xof], [backwid,xof], [backwid,endofs+backwid]],
             [for (x=[numbut-1:-1:0]) each arc( 0, butsp*(x+0.5), rd, (x==numbut-1?45:sta), 180-sta, an)]
@@ -1262,6 +1268,24 @@ module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
         ));
 }
 
+module edgeinset(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12)
+{
+    an = 90/cp;
+    xo = butsp/2; // offset of hole centers
+    esta = asin((ewid/2)/rd);
+    cnf = floor((90-(esta*2)) / an);
+    sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
+    bkx = xo - rd * cos(sta)-butsp*0.2;
+    bky = xo - rd * sin(sta)-butsp*0.2;
+    bk = xo - rd * cos(sta);
+    linear_extrude(height=thi, convexity=4) polygon(concat(
+        // [[bkx,bky],[bky,bkx]],
+        [[bk,bk]],
+        arc(xo, xo, rd, 180+sta, 270-sta, an),
+        []
+    ));
+}
+
 module edgefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12)
 {
     an = 90/cp;
@@ -1308,7 +1332,7 @@ module cornerfacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*
     ));
 }
 
-module sidefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32)
+module sidefacet(sd = holesp * 48, thi=1.2, rd=butdia/2, cp=32)
 {
     an = 90/cp;
     xo = butsp/2; // offset of hole centers
