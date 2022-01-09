@@ -30,7 +30,7 @@ backboltoff = 6.5;
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-*rotate([0,90,0]) cubebackedges();
+rotate([0,90,0]) cubebackedges();
 *bottomsidepart();
 
 *color("#eee") translate([0,0,ledz+1.8]) backendfront();
@@ -48,13 +48,13 @@ intersection() {
 }
 */
 
-rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     color("#333") cubecorner();
     *cubecornernut();
 
     cubeside();
-    *rotate([90,90,0]) cubeside();
-    *rotate([-90,0,90]) cubeside();
+    rotate([90,90,0]) cubeside();
+    rotate([-90,0,90]) cubeside();
 }
 
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
@@ -619,17 +619,22 @@ module cubebacknuts(xof = xsof*butsp, bof = 10, zof = -2.3)
 
 module cubebackedges(xof = xsof*butsp, bof = 10, zof = -2.3, thi=1.2, tol=0.2)
 {
-    union() {
-        cubebackedge(xof, bof, zof, thi);
-        translate([0,-zof, -zof]) mirror([0,1,1]) cubebackedge(xof, bof, zof);
+    difference() {
+        union() {
+            cubebackedge(xof, bof, zof, thi);
+            translate([0,-zof, -zof]) mirror([0,1,1]) cubebackedge(xof, bof, zof);
 
-        sd = butsp-ewid;
-        translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = thi, rd=bof+zof+xof+1);
-        translate([numbut*butsp-xof+tol, xof, -(zof+xof)]) cubeedge(sd = butsp/2-ewid/2+xof-tol, thi = 1.2, rd=bof+zof+xof-.2);
-        // translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof-1.2);
+            sd = butsp-ewid;
+            translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = thi, rd=bof+zof+xof+1);
+            translate([numbut*butsp-xof+tol, xof, -(zof+xof)]) cubeedge(sd = butsp/2-ewid/2+xof-tol, thi = 1.2, rd=bof+zof+xof-.2);
+            // translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof-1.2);
 
-        // Inside
-        translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedgeinside(butsp-ewid, bof-2.8, rd=bof+zof+xof-tol);
+            // Inside
+            translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedgeinside(butsp-ewid, bof-2.8, rd=bof+zof+xof-tol);
+            translate([numbut*butsp+6, numbut*butsp+6, 6]) cube([6,6,2], true);
+        }
+        translate([0,-zof, -zof]) mirror([0,1,1])
+            translate([numbut*butsp+6, numbut*butsp+6, 6]) cube([6,6,2], true);
     }
 }
 
@@ -1383,11 +1388,11 @@ module sidefacet(sd = holesp * 48, thi=1.2, rd=butdia/2, cp=32)
                 []
             ));
             translate([0,0,-(facetnutthi-ngap)/2]) cube([facetnutwid-0.2,facetnuthei-0.2,facetnutthi-ngap], true);
+            for (an=[0:90:270]) rotate([0,0,an])
+                translate([0,0,-1]) edgeinset(thi=1.01);
         }
         translate([0,0,-7.51]) cylinder(7.41, boltrad, boltrad, $fn=32);
         translate([0,0,-3.9]) cube([5.5, facetnuthei+0.01, 2.6], true);
-        for (an=[0:90:270]) rotate([0,0,an])
-            translate([0,0,-1]) edgeinset(thi=1.01);
     }
     // sacrificial layer
     #translate([0,0,-4-1.2-0.1]) cube([4, 4, 0.2], true);
