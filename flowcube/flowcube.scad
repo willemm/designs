@@ -30,7 +30,7 @@ backboltoff = 6.5;
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-rotate([0,90,0]) cubebackedges();
+*rotate([0,90,0]) cubebackedges();
 *bottomsidepart();
 
 *color("#eee") translate([0,0,ledz+1.8]) backendfront();
@@ -48,8 +48,8 @@ intersection() {
 }
 */
 
-*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
-    *color("#333") cubecorner();
+rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+    color("#333") cubecorner();
     *cubecornernut();
 
     cubeside();
@@ -60,7 +60,7 @@ intersection() {
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     bottomsidepart();
 
-*translate([0,0,-1]) bottomside();
+color("#333") translate([0,0,-1]) bottomside();
 *psu();
 
 module cubeside() {
@@ -91,6 +91,7 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
     rcx = (cxy+cz)*sqrt(2/3);
+    echo("RCX = ", rcx);
     rcz = (cz-2*cxy)/sqrt(3);
     color("#543") translate([0,0,rcz+43/2-19]) cube([158, 98, 43], true);
 }
@@ -1003,8 +1004,8 @@ module backend_back_butpiece(thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bw
         hl = 2*bwid+6;
         // Holes for wsled wiring
         // Lower ducts (aligned with button pins)
-        for (x=[-1:1]) {
-            translate([0, x*3.9, 0.6]) cube([hl, 0.6, 0.801], true);
+        for (x=[-3.85,0,3.85]) {
+            translate([0, x, 0.6]) cube([hl, 0.7, 0.801], true);
         }
 
         // Higher ducts (across button pins, with offset middle)
