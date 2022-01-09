@@ -651,6 +651,7 @@ module cubebackedge(xof, bof, zof, thi=1.2, tol=0.2, cp=32)
     esta = asin((ewid/2)/rd);
     cnf = ceil(((esta*2)) / an);
     sta = an * (cnf) / 2;  // recalc so it's an integer number of steps
+    sta45 = 45+(an/2)*(1+((cnf+1) % 2)); // Was rounded to half, so compensate
 
     ctof = (butsp/2)-rd*cos(sta);
 
@@ -658,14 +659,16 @@ module cubebackedge(xof, bof, zof, thi=1.2, tol=0.2, cp=32)
     for (z=[1/*,-1.2*/]) translate([(numbut-0.5)*butsp, 0, bof+z]) linear_extrude(height=thi, convexity=4)
         polygon(concat(
             [[ewid/2,xof], [backwid,xof], [backwid,endofs+backwid]],
-            [for (x=[numbut-1:-1:0]) each arc( 0, butsp*(x+0.5), rd, (x==numbut-1?45:sta), 180-sta, an)]
+            [[sin(45)*rd, butsp*(numbut-0.5)+cos(45)*rd]],
+            [for (x=[numbut-1:-1:0]) each arc( 0, butsp*(x+0.5), rd, (x==numbut-1?sta45:sta), 180-sta, an)]
         ));
 
     // Middle bit of edge
     translate([(numbut-0.5)*butsp, 0, bof-0.205])
         linear_extrude(height=1.21) polygon(concat(
             [[whiteof, ctof], [whiteof,xof], [backwid,xof], [backwid, endofs+backwid]],
-            arc( 0, butsp*(numbut-0.5), rd, 45, 180-sta, an),
+            [[sin(45)*rd, butsp*(numbut-0.5)+cos(45)*rd]],
+            arc( 0, butsp*(numbut-0.5), rd, sta45, 180-sta, an),
             [for (x=[numbut-2:-1:0]) each concat(
                 [[whiteof, butsp*(x+1)+ctof],[whiteof, butsp*(x+1)-ctof]],
                 arc( 0, butsp*(x+0.5), rd, sta, 180-sta, an)
