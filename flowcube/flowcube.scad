@@ -258,28 +258,48 @@ module cubeedgeswhite(xof, bof, zof)
     }
 }
 
-module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=16)
+module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=32)
 {
     sd = butsp-xof*2;
     rd = bof+zof+xof;
     an = 90/cp;
     an2 = 45/cp;
+
+    br = butdia/2;
+
+    esta = asin((ewid/2)/br);
+    cnf = ceil((esta*2) / an);
+    sta = an * cnf / 2;  // recalc so it's an integer number of steps
+
     ss = 2*(cp+1);
-    ss2 = 2*(cp)+1;
+    ss2 = 2*(cnf+1)+1;
     ins1 = 2*ss;
     ins2 = 2*ss+2*ss2;
     ic1 = [0, ss-1, ss, 2*ss-1];
     ic2 = [ss+ss/2-1, ss+ss/2, ss/2-1, ss/2];
+
     polyhedron(convexity=5,
         points = concat(
             xarc(0, 0, 0,  rd,     360, 270, -an),
             xarc(0, 0, 0,  rd+thi, 270, 360,  an),
             xarc(sd, 0, 0, rd,     360, 270, -an),
             xarc(sd, 0, 0, rd+thi, 270, 360,  an),
-            zarc(sd/2, sd/2, rd, butdia/2, 225, 135, -an2),
-            zarc(sd/2, sd/2, rd+thi, butdia/2, 225, 135, -an2),
-            yarc(sd/2, -rd, -sd/2, butdia/2, 405, 315, -an2),
-            yarc(sd/2, -(rd+thi), -sd/2, butdia/2, 405, 315, -an2),
+
+            [[sd/2+br*cos(180+sta), sd/2+br*cos(180+sta), rd]],
+            zarc(sd/2, sd/2, rd, br, 180+sta, 180-sta, -an2),
+            [[sd/2-br*cos(180+sta), sd/2+br*cos(180+sta), rd]],
+
+            [[sd/2+br*cos(180+sta), sd/2+br*cos(180+sta), rd+thi]],
+            zarc(sd/2, sd/2, rd+thi, br, 180+sta, 180-sta, -an2),
+            [[sd/2-br*cos(180+sta), sd/2+br*cos(180+sta), rd+thi]],
+
+            [[sd/2+br*cos(360+sta), -rd, -sd/2+br*cos(360+sta)]],
+            yarc(sd/2, -rd, -sd/2, br, 360+sta, 360-sta, -an2),
+            [[sd/2-br*cos(360+sta), -rd, -sd/2+br*cos(360+sta)]],
+
+            [[sd/2+br*cos(360+sta), -(rd+thi), -sd/2+br*cos(360+sta)]],
+            yarc(sd/2, -(rd+thi), -sd/2, br, 360+sta, 360-sta, -an2),
+            [[sd/2-br*cos(360+sta), -(rd+thi), -sd/2+br*cos(360+sta)]],
             []
         ), faces = concat(
             qface(0, ss, ss, 0, ss/2-2),
@@ -354,7 +374,7 @@ module cubeedgeblack(xof=xsof*butsp, bof=10, zof=-2.3, thi=1.2, tol=0.2)
     }
 }
 
-module cubeedgeinside(sd, ins, rd=10, cp=16)
+module cubeedgeinside(sd, ins, rd=10, cp=32)
 {
     an = 90/cp;
     rotate([0,90,0]) linear_extrude(height=sd, convexity=5) polygon(concat(
@@ -605,7 +625,7 @@ module cubebackedges(xof = xsof*butsp, bof = 10, zof = -2.3, thi=1.2, tol=0.2)
 
         sd = butsp-ewid;
         translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = thi, rd=bof+zof+xof+1);
-        translate([numbut*butsp-xof, xof, -(zof+xof)]) cubeedge(sd = butsp/2-ewid/2+xof, thi = 1.2, rd=bof+zof+xof-.2);
+        translate([numbut*butsp-xof+tol, xof, -(zof+xof)]) cubeedge(sd = butsp/2-ewid/2+xof-tol, thi = 1.2, rd=bof+zof+xof-.2);
         // translate([(numbut-0.5)*butsp+ewid/2, xof, -(zof+xof)]) cubeedge(sd = sd, thi = 1.0, rd=bof+zof+xof-1.2);
 
         // Inside
@@ -624,8 +644,10 @@ module cubebackedge(xof, bof, zof, thi=1.2, tol=0.2, cp=32)
     an = 90/cp;
     rd = butdia/2;
     esta = asin((ewid/2)/rd);
-    cnf = floor((90-(esta*2)) / an);
-    sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
+    cnf = ceil(((esta*2)) / an);
+    sta = an * (cnf) / 2;  // recalc so it's an integer number of steps
+
+    ctof = (butsp/2)-rd*cos(sta);
 
     // Edge with cutouts for buttons
     for (z=[1/*,-1.2*/]) translate([(numbut-0.5)*butsp, 0, bof+z]) linear_extrude(height=thi, convexity=4)
@@ -635,10 +657,16 @@ module cubebackedge(xof, bof, zof, thi=1.2, tol=0.2, cp=32)
         ));
 
     // Middle bit of edge
-    translate([(numbut-0.5)*butsp, 0, bof-0.2])
-        linear_extrude(height=1.2) polygon([
-            [whiteof,xof], [backwid,xof], [backwid, endofs+backwid], [whiteof, endofs+whiteof]
-        ]);
+    translate([(numbut-0.5)*butsp, 0, bof-0.205])
+        linear_extrude(height=1.21) polygon(concat(
+            [[whiteof, ctof], [whiteof,xof], [backwid,xof], [backwid, endofs+backwid]],
+            arc( 0, butsp*(numbut-0.5), rd, 45, 180-sta, an),
+            [for (x=[numbut-2:-1:0]) each concat(
+                [[whiteof, butsp*(x+1)+ctof],[whiteof, butsp*(x+1)-ctof]],
+                arc( 0, butsp*(x+0.5), rd, sta, 180-sta, an)
+                )],
+            []
+        ));
 
     // Back bit of edge
     translate([(numbut-0.5)*butsp, 0, 0]) difference() {
@@ -676,7 +704,7 @@ module cubebackedge(xof, bof, zof, thi=1.2, tol=0.2, cp=32)
     }
 }
 
-module whiteside(xof=xsof*butsp, bof=10, zof=-2.3, nh=numbut, thi=1, eof=0.5-xsof, cp=64)
+module whiteside(xof=xsof*butsp, bof=10, zof=-2.3, nh=numbut, thi=1, eof=0.5-xsof, cp=512)
 {
     wid = butsp * (nh-1+2*eof);
     hr = holesp*4;
@@ -684,36 +712,52 @@ module whiteside(xof=xsof*butsp, bof=10, zof=-2.3, nh=numbut, thi=1, eof=0.5-xso
 
     tcs = cp*nh*nh;
     ns = 2*(nh-1);
-    tcr = tcs+ns*4;
+
+    tcut = tcs+ns*4;
+    tcr = tcut+ns*4;
+
+    esta = 45-asin((ewid/2)/hr);
+    cnf = ceil(esta / an);
+    sta = an * cnf;  // recalc so it's an integer number of steps
+    ctof = hr*cos(45-sta);
+    etof = (butsp/2)-ctof;
+    echo(ctof);
 
     color("#eee") translate([0,0,bof])
-    linear_extrude(height=thi, convexity=5) polygon(points=concat(
-        [for (x=[0:nh-1], y=[0:nh-1]) each circle((x+0.5)*butsp, (y+0.5)*butsp, hr, an)],
-        ssquare(xof, butsp*nh-xof, nh-1, butsp, butsp-xof, butsp+xof),
-        [for (x=[1:nh-1], y=[1:nh-1]) each rect(x*butsp, y*butsp, facetnutwid, facetnuthei)],
-        []
-    ), paths=[concat(
-        ws_corner(cp, cp/2, 0, 3, tcs+2*ns, tcs),
-        [for (x=[1:nh-2]) each ws_corner(cp, cp*3/4, nh*x, 2, tcs+2*x-1, tcs+2*x)],
-        ws_corner(cp, cp/2, nh*(nh-1), 2, tcs+ns-1, tcs+3*ns),
-        [for (x=[1:nh-2]) each ws_corner(cp, cp*3/4, nh*(nh-1)+x, 1, tcs+3*ns+2*x-1, tcs+3*ns+2*x)],
-        ws_corner(cp, cp/2, nh*nh-1, 1, tcs+4*ns-1, tcs+2*ns-1),
-        [for (x=[nh-2:-1:1]) each ws_corner(cp, cp*3/4, nh*x+nh-1, 0, tcs+ns+2*x, tcs+ns+2*x-1)],
-        ws_corner(cp, cp/2, nh-1, 0, tcs+ns, tcs+3*ns-1),
-        [for (x=[nh-2:-1:1]) each ws_corner(cp, cp*3/4, x, 3, tcs+2*ns+2*x, tcs+2*ns+2*x-1)],
-        []
-    ),
-        for (x=[1:nh-2],y=[1:nh-2]) [for (i=[0:cp-1]) (x+y*nh)*cp+i],
-        for (i=[0:(nh-1)*(nh-1)-1]) [for (s=[0:3]) tcr+i*4+s]
-    ]);
+    linear_extrude(height=thi, convexity=5)
+    difference() {
+        polygon(points=concat(
+            [for (x=[0:nh-1], y=[0:nh-1]) each circle((x+0.5)*butsp, (y+0.5)*butsp, hr, an)],
+            ssquare(xof, butsp*nh-xof, nh-1, butsp, butsp-xof, butsp+xof),
+            ssquare(etof, butsp*nh-etof, nh-1, butsp, butsp-etof, butsp+etof),
+            [for (x=[1:nh-1], y=[1:nh-1]) each rect(x*butsp, y*butsp, facetnutwid, facetnuthei)],
+            []
+        ), paths=[concat(
+            ws_corner(cp, cp/2, 0, 3, cnf, 2*ns, 0, tcs, tcut),
+            [for (x=[1:nh-2]) each ws_corner(cp, cp*3/4, nh*x, 2, cnf, 2*x-1, 2*x, tcs, tcut)],
+            ws_corner(cp, cp/2, nh*(nh-1), 2, cnf, ns-1, 3*ns, tcs, tcut),
+            [for (x=[1:nh-2]) each ws_corner(cp, cp*3/4, nh*(nh-1)+x, 1, cnf, 3*ns+2*x-1, 3*ns+2*x, tcs, tcut)],
+            ws_corner(cp, cp/2, nh*nh-1, 1, cnf, 4*ns-1, 2*ns-1, tcs, tcut),
+            [for (x=[nh-2:-1:1]) each ws_corner(cp, cp*3/4, nh*x+nh-1, 0, cnf, ns+2*x, ns+2*x-1, tcs, tcut)],
+            ws_corner(cp, cp/2, nh-1, 0, cnf, ns, 3*ns-1, tcs, tcut),
+            [for (x=[nh-2:-1:1]) each ws_corner(cp, cp*3/4, x, 3, cnf, 2*ns+2*x, 2*ns+2*x-1, tcs, tcut)],
+            []
+        ),
+            for (x=[1:nh-2],y=[1:nh-2]) [for (i=[0:cp-1]) (x+y*nh)*cp+i],
+            for (i=[0:(nh-1)*(nh-1)-1]) [for (s=[0:3]) tcr+i*4+s]
+        ]);
+        for (x=[0:nh-1],y=[0:nh-1]) {
+            translate([(x+0.5)*butsp, (y+0.5)*butsp]) square([(ctof)*2,(ctof)*2], true);
+        }
+    }
 }
 
 // Circle part with edge parts
-// offset, quadrant, number of points
-function ws_corner(cp, ns, o, q, s1, e1) = concat(
-    [s1],
-    [for (i=[0:ns]) o*cp+(i+cp*(q*2+1)/8)%cp],
-    [e1]
+// offset, quadrant, number of points, points to cut
+function ws_corner(cp, ns, o, q, c, s1, e1, o1, o2) = concat(
+    [s1+o1, s1+o2],
+    [for (i=[0+c:ns-c]) o*cp+(i+cp*(q*2+1)/8)%cp],
+    [e1+o2, e1+o1]
 );
 
 // Square with multiple points on sides
@@ -1249,7 +1293,7 @@ module buttonholes(thi=6.4, tol=0.2, cut=0.01)
     }
 }
 
-module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=16)
+module cubeedge(sd = holesp * 48, thi = 1, rd=10, cp=32)
 {
     an = 90/cp;
     ss = 2*(cp+1);
@@ -1293,27 +1337,14 @@ module edgefacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12
     esta = asin((ewid/2)/rd);
     cnf = floor((90-(esta*2)) / an);
     sta = an * (cp-cnf) / 2;  // recalc so it's an integer number of steps
-    ss = (cnf+1)*2+2;
 
-    // TODO: Magic numbers!
-    polyhedron(convexity=5,
-        points = concat(
-            [[ xo-ewid/2, xof, thi]],
-            zarc( xo,  xo, thi, rd, 180+sta, 270-sta, an),
-            zarc(-xo,  xo, thi, rd,  90+sta, 180-sta, an),
-            [[-xo+ewid/2, xof, thi]],
-            [[ xo-ewid/2, xof,   0]],
-            zarc( xo,  xo,   0, rd, 180+sta, 270-sta, an),
-            zarc(-xo,  xo,   0, rd,  90+sta, 180-sta, an),
-            [[-xo+ewid/2, xof,   0]],
-            []
-        ),
-        faces = concat(
-            [tface( 0, ss)],
-            qface( 0, ss, ss),
-            [bface(ss, ss)],
-            []
-        ));
+    linear_extrude(convexity=5, height=thi) polygon(concat(
+        [[ xo-ewid/2, xof ]],
+        arc( xo, xo, rd, 180+sta, 270-sta, an),
+        arc(-xo, xo, rd,  90+sta, 180-sta, an),
+        [[-xo+ewid/2, xof ]],
+        []
+    ));
 }
 
 module cornerfacet(sd = holesp * 48, thi=1, rd=butdia/2, cp=32, xof=xsof*holesp*12, yof=xsof*holesp*12)
@@ -1344,28 +1375,19 @@ module sidefacet(sd = holesp * 48, thi=1.2, rd=butdia/2, cp=32)
     ngap = 0.9;
     difference() {
         union() {
-            polyhedron(convexity=5,
-                points = concat(
-                    zarc(-xo, -xo, thi, rd,   0+sta,  90-sta, an),
-                    zarc( xo, -xo, thi, rd, 270+sta, 360-sta, an),
-                    zarc( xo,  xo, thi, rd, 180+sta, 270-sta, an),
-                    zarc(-xo,  xo, thi, rd,  90+sta, 180-sta, an),
-                    zarc(-xo, -xo,   0, rd,   0+sta,  90-sta, an),
-                    zarc( xo, -xo,   0, rd, 270+sta, 360-sta, an),
-                    zarc( xo,  xo,   0, rd, 180+sta, 270-sta, an),
-                    zarc(-xo,  xo,   0, rd,  90+sta, 180-sta, an),
-                    []
-                ),
-                faces = concat(
-                    [tface( 0, ss)],
-                    qface( 0, ss, ss),
-                    [bface(ss, ss)],
-                    []
-                ));
+            linear_extrude(convexity=5, height=thi) polygon(concat(
+                arc(-xo, -xo, rd,   0+sta,  90-sta, an),
+                arc( xo, -xo, rd, 270+sta, 360-sta, an),
+                arc( xo,  xo, rd, 180+sta, 270-sta, an),
+                arc(-xo,  xo, rd,  90+sta, 180-sta, an),
+                []
+            ));
             translate([0,0,-(facetnutthi-ngap)/2]) cube([facetnutwid-0.2,facetnuthei-0.2,facetnutthi-ngap], true);
         }
         translate([0,0,-7.51]) cylinder(7.41, boltrad, boltrad, $fn=32);
         translate([0,0,-3.9]) cube([5.5, facetnuthei+0.01, 2.6], true);
+        for (an=[0:90:270]) rotate([0,0,an])
+            translate([0,0,-1]) edgeinset(thi=1.01);
     }
     // sacrificial layer
     #translate([0,0,-4-1.2-0.1]) cube([4, 4, 0.2], true);
