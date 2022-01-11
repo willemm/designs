@@ -1,3 +1,4 @@
+doitem = "";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -22,6 +23,17 @@ boltrad = 3/2+0.2;
 
 backboltoff = 6.5;
 
+if (doitem == "sidefacet"   ) { mirror([0,0,1]) sidefacet(); }
+if (doitem == "side"        ) { whiteside(); }
+if (doitem == "backendfront") { backendfront(); }
+if (doitem == "backendback" ) { backendback(); }
+if (doitem == "button"      ) { button(); }
+if (doitem == "edgeblack"   ) { rotate([0,90,0]) cubeedgeblack(); }
+if (doitem == "edgewhite"   ) { rotate([0,-90,0]) cubeedgewhite(); }
+if (doitem == "backedge"    ) { rotate([0,90,0]) cubebackedges(); }
+if (doitem == "bottomside"  ) { bottomsidepart(); }
+if (doitem == "") {
+
 *mirror([0,0,1]) sidefacet();
 *whiteside();
 *backendfront();
@@ -30,7 +42,7 @@ backboltoff = 6.5;
 *rotate([0,90,0]) cubeedgeblack();
 *rotate([0,-90,0]) cubeedgewhite();
 
-rotate([0,90,0]) cubebackedges();
+*rotate([0,90,0]) cubebackedges();
 *bottomsidepart();
 
 *color("#eee") translate([0,0,ledz+1.8]) backendfront();
@@ -48,7 +60,7 @@ intersection() {
 }
 */
 
-*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     color("#333") cubecorner();
     *cubecornernut();
 
@@ -60,8 +72,10 @@ intersection() {
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     bottomsidepart();
 
-*color("#333") translate([0,0,-1]) bottomside();
+color("#333") translate([0,0,-1]) bottomside();
 *psu();
+
+}
 
 module cubeside() {
     zof = -2.3;
@@ -91,7 +105,7 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
     rcx = (cxy+cz)*sqrt(2/3);
-    echo("RCX = ", rcx);
+    // echo("RCX = ", rcx);
     rcz = (cz-2*cxy)/sqrt(3);
     color("#543") translate([0,0,rcz+43/2-19]) cube([158, 98, 43], true);
 }
@@ -729,7 +743,6 @@ module whiteside(xof=xsof*butsp, bof=10, zof=-2.3, nh=numbut, thi=1, eof=0.5-xso
     sta = an * cnf;  // recalc so it's an integer number of steps
     ctof = hr*cos(45-sta);
     etof = (butsp/2)-ctof;
-    echo(ctof);
 
     color("#eee") translate([0,0,bof])
     linear_extrude(height=thi, convexity=5)
