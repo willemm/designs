@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "edgewhite";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -28,9 +28,9 @@ if (doitem == "side"        ) { whiteside(); }
 if (doitem == "backendfront") { backendfront(); }
 if (doitem == "backendback" ) { backendback(); }
 if (doitem == "button"      ) { button(); }
-if (doitem == "edgeblack"   ) { rotate([0,90,0]) cubeedgeblack(); }
+if (doitem == "edgeblack"   ) { rotate([0, 90,0]) cubeedgeblack(); }
 if (doitem == "edgewhite"   ) { rotate([0,-90,0]) cubeedgewhite(); }
-if (doitem == "backedge"    ) { rotate([0,90,0]) cubebackedges(); }
+if (doitem == "backedge"    ) { rotate([0, 90,0]) cubebackedges(); }
 if (doitem == "bottomside"  ) { bottomsidepart(); }
 if (doitem == "") {
 
@@ -272,7 +272,7 @@ module cubeedgeswhite(xof, bof, zof)
     }
 }
 
-module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=32)
+module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, tol=0.2, cp=32)
 {
     sd = butsp-xof*2;
     rd = bof+zof+xof;
@@ -294,26 +294,26 @@ module cubeedgewhite(xof=xsof*butsp, bof=10, zof=-2.3, thi=1, cp=32)
 
     polyhedron(convexity=5,
         points = concat(
-            xarc(0, 0, 0,  rd,     360, 270, -an),
-            xarc(0, 0, 0,  rd+thi, 270, 360,  an),
-            xarc(sd, 0, 0, rd,     360, 270, -an),
-            xarc(sd, 0, 0, rd+thi, 270, 360,  an),
+            xarc(tol, 0, 0,  rd,     360, 270, -an),
+            xarc(tol, 0, 0,  rd+thi, 270, 360,  an),
+            xarc(sd-tol, 0, 0, rd,     360, 270, -an),
+            xarc(sd-tol, 0, 0, rd+thi, 270, 360,  an),
 
-            [[sd/2+br*cos(180+sta), sd/2+br*cos(180+sta), rd]],
+            [[sd/2+br*cos(180+sta)+tol, sd/2+br*cos(180+sta), rd]],
             zarc(sd/2, sd/2, rd, br, 180+sta, 180-sta, -an2),
-            [[sd/2-br*cos(180+sta), sd/2+br*cos(180+sta), rd]],
+            [[sd/2-br*cos(180+sta)-tol, sd/2+br*cos(180+sta), rd]],
 
-            [[sd/2+br*cos(180+sta), sd/2+br*cos(180+sta), rd+thi]],
+            [[sd/2+br*cos(180+sta)+tol, sd/2+br*cos(180+sta), rd+thi]],
             zarc(sd/2, sd/2, rd+thi, br, 180+sta, 180-sta, -an2),
-            [[sd/2-br*cos(180+sta), sd/2+br*cos(180+sta), rd+thi]],
+            [[sd/2-br*cos(180+sta)-tol, sd/2+br*cos(180+sta), rd+thi]],
 
-            [[sd/2+br*cos(360+sta), -rd, -sd/2+br*cos(360+sta)]],
+            [[sd/2+br*cos(360+sta)-tol, -rd, -sd/2+br*cos(360+sta)]],
             yarc(sd/2, -rd, -sd/2, br, 360+sta, 360-sta, -an2),
-            [[sd/2-br*cos(360+sta), -rd, -sd/2+br*cos(360+sta)]],
+            [[sd/2-br*cos(360+sta)+tol, -rd, -sd/2+br*cos(360+sta)]],
 
-            [[sd/2+br*cos(360+sta), -(rd+thi), -sd/2+br*cos(360+sta)]],
+            [[sd/2+br*cos(360+sta)-tol, -(rd+thi), -sd/2+br*cos(360+sta)]],
             yarc(sd/2, -(rd+thi), -sd/2, br, 360+sta, 360-sta, -an2),
-            [[sd/2-br*cos(360+sta), -(rd+thi), -sd/2+br*cos(360+sta)]],
+            [[sd/2-br*cos(360+sta)+tol, -(rd+thi), -sd/2+br*cos(360+sta)]],
             []
         ), faces = concat(
             qface(0, ss, ss, 0, ss/2-2),
