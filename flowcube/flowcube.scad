@@ -1,4 +1,4 @@
-doitem = "edgewhite";
+doitem = "";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -967,7 +967,7 @@ module backendback_old(sd = numbut*butsp, thi = 3.6)
                 // Diagonal holes to cross connect gnd and 5v
                 for (x=[0,1], y=[0,1]) {
                     mirror([x,0,0]) mirror([0,y,0])
-                    rotate([0,0,45]) translate([0, 8.48, 1.6]) cube([7, 0.6, 0.801], true);
+                    rotate([0,0,45]) translate([0, 8.48, 0.6]) cube([7, 0.6, 0.801], true);
                 }
             }
         }
@@ -1043,7 +1043,7 @@ module backend_back_midpiece(thi = 3.6, cwid = butsp-8, swid = 20, twid = 10, bw
         // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
         dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
         for (an=[45:90:315]) {
-            rotate([0,0,an]) translate([0, dhoff+0.4, 1.6]) cube([7, 0.8, 0.8], true);
+            rotate([0,0,an]) translate([0, dhoff+0.4, 0.6]) cube([7, 0.8, 0.8], true);
         }
     }
     // Sacrificial layer
@@ -1112,7 +1112,7 @@ module backend_back_edgepiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, twi
         // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
         dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
         for (an=[-45:90:45]) {
-            rotate([0,0,an]) translate([0, dhoff+0.4, 1.6]) cube([7, 0.8, 0.8], true);
+            rotate([0,0,an]) translate([0, dhoff+0.4, 0.6]) cube([7, 0.8, 0.8], true);
         }
 
         rotate([0,0,-(rot % 180)]) wireducts(cwid);
@@ -1157,7 +1157,7 @@ module backend_back_cornerpiece(rot = 0, thi = 3.6, cwid = butsp-8, swid = 20, t
         // Calculate chord to wsled supports
         // dhoff = avg of butsp/2-4+1.6 and butsp/2-ledsp;
         dhoff = (butsp/2 - (ledsp+4)/2 + 0.8) * sqrt(2);
-        rotate([0,0,-45]) translate([0, dhoff+0.4, 1.6]) cube([7, 0.8, 0.8], true);
+        rotate([0,0,-45]) translate([0, dhoff+0.4, 0.6]) cube([7, 0.8, 0.8], true);
 
         // Extra cutouts to push the wire through straight
         rotate([0,0,-rot]) wireducts(cwid);
