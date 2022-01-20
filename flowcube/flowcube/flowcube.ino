@@ -1,6 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <Wire.h>
 
 // Which pin on the Arduino is connected to the NeoPixels?
 #define PIN 2
@@ -16,7 +17,113 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 #define DELAYVAL 50
 
-// #define SERIALOUT
+#define SERIALOUT
+
+void serprintf(const char *fmt, ...)
+{
+#ifdef SERIALOUT
+    char s[256];
+    va_list args;
+
+    va_start(args, fmt);
+    vsnprintf(s, sizeof(s), fmt, args);
+    Serial.println(s);
+    va_end(args);
+#endif SERIALOUT
+}
+
+#define MCP23017 0x20
+
+#define MCP_IODIR   0x00
+#define MCP_IPOL    0x02
+#define MCP_GPINTEN 0x04
+#define MCP_DEFVAL  0x06
+#define MCP_INTCON  0x08
+#define MCP_IOCON   0x0A
+#define MCP_GPPU    0x0C
+#define MCP_INTF    0x0E
+#define MCP_INTCAP  0x10
+#define MCP_GPIO    0x12
+#define MCP_OLAT    0x14
+static inline int mcpwrite(byte reg, uint16_t val)
+{
+    Wire.beginTransmission(MCP23017);
+    Wire.write(reg);
+    Wire.write(val & 0xff);
+    Wire.write((val >> 8) & 0xff);
+    if (Wire.endTransmission()) {
+        serprintf("mcp write error");
+        return -1;
+    }
+    return 0;
+}
+
+static inline int32_t mcpread(byte reg)
+{
+    Wire.beginTransmission(MCP23017);
+    Wire.write(reg);
+    if (Wire.endTransmission()) {
+        serprintf("mcp read error");
+        return -1;
+    }
+    Wire.requestFrom(MCP23017, 2);
+    byte lo, hi;
+    lo = Wire.read();
+    hi = Wire.read();
+    return (hi << 8) | lo;
+}
+
+#define KEYROW1 0b0000000011111000
+#define KEYROW2 0b0001111100000000
+#define KEYROW3 0b0110000000000111
+
+uint16_t scanrows[][2] = {
+    { KEYROW1, KEYROW2|KEYROW3 },
+    { KEYROW2, KEYROW3 }
+};
+
+byte keyoff[] = {
+    0, 25
+};
+
+byte keyrows[] = {
+    7,6,5,
+    4,3,2,1,0,
+    0,1,2,3,4,
+    8,9,0
+};
+
+int scankeys()
+{
+    int key = 0;
+    if (mcpwrite(MCP_GPPU, KEYROW1|KEYROW2|KEYROW3) < 0) return -1;
+    if (mcpwrite(MCP_IODIR, 0xFFFF) < 0) return -1;
+    for (int r = 0; r < 2; r++) {
+        // Loop over first set
+        for (int ob = 0; ob < 16; ob++) {
+            if (scanrows[r][0] & (1 << ob)) {
+                // Set one pin to output, output a zero
+                // serprintf("Bit %d, write 0x%04x", ob, ~(1<<ob));
+                if (mcpwrite(MCP_IODIR, ~(1<<ob)) < 0) return -1;
+                if (mcpwrite(MCP_GPIO, ~(1<<ob)) < 0) return -1;
+
+                int32_t res = mcpread(MCP_GPIO);
+                if (res < 0) return -1;
+                // serprintf("Got result 0x%04x, scanning 0x%04x", res, scanrows[r][1]);
+                for (int ib = 0; ib < 16; ib++) {
+                    if (scanrows[r][1] & (1 << ib)) {
+                        if ((res & (1 << ib)) == 0) {
+                            key = keyoff[r]+keyrows[ib]*5+keyrows[ob]+1;
+                            serprintf("Pressed: %d,%d = %d", ob, ib, key);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    mcpwrite(MCP_IODIR, 0xFFFF);
+    return key;
+}
 
 void setup() {
 #ifdef SERIALOUT
@@ -29,6 +136,19 @@ void setup() {
 
     pixels.clear();
     pixels.show();
+    Wire.begin();
+    /*
+    serprintf("Scanning I2C bus...");
+    Wire.begin();
+    for (byte i = 8; i < 120; i++) {
+        Wire.beginTransmission(i);
+        if (Wire.endTransmission() == 0) {
+            serprintf("Found I2C device at 0x%02x", i);
+            delay(1);
+        }
+    }
+    serprintf("Scanning I2C bus finished");
+    */
 }
 
 uint32_t colors[] = {
@@ -47,20 +167,8 @@ int lines[4][6] = {
     { 11,16,17,18,19,24 }
 };
 
-void serprintf(const char *fmt, ...)
+void loop()
 {
-#ifdef SERIALOUT
-    char s[256];
-    va_list args;
-
-    va_start(args, fmt);
-    vsnprintf(s, sizeof(s), fmt, args);
-    Serial.println(s);
-    va_end(args);
-#endif SERIALOUT
-}
-
-void loop() {
     /*
     for(int rgb=0; rgb < sizeof(colors)/sizeof(colors[0]); rgb++) {
         delay(DELAYVAL);
@@ -91,7 +199,10 @@ void loop() {
     }
     */
     for (int st = 0; st < 4*6; st++) {
-        delay(500);
+        for (int d = 0; d < 1; d++) {
+            delay(500);
+            scankeys();
+        }
         pixels.clear();
         int nl = st/6;
         for (int l = 0; l <= nl; l++) {
@@ -105,7 +216,10 @@ void loop() {
         }
         pixels.show();
     }
-    delay(5000);
+    for (int d = 0; d < 10; d++) {
+        delay(500);
+        scankeys();
+    }
 }
 
 void setbutton(int btn, uint32_t color)
