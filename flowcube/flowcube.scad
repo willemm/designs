@@ -60,7 +60,7 @@ intersection() {
 }
 */
 
-rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
+*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     color("#333") cubecorner();
     *cubecornernut();
 
@@ -72,8 +72,11 @@ rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     bottomsidepart();
 
-color("#333") translate([0,0,-1]) bottomside();
-*psu();
+*color("#333") bottomplate();
+color("#333") bottomblob();
+
+*color("#333") translate([0,0,-1]) bottomside();
+psu();
 
 }
 
@@ -108,6 +111,63 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
     // echo("RCX = ", rcx);
     rcz = (cz-2*cxy)/sqrt(3);
     color("#543") translate([0,0,rcz+43/2-19]) cube([158, 98, 43], true);
+}
+
+module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    br = rcx+1.3;
+    br2 = 40;
+
+    ethi = 1.2;
+
+    bra = (br+(br2+ethi))/2;
+    brd = (br-(br2+ethi))/2;
+
+    nly = 20;
+    hei = 120;
+
+
+    translate([0,0,rcz-bothi-thi]) {
+        polyhedron(points=concat(
+            [for (z=[0:nly]) each zbcircle(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp) ],
+            zbcircle(0, 0, -hei, br2, 360/cp),
+            zbcircle(0, 0, 0, br2, 360/cp),
+            []
+        ), faces = concat(
+            [for (z=[0:nly+1]) each nquads(z*cp, cp, cp)],
+            nquads((nly+2)*cp, cp, -(nly+2)*cp),
+            []
+        ));
+    }
+}
+
+function zbcircle(x,y,z,d,an) = [
+    for (a = [0:an:360-an]) [x+d*sin(a),y+d*cos(a),z]
+];
+
+module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    br = rcx+1.3;
+
+    ihr = (rcx-5) * sqrt(3)/2;
+    translate([0,0,rcz-bothi]) {
+        translate([0,0,-thi]) cylinder(thi, br, br, $fn=240);
+        for (an=[0:60:300]) rotate([0,0,an]) {
+            translate([0, ihr-1-tol, 2]) cube([80,2,4], true);
+        }
+    }
 }
 
 /* 
