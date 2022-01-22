@@ -21,6 +21,8 @@ facetnutwid = 10;
 facetnuthei = 6;
 boltrad = 3/2+0.2;
 
+botholeoff = 100;
+
 backboltoff = 6.5;
 
 if (doitem == "sidefacet"   ) { mirror([0,0,1]) sidefacet(); }
@@ -72,11 +74,11 @@ intersection() {
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     bottomsidepart();
 
-*color("#333") bottomplate();
-color("#333") bottomblob();
+color("#666") bottomplate();
+*color("#333") bottomblob();
 
 *color("#333") translate([0,0,-1]) bottomside();
-psu();
+*#psu();
 
 }
 
@@ -110,7 +112,7 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
     rcx = (cxy+cz)*sqrt(2/3);
     // echo("RCX = ", rcx);
     rcz = (cz-2*cxy)/sqrt(3);
-    color("#543") translate([0,0,rcz+43/2-19]) cube([158, 98, 43], true);
+    color("#543") translate([0,0,rcz+43/2-23+6.1]) cube([158, 98, 43], true);
 }
 
 module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
@@ -132,18 +134,25 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
     nly = 20;
     hei = 120;
 
+    ho = botholeoff;
 
     translate([0,0,rcz-bothi-thi]) {
-        polyhedron(points=concat(
-            [for (z=[0:nly]) each zbcircle(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp) ],
-            zbcircle(0, 0, -hei, br2, 360/cp),
-            zbcircle(0, 0, 0, br2, 360/cp),
-            []
-        ), faces = concat(
-            [for (z=[0:nly+1]) each nquads(z*cp, cp, cp)],
-            nquads((nly+2)*cp, cp, -(nly+2)*cp),
-            []
-        ));
+        difference() {
+            polyhedron(convexity=6, points=concat(
+                [for (z=[0:nly]) each zbcircle(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp) ],
+                zbcircle(0, 0, -hei, br2, 360/cp),
+                zbcircle(0, 0, 0, br2, 360/cp),
+                []
+            ), faces = concat(
+                [for (z=[0:nly+1]) each nquads(z*cp, cp, cp)],
+                nquads((nly+2)*cp, cp, -(nly+2)*cp),
+                []
+            ));
+            for (an=[0:60:300]) rotate([0,0,an]) {
+                translate([0,ho,-hei/2-10]) cylinder(hei/2+10-2, 5, 5, $fn=32);
+                translate([0,ho,-2.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
+            }
+        }
     }
 }
 
@@ -161,12 +170,84 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
 
     br = rcx+1.3;
 
+    ho = botholeoff;
+
+    psul = 158;
+    psuw = 98;
+    psuh = 26;
+    strt = 2;
+    psuho = 16;
+    ex = strt*2+tol*2;
+
     ihr = (rcx-5) * sqrt(3)/2;
     translate([0,0,rcz-bothi]) {
-        translate([0,0,-thi]) cylinder(thi, br, br, $fn=240);
-        for (an=[0:60:300]) rotate([0,0,an]) {
-            translate([0, ihr-1-tol, 2]) cube([80,2,4], true);
+        difference() {
+            union() {
+                // Plate
+                translate([0,0,-thi]) cylinder(thi, br, br, $fn=240);
+
+                // Side struts
+                for (an=[0:60:300]) rotate([0,0,an]) {
+                    translate([0, ihr-1-tol, 2]) cube([80,2,4], true);
+                }
+
+                // Nut holders
+                for (an=[0:60:300]) {
+                    translate([ho*sin(an), ho*cos(an), 2.5]) cube([14.8,10,5], true);
+                }
+
+                // Struts for psu
+                translate([ (psul/2+strt/2+tol), 0, psuh/2]) cube([strt,psuw+ex,psuh], true);
+                translate([-(psul/2+strt/2+tol), 0, psuho/2]) cube([strt,psuw+ex,psuho], true);
+                translate([0, (psuw/2+strt/2+tol), psuh/2]) cube([psul+ex,strt,psuh], true);
+                translate([0,-(psuw/2+strt/2+tol), psuh/2]) cube([psul+ex,strt,psuh], true);
+
+                // Feet for psu (and nuts)
+                translate([ (psul/2-8),  (psuw/2-8), 6/2]) cube([17,17,6], true);
+                translate([ (psul/2-8), -(psuw/2-8), 6/2]) cube([17,17,6], true);
+                translate([-(psul/2-8),  (psuw/2-8), 6/2]) cube([17,17,6], true);
+                translate([-(psul/2-8), -(psuw/2-8), 6/2]) cube([17,17,6], true);
+
+            }
+
+            // PSU bolt holes
+            translate([-(psul/2-4), -(psuw/2-5), 6]) {
+                translate([0,0,-7]) cylinder(7.01, boltrad, boltrad, $fn=24);
+                translate([0,2.5,-1.5-2.8/2]) cube([6,20,2.8], true);
+            }
+            translate([ (psul/2-2.8),  (psuw/2-7.5), 6]) {
+                translate([0,0,-7]) cylinder(7.01, boltrad, boltrad, $fn=24);
+                translate([0,0,-1.5-2.8/2]) cube([6,20,2.8], true);
+            }
+
+            // Bolt holes
+            for (an=[0:60:300]) {
+                translate([ho*sin(an), ho*cos(an), -thi-0.01]) cylinder(thi+8+0.02, boltrad, boltrad, $fn=32);
+                translate([ho*sin(an), ho*cos(an), 2.8/2]) cube([facetnutwid, facetnutwid+2.41, 2.8], true);
+            }
+
+            hd = 2;
+            od = 40;
+            nd = floor(od/(3*hd));
+            // Air holes
+            for (d=[1:nd], an=[360/(d*6)+30:360/(d*6):360+30]) {
+                translate([sin(an)*d*hd*3, cos(an)*d*hd*3, -thi-0.01])
+                cylinder(thi+0.02, hd, hd, false, $fn=24);
+            }
         }
+        // PSU bolt holes sacrificial layers
+        #translate([-(psul/2-4), -(psuw/2-5), 6]) {
+            translate([0,0,-1.5+0.2/2]) cube([4,4,0.2], true);
+        }
+        #translate([ (psul/2-2.8),  (psuw/2-7.5), 6]) {
+            translate([0,0,-1.5+0.2/2]) cube([4,4,0.2], true);
+        }
+
+        // Bolt holes sacrificial layers
+        #for (an=[0:60:300]) {
+            translate([ho*sin(an), ho*cos(an), 2.8+0.2/2]) cube([4,4, 0.2], true);
+        }
+
     }
 }
 
