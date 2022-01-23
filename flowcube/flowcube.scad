@@ -146,8 +146,8 @@ module mcp(xof=xsof*butsp, bof=10, zof=-2.3)
     translate([0, -ihr+3, rcz-5]) rotate([-90,0,0])  {
         difference() {
             color("#595") translate([0,0,th/2]) cube([ln, wd, th], true);
-            translate([-(ln/2 -  5.0),-(wd/2 - 6.6), -0.01]) cylinder(1.52, 1.7, 1.7, $fn=24);
-            translate([ (ln/2 - 16.8),-(wd/2 - 6.6), -0.01]) cylinder(1.52, 1.7, 1.7, $fn=24);
+            translate([-(ln/2 -  5.0), (wd/2 - 6.6), -0.01]) cylinder(1.52, 1.7, 1.7, $fn=24);
+            translate([ (ln/2 - 16.8), (wd/2 - 6.6), -0.01]) cylinder(1.52, 1.7, 1.7, $fn=24);
         }
         color("#ddd") translate([-ln/2+22.5/2, -wd/2-0.8+5.9/2, 1.6+7/2]) cube([22.5, 5.9, 7], true);
         color("#ddd") translate([-ln/2+22.5/2+25.4, -wd/2-0.8+5.9/2, 1.6+7/2]) cube([22.5, 5.9, 7], true);
@@ -402,6 +402,12 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
                 translate([-4, -3.3, 20]) rotate([0,-90,0]) cylinder(8, 3, 3, $fn=24);
             }
         }
+        // Connector sacrificial layers
+        #translate([0,52+15/2,0]) {
+            translate([ 14, 0, 6.8+0.1]) cube([4,4,0.2], true);
+            translate([-14, 0, 6.8+0.1]) cube([4,4,0.2], true);
+        }
+
         // PSU bolt holes sacrificial layers
         #translate([-(psul/2-4), -(psuw/2-5), 6]) {
             translate([0,0,-1.5+0.2/2]) cube([4,4,0.2], true);
