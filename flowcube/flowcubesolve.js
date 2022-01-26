@@ -96,7 +96,7 @@ function set_board_endpoints(pts)
 {
   for (var i = 0; i < pts.length; i++) {
     var pt = pts[i]
-    idx = pt[0]*size*2 + pt[1]
+    var idx = pt[0]*size*2 + pt[1]
     var color = Math.floor(i/2)+1
     board[idx].conns[0] = -color
     board[idx].numconns = 1
@@ -118,7 +118,7 @@ function draw_board(brd)
           endpoints.push(i)
           $('#'+cell.id).addClass('endpoint')
         } else {
-          nextcell = brd[cell.conns[nb]]
+          var nextcell = brd[cell.conns[nb]]
           $('#view .connector.'+cell.id+'.'+nextcell.id).addClass('on')
         }
       }
