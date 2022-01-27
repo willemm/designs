@@ -25,12 +25,12 @@ void setup() {
     Serial.println("Initializing...");
 #endif
     leds_init();
+    leds_test();
     keys_init();
     field_init();
 }
 
 void loop()
 {
-    testleds();
-    test_lines();
+    field_test();
 }

@@ -26,16 +26,15 @@ uint32_t colors[] = {
     pixels.Color(0,101,0),
     pixels.Color(0,0,121),
     pixels.Color(94,86,0),
-    pixels.Color(0,75,85),
-    pixels.Color(99,0,87)
+    pixels.Color(99,0,87),
+    pixels.Color(0,75,85)
 };
 
-#define DELAYVAL 50
-
-void testleds()
+void leds_test()
 {
     for(int rgb=0; rgb < sizeof(colors)/sizeof(colors[0]); rgb++) {
-        delay(DELAYVAL);
+        keys_scan();
+        delay(100);
 
         for(int i=0; i<PERROW; i++) {
             for (int j = 0; j < NUMROWS*2; j++) {
@@ -45,21 +44,22 @@ void testleds()
             }
 
             pixels.show();
-            delay(DELAYVAL);
+            keys_scan();
+            delay(50);
         }
     }
 }
 
 ledset_t leds_keyidx(int keyidx)
 {
-    int side = keyidx/SIDEKEYS;
+    int side = (keyidx/SIDEKEYS) * (SIDEKEYS*4);
     int y = (keyidx%SIDEKEYS) / NUMKEYS;
     int x = keyidx%NUMKEYS;
     ledset_t cell;
     int s1 = (y%2) ? -1 : 1;
-    cell.left = y*(NUMKEYS*2) + (NUMKEYS-1) + s1*((x*2)-(NUMKEYS-1));
+    cell.left = side + y*(NUMKEYS*2) + (NUMKEYS-1) + s1*((x*2)-(NUMKEYS-1)) + (y%2);
     int s2 = (x%2) ? -1 : 1;
-    cell.down = (SIDEKEYS*4-2) - (x*(NUMKEYS*2) + (NUMKEYS-1) + s2*((y*2)-(NUMKEYS-1)));
+    cell.down = side + (SIDEKEYS*4-2) - (x*(NUMKEYS*2) + (NUMKEYS-1) + s2*((y*2)-(NUMKEYS-1))) + (x%2);
     return cell;
 }
 

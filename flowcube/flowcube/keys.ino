@@ -63,6 +63,7 @@ byte keyrows[] = {
 
 int keys_scan()
 {
+    return 0;
     int key = 0;
     if (mcpwrite(MCP_GPPU, KEYROW1|KEYROW2|KEYROW3) < 0) return -1;
     if (mcpwrite(MCP_IODIR, 0xFFFF) < 0) return -1;
