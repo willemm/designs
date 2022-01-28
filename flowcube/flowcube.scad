@@ -25,6 +25,13 @@ botholeoff = 100;
 
 backboltoff = 6.5;
 
+foothi = 20;
+
+pluginset = 16;
+plugoffset = 52;
+
+vertpc = 0;
+
 if (doitem == "sidefacet"   ) { mirror([0,0,1]) sidefacet(); }
 if (doitem == "side"        ) { whiteside(); }
 if (doitem == "backendfront") { backendfront(); }
@@ -34,6 +41,7 @@ if (doitem == "edgeblack"   ) { rotate([0, 90,0]) cubeedgeblack(); }
 if (doitem == "edgewhite"   ) { rotate([0,-90,0]) cubeedgewhite(); }
 if (doitem == "backedge"    ) { rotate([0, 90,0]) cubebackedges(); }
 if (doitem == "bottomside"  ) { bottomsidepart(); }
+if (doitem == "bottomplate" ) { bottomplate(); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -78,13 +86,20 @@ color("#666") bottomplate();
 *color("#333") bottomblob();
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
 
+color("#333")
+plugcase();
+
 *color("#666") bottomfeet();
 
-color("#333") translate([0,0,-1]) bottomside();
-psu();
-powerplug();
-mcp();
-esp();
+*color("#333") translate([0,0,-1]) bottomside();
+*psu();
+if (vertpc) {
+    powerplug();
+} else {
+    powerplug_h();
+}
+*mcp();
+*esp();
 
 }
 
@@ -155,6 +170,41 @@ module mcp(xof=xsof*butsp, bof=10, zof=-2.3)
     }
 }
 
+module powerplug_h(xof=xsof*butsp, bof=10, zof=-2.3)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+
+    bothi = 23;
+
+    translate([-plugoffset, 0, rcz-bothi-2-0.2 - 8]) rotate([90,0,-90]) {
+        color("#543") difference() {
+            translate([0,0,4.2/2]) cube([35, 15, 4.2], true);
+            translate([ 14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
+            translate([-14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
+        }
+        color("#543") translate([0,0,-0.9]) {
+            minkowski() {
+                cylinder(14.6, 12.5/2, 12.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+        }
+        color("#cce") translate([ 4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
+        color("#cce") translate([-4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
+
+        pluglen = 32.5;
+        color("#654") translate([0, 0, -pluglen]) {
+            minkowski() {
+                cylinder(pluglen, 10.5/2, 10.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+            translate([0, -4, 7.5]) rotate([90,0,0]) cylinder(20, 7.5, 5, $fn=48);
+        }
+    }
+}
+
 module powerplug(xof=xsof*butsp, bof=10, zof=-2.3)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
@@ -164,7 +214,7 @@ module powerplug(xof=xsof*butsp, bof=10, zof=-2.3)
 
     bothi = 23;
 
-    translate([0,52+15/2,rcz-bothi-2-0.2]) {
+    translate([0,52+15/2,rcz-bothi-2-0.2 + pluginset]) {
         color("#543") difference() {
             translate([0,0,4.2/2]) cube([35, 15, 4.2], true);
             translate([ 14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
@@ -178,6 +228,26 @@ module powerplug(xof=xsof*butsp, bof=10, zof=-2.3)
         }
         color("#cce") translate([ 4.2, 2.7, 18]) cube([3.3, 0.7, 8], true);
         color("#cce") translate([-4.2, 2.7, 18]) cube([3.3, 0.7, 8], true);
+
+        if (1) {
+        pluglen = 32.5;
+        color("#654") translate([0, 0, -pluglen]) {
+            minkowski() {
+                cylinder(pluglen, 10.5/2, 10.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+            translate([0, -4, 7.5]) rotate([90,0,0]) cylinder(20, 7.5, 5, $fn=48);
+        }
+        } else {
+        pluglen = 26;
+        color("#654") translate([0, 0, -pluglen]) {
+            minkowski() {
+                cylinder(pluglen, 10.5/2, 10.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+            translate([6, 0, 4.5]) rotate([0,90,0]) cylinder(20, 4.5, 4, $fn=48);
+        }
+        }
     }
 }
 
@@ -188,7 +258,8 @@ module psu(xof=xsof*butsp, bof=10, zof=-2.3)
     rcx = (cxy+cz)*sqrt(2/3);
     // echo("RCX = ", rcx);
     rcz = (cz-2*cxy)/sqrt(3);
-    color("#543") translate([0,0,rcz+43/2-23+6.1]) cube([158, 98, 43], true);
+    color("#543") translate([16/2,0,rcz+43/2-23+6.1]) cube([158 - 16, 98, 43], true);
+    color("#543") translate([0,0,rcz+12/2-23+6.1]) cube([158, 98, 12], true);
 }
 
 module bottomfeet(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
@@ -202,15 +273,15 @@ module bottomfeet(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     for (an=[0:60:300]) rotate([0,0,an]) translate([0, ihr+3, rcz-bothi]) bottomfoot();
 }
 
-module bottomfoot(cp=48)
+module bottomfoot(fh=foothi, cp=48)
 {
     an = 360/cp;
     polyhedron(convexity=5,
         points = concat(
             zcircle(0, 0, 0, 14, an),
             zcircle(0, 0, -2, 14, an),
-            zcircle(0, 0, -12, 10, an),
-            zcircle(0, 0, -12, 5, an),
+            zcircle(0, 0, -foothi, 10, an),
+            zcircle(0, 0, -foothi, 5, an),
             zcircle(0, 0, -2, 5, an),
             zcircle(0, 0, -2, boltrad, an),
             zcircle(0, 0, 0, boltrad, an),
@@ -222,14 +293,14 @@ module bottomfoot(cp=48)
         ));
 }
 
-module bottomfoothole(tol=0.4, cp=48)
+module bottomfoothole(fh=foothi, tol=0.4, cp=48)
 {
     an = 360/cp;
     polyhedron(convexity=5,
         points = concat(
             zcircle(0, 0, 0.01, 14+tol, an),
             zcircle(0, 0, -2-tol, 14+tol, an),
-            zcircle(0, 0, -12-tol, 10+tol, an),
+            zcircle(0, 0, -foothi-tol, 10+tol, an),
             []
         ), faces = concat(
             [bface(0, cp)],
@@ -298,6 +369,61 @@ function zbcircle(x,y,z,d,an) = [
     for (a = [0:an:360-an]) [x+d*sin(a),y+d*cos(a),z]
 ];
 
+module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    w = 38; // width
+    h = 17; // height
+    l = 21; // length
+    d = 9; // diagonal
+    s = 8; // inset
+    t = thi; // thickness
+    s2 = 1/sqrt(2);
+
+    d2 = d * (h/l);
+    d3 = d2-t*s2;
+
+    fw = 14;
+    ft = 1.6;
+    translate([-plugoffset-4.2, 0, rcz-bothi-2]) {
+        difference() {
+            union() {
+                translate([-l/2, (w/2+fw/2-1),2+ft/2]) cube([l, fw, ft], true);
+                translate([-l/2,-(w/2+fw/2-1),2+ft/2]) cube([l, fw, ft], true);
+                polyhedron(convexity=5, points=[
+                    [-d,-w/2+d,-h], [-d, w/2-d,-h], [-l, w/2-d,-d2],    [-l,-w/2+d,-d2],
+                    [ 0,-w/2,-h],   [ 0, w/2,-h],   [-l,   w/2,0],    [-l,  -w/2,0],
+                    [ 0,-w/2,s],    [ 0, w/2,s],    [-l,   w/2,s],    [-l,  -w/2,s],
+                    [-t,-w/2+t,s],  [-t, w/2-t,s],  [-l+t, w/2-t,s],  [-l+t,-w/2+t,s],
+                    [-t,-w/2+t,-h+t], [-t, w/2-t,-h+t], [-l+t, w/2-t,0], [-l+t,-w/2+t,0],
+                    [-d+t*s2,-w/2+d,-h+t], [-d+t*s2, w/2-d,-h+t], [-l+t, w/2-d,-d3],    [-l+t,-w/2+d,-d3],
+                    []
+                    ], faces=concat(
+                    [bface(0,4)],
+                    nquads(0,4,4),
+                    nquads(4,4,4),
+                    nquads(8,4,4),
+                    nquads(12,4,4),
+                    nquads(16,4,4),
+                    [tface(20,4)],
+                    []
+                ));
+            }
+            translate([-l+2+0.01, 12, 4]) rotate([0,-90,0]) {
+                minkowski() {
+                    cylinder(2.02, 1.8,1.8, $fn=24);
+                    cube([0.001, 2, 0.001], true);
+                }
+            }
+        }
+    }
+}
+
 module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
@@ -346,15 +472,18 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
                 translate([-(psul/2-8),  (psuw/2-8), 6/2]) cube([17,17,6], true);
                 translate([-(psul/2-8), -(psuw/2-8), 6/2]) cube([17,17,6], true);
 
-                // Case for power connector
-                translate([0,52+15/2,0]) {
-                    translate([0,0,4/2]) cube([40, 20, 4], true);
-                    translate([0,0,4]) minkowski() {
-                        cylinder(22, 15.1/2, 15.1/2, $fn=48);
-                        cube([8, 0.001, 0.001], true);
+                if (vertpc) {
+                    // Case for power connector
+                    translate([0, 52+15/2, pluginset]) {
+                        translate([0,0,4/2-pluginset/2]) cube([40, 20, 4+pluginset], true);
+                        translate([0,0,4+22/2]) cube([23.1, 16.6, 22], true);
+                        *translate([0,0,4]) minkowski() {
+                            cylinder(22, 15.1/2, 15.1/2, $fn=48);
+                            cube([8, 0.001, 0.001], true);
+                        }
+                        *translate([0,-5,4+22/2]) cube([23, 10, 22], true);
+                        translate([0,0,4+4/2]) cube([28+6, 10, 4], true);
                     }
-                    translate([0,-5,4+22/2]) cube([23, 10, 22], true);
-                    translate([0,0,4+4/2]) cube([28+6, 10, 4], true);
                 }
             }
 
@@ -389,23 +518,47 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
                 cylinder(thi+0.02, hd, hd, false, $fn=24);
             }
 
-            // Hole for c5 connector
-            translate([0,52+15/2,-thi]) {
-                translate([0,0,4.2/2]) cube([35.4, 15.6, 4.21], true);
-                minkowski() {
-                    cylinder(26, 12.7/2, 12.7/2, $fn=48);
-                    cube([8, 0.001, 0.001], true);
+            if (vertpc) {
+                // Hole for c5 connector
+                translate([0,52+15/2,-thi+pluginset]) {
+                    translate([0,0,4.2/2-pluginset/2]) cube([35.4, 15.6, 4.21+pluginset], true);
+                    translate([0,0,26/2]) cube([20.8, 12.8, 26], true);
+                    *minkowski() {
+                        cylinder(26, 12.7/2, 12.7/2, $fn=48);
+                        cube([8, 0.001, 0.001], true);
+                    }
+                    translate([ 14, 0, 4.1]) cylinder(6, 1.5, 1.5, $fn=24);
+                    translate([-14, 0, 4.1]) cylinder(6, 1.5, 1.5, $fn=24);
+                    translate([0,0,thi+4+2.8/2]) cube([28+6+0.01, 6, 2.8], true);
+                    *translate([-4, -3.3, 20]) rotate([0,-90,0]) cylinder(8, 3, 3, $fn=24);
+                    translate([-4, -4.6, 20]) rotate([0,-90,0]) {
+                        minkowski() {
+                            cylinder(8, 1.8, 1.8, $fn=24);
+                            cube([2, 0.001, 0.001], true);
+                        }
+                    }
                 }
-                translate([ 14, 0, 4.1]) cylinder(6, 1.5, 1.5, $fn=24);
-                translate([-14, 0, 4.1]) cylinder(6, 1.5, 1.5, $fn=24);
-                translate([0,0,thi+4+2.8/2]) cube([28+6+0.01, 6, 2.8], true);
-                translate([-4, -3.3, 20]) rotate([0,-90,0]) cylinder(8, 3, 3, $fn=24);
+
+                // Hole for ty-rapping 220v cable
+                translate([-72, 50, 22]) cube([10, 2.5, 2], true);
+            } else { // not vertpc
+                translate([-plugoffset-4.2-21/2, 0, -thi/2]) {
+                    cube([21.4, 38.4, thi+0.02], true);
+                }
+                translate([-plugoffset-4.2-23+0.01, 12, 2]) rotate([0,-90,0]) {
+                    minkowski() {
+                        cylinder(2.02, 1.8,1.8, $fn=24);
+                        cube([0.001, 2, 0.001], true);
+                    }
+                }
             }
         }
-        // Connector sacrificial layers
-        #translate([0,52+15/2,0]) {
-            translate([ 14, 0, 6.8+0.1]) cube([4,4,0.2], true);
-            translate([-14, 0, 6.8+0.1]) cube([4,4,0.2], true);
+        if (vertpc) {
+            // Connector sacrificial layers
+            #translate([0,52+15/2, pluginset]) {
+                translate([ 14, 0, 6.8+0.1]) cube([4,4,0.2], true);
+                translate([-14, 0, 6.8+0.1]) cube([4,4,0.2], true);
+            }
         }
 
         // PSU bolt holes sacrificial layers

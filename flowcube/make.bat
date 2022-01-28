@@ -7,3 +7,4 @@ openscad -D doitem=\"edgeblack\" -o fc_edge_black.stl flowcube.scad
 openscad -D doitem=\"edgewhite\" -o fc_edge_white.stl flowcube.scad
 openscad -D doitem=\"backedge\" -o fc_backedge_black.stl flowcube.scad
 openscad -D doitem=\"bottomside\" -o fc_bottomside_black.stl flowcube.scad
+openscad -D doitem=\"bottomplate\" -o fc_bottomplate_black.stl flowcube.scad
