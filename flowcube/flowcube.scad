@@ -92,13 +92,13 @@ intersection() {
 *color("#666") bottomplate();
 
 color("#696") render(convexity=5) bottomplate1();
-color("#669") render(convexity=5) bottomplate2();
-color("#966") render(convexity=5) bottomplate3();
+translate([1,0.5,0]) color("#669") render(convexity=5) bottomplate2();
+translate([0,1,0]) color("#966") render(convexity=5) bottomplate3();
 
 
-color("#5954") translate([boxx+20-250/2, boxy+3-200/2,-208]) cube([250,200,2],true);
-color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
-color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
+*color("#5954") translate([boxx+20-250/2, boxy+3-200/2,-208]) cube([250,200,2],true);
+*color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
+*color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
 *color("#333") bottomblob();
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
@@ -471,8 +471,8 @@ module bottomplate1(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     intersection() {
         bottomplate();
         translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
-            [boxx-17, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.8-t,boxy+1.81+t],
-            [-boxx-14.8-t, boxy+t], [-rx, boxy+t], [-rx, -rx],
+            [boxx-17, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.81-t,boxy+1.81+t],
+            [-boxx-14.81-t, boxy+t], [-rx, boxy+t], [-rx, -rx],
             [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t]
         ]);
     }
@@ -496,8 +496,8 @@ module bottomplate2(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
         bottomplate();
         translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
             [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t],
-            [boxx-17, boxy+t], [boxx-t,boxy+t],
-            [boxx-t, rx], [rx, rx], [rx, -rx]
+            [boxx-17, boxy+t], [boxx+2, boxy+t],
+            [boxx+2, rx], [rx, rx], [rx, -rx]
         ]);
     }
 }
@@ -519,9 +519,9 @@ module bottomplate3(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     intersection() {
         bottomplate();
         translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
-            [boxx, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.8-t,boxy+1.81+t],
-            [-boxx-14.8-t, boxy+t], [-rx, boxy+t], [-rx, rx],
-            [boxx, rx]
+            [boxx+2, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.81-t,boxy+1.81+t],
+            [-boxx-14.81-t, boxy+t], [-rx, boxy+t], [-rx, rx],
+            [boxx+2, rx]
         ]);
     }
 }
@@ -554,7 +554,11 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
 
                 // Side struts
                 for (an=[0:60:300]) rotate([0,0,an]) {
-                    translate([0, ihr-1-tol, 2]) cube([80,2,4], true);
+                    sth = 10;
+                    stl = (an % 180) ? 46.8 : 66;
+                    translate([0, ihr-1-tol, sth/2]) cube([82,2,sth], true);
+                    translate([ 40, ihr-1-tol-stl/2, sth/2]) cube([2,stl,sth], true);
+                    translate([-40, ihr-1-tol-stl/2, sth/2]) cube([2,stl,sth], true);
                 }
 
                 // Nut holders
@@ -587,6 +591,21 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
                         translate([0,0,4+4/2]) cube([28+6, 10, 4], true);
                     }
                 }
+
+                // Extra walls for gluing
+                translate([psul/2, -psuw/2, 0]) linear_extrude(height=psuh) polygon([
+                    [0,-2.2],[0,-4.2],[-20,-4.2],[-22,-2.2]
+                ]);
+                translate([psul/2, psuw/2+2.2, 0]) rotate([90,0,180])
+                    linear_extrude(height=2) polygon([
+                        [0,14], [8,6], [8,0], [psul,0], [psul,psuh], [0,psuh]
+                    ]);
+                translate([psul/2+0.2, psuw/2, 0]) linear_extrude(height=10) polygon([
+                    [0,-4], [0,42], [2,44], [4,41], [4,0]
+                ]);
+                translate([psul/2+0.2, -psuw/2, 0]) linear_extrude(height=10) polygon([
+                    [-2,0], [-2,-42], [2,-44], [2,0]
+                ]);
             }
 
             // PSU bolt holes
