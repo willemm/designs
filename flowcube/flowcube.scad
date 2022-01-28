@@ -32,6 +32,9 @@ plugoffset = 52;
 
 vertpc = 0;
 
+boxx = 79.2;
+boxy = 51.2;
+
 if (doitem == "sidefacet"   ) { mirror([0,0,1]) sidefacet(); }
 if (doitem == "side"        ) { whiteside(); }
 if (doitem == "backendfront") { backendfront(); }
@@ -41,7 +44,9 @@ if (doitem == "edgeblack"   ) { rotate([0, 90,0]) cubeedgeblack(); }
 if (doitem == "edgewhite"   ) { rotate([0,-90,0]) cubeedgewhite(); }
 if (doitem == "backedge"    ) { rotate([0, 90,0]) cubebackedges(); }
 if (doitem == "bottomside"  ) { bottomsidepart(); }
-if (doitem == "bottomplate" ) { bottomplate(); }
+if (doitem == "bottomplate1") { bottomplate1(); }
+if (doitem == "bottomplate2") { bottomplate2(); }
+if (doitem == "bottomplate3") { bottomplate3(); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -82,22 +87,28 @@ intersection() {
 *render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     bottomsidepart();
 
-color("#666") bottomplate();
+*color("#666") bottomfeet();
+
+*color("#666") bottomplate();
+
+color("#696") render(convexity=5) bottomplate1();
+color("#669") render(convexity=5) bottomplate2();
+color("#966") render(convexity=5) bottomplate3();
+
+
+color("#5954") translate([boxx+20-250/2, boxy+3-200/2,-208]) cube([250,200,2],true);
+color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
+color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
+
 *color("#333") bottomblob();
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
 
-color("#333")
-plugcase();
-
-*color("#666") bottomfeet();
+*color("#333") plugcase();
 
 *color("#333") translate([0,0,-1]) bottomside();
+
 *psu();
-if (vertpc) {
-    powerplug();
-} else {
-    powerplug_h();
-}
+*if (vertpc) { powerplug(); } else { powerplug_h(); }
 *mcp();
 *esp();
 
@@ -413,14 +424,105 @@ module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
                     [tface(20,4)],
                     []
                 ));
+                translate([-2-3.8/2,  14, -12.5/2-2-1.2/2]) cube([3.8, 8, 6+1.2], true);
+                translate([-2-3.8/2, -14, -12.5/2-2-1.2/2]) cube([3.8, 8, 6+1.2], true);
+
+                translate([-2-3.8,  14, -12.5/2-2]) rotate([0,-90,0]) cylinder(4, 3, 3, $fn=24);
+                translate([-2-3.8, -14, -12.5/2-2]) rotate([0,-90,0]) cylinder(4, 3, 3, $fn=24);
             }
             translate([-l+2+0.01, 12, 4]) rotate([0,-90,0]) {
                 minkowski() {
-                    cylinder(2.02, 1.8,1.8, $fn=24);
+                    cylinder(t+0.02, 1.8, 1.8, $fn=24);
                     cube([0.001, 2, 0.001], true);
                 }
             }
+            translate([0.01, 0, -12.5/2-2]) rotate([0,-90,0]) {
+                minkowski() {
+                    cylinder(t+0.02+3.8, 12.9/2, 12.9/2, $fn=48);
+                    cube([0.001, 8, 0.001], true);
+                }
+                translate([0, 14, 0]) cylinder(8.02, 1.5, 1.5, $fn=24);
+                translate([0,-14, 0]) cylinder(8.02, 1.5, 1.5, $fn=24);
+
+            }
+            translate([-2-2.8/2, 14, -12.5/2-2]) cube([2.8, 6, 6.01], true);
+            translate([-2-2.8/2,-14, -12.5/2-2]) cube([2.8, 6, 6.01], true);
         }
+        // sacrificial layers
+        #translate([-2-2.8-0.2/2,  14, -12.5/2-2]) cube([0.2, 5, 5], true);
+        #translate([-2-2.8-0.2/2, -14, -12.5/2-2]) cube([0.2, 5, 5], true);
+    }
+}
+
+module bottomplate1(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
+{
+    bz = 30;
+
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 26;
+
+    rx = rcx+2;
+
+    t = 0.001;
+
+    intersection() {
+        bottomplate();
+        translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
+            [boxx-17, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.8-t,boxy+1.81+t],
+            [-boxx-14.8-t, boxy+t], [-rx, boxy+t], [-rx, -rx],
+            [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t]
+        ]);
+    }
+}
+
+module bottomplate2(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
+{
+    bz = 30;
+
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 26;
+
+    rx = rcx+2;
+
+    t = 0.001;
+
+    intersection() {
+        bottomplate();
+        translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
+            [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t],
+            [boxx-17, boxy+t], [boxx-t,boxy+t],
+            [boxx-t, rx], [rx, rx], [rx, -rx]
+        ]);
+    }
+}
+
+module bottomplate3(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
+{
+    bz = 30;
+
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 26;
+
+    rx = rcx+2;
+
+    t = 0.001;
+
+    intersection() {
+        bottomplate();
+        translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
+            [boxx, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.8-t,boxy+1.81+t],
+            [-boxx-14.8-t, boxy+t], [-rx, boxy+t], [-rx, rx],
+            [boxx, rx]
+        ]);
     }
 }
 
@@ -457,7 +559,7 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
 
                 // Nut holders
                 for (an=[0:60:300]) {
-                    translate([ho*sin(an), ho*cos(an), 2.5]) cube([14.8,10,5], true);
+                    translate([ho*sin(an), ho*cos(an), 2.5]) cube([14.8,6,5], true);
                 }
 
                 // Struts for psu
@@ -500,7 +602,7 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
             // Bolt+nut holes to lower
             for (an=[0:60:300]) {
                 translate([ho*sin(an), ho*cos(an), -thi-0.01]) cylinder(thi+8+0.02, boltrad, boltrad, $fn=32);
-                translate([ho*sin(an), ho*cos(an), 2.8/2]) cube([facetnutwid, facetnutwid+2.41, 2.8], true);
+                translate([ho*sin(an), ho*cos(an), 2.8/2]) cube([6, 12.41, 2.8], true);
             }
 
             uo = ihr+3;
