@@ -45,7 +45,7 @@ if (doitem == "edgewhite"   ) { rotate([0,-90,0]) cubeedgewhite(); }
 if (doitem == "backedge"    ) { rotate([0, 90,0]) cubebackedges(); }
 if (doitem == "bottomside"  ) { bottomsidepart(); }
 if (doitem == "bottomplate1") { bottomplate1(); }
-if (doitem == "bottomplate2") { bottomplate2(); }
+if (doitem == "bottomplate2") { rotate([0, 0, 90]) bottomplate2(); }
 if (doitem == "bottomplate3") { bottomplate3(); }
 if (doitem == "plugcase")     { rotate([0, 90, 0]) plugcase(); }
 if (doitem == "") {
@@ -671,11 +671,11 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
             // PSU bolt holes
             translate([-(psul/2-4), -(psuw/2-5), 6]) {
                 translate([0,0,-7]) cylinder(7.01, boltrad, boltrad, $fn=24);
-                translate([0,2.5,-1.5-2.8/2]) cube([6,20,2.8], true);
+                translate([0,2.5,-1.4-2.8/2]) cube([6,20,2.8], true);
             }
             translate([ (psul/2-2.8),  (psuw/2-7.5), 6]) {
                 translate([0,0,-7]) cylinder(7.01, boltrad, boltrad, $fn=24);
-                translate([0,0,-1.5-2.8/2]) cube([6,20,2.8], true);
+                translate([0,0,-1.4-2.8/2]) cube([6,20,2.8], true);
             }
 
             // Bolt+nut holes to lower
@@ -745,10 +745,10 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
 
         // PSU bolt holes sacrificial layers
         #translate([-(psul/2-4), -(psuw/2-5), 6]) {
-            translate([0,0,-1.5+0.2/2]) cube([4,4,0.2], true);
+            translate([0,0,-1.4+0.2/2]) cube([4,4,0.2], true);
         }
         #translate([ (psul/2-2.8),  (psuw/2-7.5), 6]) {
-            translate([0,0,-1.5+0.2/2]) cube([4,4,0.2], true);
+            translate([0,0,-1.4+0.2/2]) cube([4,4,0.2], true);
         }
 
         // Bolt holes sacrificial layers
