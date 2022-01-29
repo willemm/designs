@@ -47,6 +47,7 @@ if (doitem == "bottomside"  ) { bottomsidepart(); }
 if (doitem == "bottomplate1") { bottomplate1(); }
 if (doitem == "bottomplate2") { bottomplate2(); }
 if (doitem == "bottomplate3") { bottomplate3(); }
+if (doitem == "plugcase")     { rotate([0, 90, 0]) plugcase(); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -92,8 +93,8 @@ intersection() {
 *color("#666") bottomplate();
 
 color("#696") render(convexity=5) bottomplate1();
-translate([1,0.5,0]) color("#669") render(convexity=5) bottomplate2();
-translate([0,1,0]) color("#966") render(convexity=5) bottomplate3();
+translate([5,2.5,0]) color("#669") render(convexity=5) bottomplate2();
+translate([0,5,0]) color("#966") render(convexity=5) bottomplate3();
 
 
 *color("#5954") translate([boxx+20-250/2, boxy+3-200/2,-208]) cube([250,200,2],true);
@@ -451,6 +452,7 @@ module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
         // sacrificial layers
         #translate([-2-2.8-0.2/2,  14, -12.5/2-2]) cube([0.2, 5, 5], true);
         #translate([-2-2.8-0.2/2, -14, -12.5/2-2]) cube([0.2, 5, 5], true);
+        #translate([-l+2-0.1, 12, 4]) cube([0.2, 6, 4], true);
     }
 }
 
@@ -462,19 +464,35 @@ module bottomplate1(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     cz = bof+zof+2;
     rcx = (cxy+cz)*sqrt(2/3);
     rcz = (cz-2*cxy)/sqrt(3);
-    bothi = 26;
+    bothi = 25;
 
     rx = rcx+2;
 
     t = 0.001;
 
-    intersection() {
-        bottomplate();
-        translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
-            [boxx-17, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.81-t,boxy+1.81+t],
-            [-boxx-14.81-t, boxy+t], [-rx, boxy+t], [-rx, -rx],
-            [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t]
-        ]);
+    union() {
+        difference() {
+            intersection() {
+                bottomplate();
+                translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
+                    [boxx-17, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.81-t,boxy+1.81+t],
+                    [-boxx-14.81-t, boxy+t], [-rx, boxy+t], [-rx, -rx],
+                    [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t]
+                ]);
+            }
+            translate([0, 0, rcz - bothi]) {
+                xpyrrow(-boxx-55, -boxx-14, boxy, 0.1);
+                xpyrrow(-boxx, boxx-17, boxy, 0.1);
+                ypyrrow(-boxy, boxy, boxx-17, 0.1);
+                ypyrrow(-boxy-65, -boxy, boxx, 0.1);
+            }
+        }
+        translate([0, 0, rcz - bothi]) {
+            xpyrrow(5-boxx-55, -boxx-14, boxy);
+            xpyrrow(5-boxx, boxx-17, boxy);
+            ypyrrow(5-boxy, boxy, boxx-17);
+            ypyrrow(5-boxy-65, -boxy, boxx);
+        }
     }
 }
 
@@ -486,19 +504,33 @@ module bottomplate2(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     cz = bof+zof+2;
     rcx = (cxy+cz)*sqrt(2/3);
     rcz = (cz-2*cxy)/sqrt(3);
-    bothi = 26;
+    bothi = 25;
 
     rx = rcx+2;
 
     t = 0.001;
 
-    intersection() {
-        bottomplate();
-        translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
-            [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t],
-            [boxx-17, boxy+t], [boxx+2, boxy+t],
-            [boxx+2, rx], [rx, rx], [rx, -rx]
-        ]);
+    union() {
+        difference() {
+            intersection() {
+                bottomplate();
+                translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
+                    [boxx-t, -rx], [boxx-t, -boxy-t], [boxx-17, -boxy-t],
+                    [boxx-17, boxy+t], [boxx+2, boxy+t],
+                    [boxx+2, rx], [rx, rx], [rx, -rx]
+                ]);
+            }
+            translate([0, 0, rcz - bothi]) {
+                ypyrrow(5-boxy, boxy, boxx-17, 0.1);
+                ypyrrow(5-boxy-65, -boxy, boxx, 0.1);
+                ypyrrow(5+boxy, boxy+65, boxx+2, 0.1);
+            }
+        }
+        translate([0, 0, rcz - bothi]) {
+            ypyrrow(-boxy, boxy, boxx-17);
+            ypyrrow(-boxy-65, -boxy, boxx);
+            ypyrrow(boxy, boxy+65, boxx+2);
+        }
     }
 }
 
@@ -510,19 +542,47 @@ module bottomplate3(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     cz = bof+zof+2;
     rcx = (cxy+cz)*sqrt(2/3);
     rcz = (cz-2*cxy)/sqrt(3);
-    bothi = 26;
+    bothi = 25;
 
     rx = rcx+2;
 
     t = 0.001;
 
-    intersection() {
-        bottomplate();
-        translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
-            [boxx+2, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.81-t,boxy+1.81+t],
-            [-boxx-14.81-t, boxy+t], [-rx, boxy+t], [-rx, rx],
-            [boxx+2, rx]
-        ]);
+    union() {
+        difference() {
+            intersection() {
+                bottomplate();
+                translate([0,0,rcz-bothi-0.01]) linear_extrude(convexity=4, height=bz) polygon([
+                    [boxx+2, boxy+t], [-boxx, boxy+t], [-boxx,boxy+1.81+t], [-boxx-14.81-t,boxy+1.81+t],
+                    [-boxx-14.81-t, boxy+t], [-rx, boxy+t], [-rx, rx],
+                    [boxx+2, rx]
+                ]);
+            }
+            translate([0, 0, rcz - bothi]) {
+                xpyrrow(5-boxx-55, -boxx-14, boxy, 0.1);
+                xpyrrow(5-boxx, boxx-17, boxy, 0.1);
+                ypyrrow(boxy, boxy+65, boxx+2, 0.1);
+            }
+        }
+        translate([0, 0, rcz - bothi]) {
+            xpyrrow(-boxx-55, -boxx-14, boxy);
+            xpyrrow(-boxx, boxx-17, boxy);
+            ypyrrow(5+boxy, boxy+65, boxx+2);
+        }
+    }
+}
+
+module xpyrrow(st, en, y, tol = 0)
+{
+    for (x=[st+5:10:en-5]) {
+        translate([x, y, -tol]) cylinder(2+tol, 2+tol*2, tol, $fn=4);
+    }
+}
+
+module ypyrrow(st, en, x, tol = 0)
+{
+    for (y=[st+5:10:en-5]) {
+        translate([x, y, -tol]) cylinder(2+tol, 2+tol*2, tol, $fn=4);
     }
 }
 
@@ -630,9 +690,10 @@ module bottomplate(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
                 translate([uo*sin(an), uo*cos(an), -thi-0.01]) cylinder(thi+0.02, boltrad, boltrad, $fn=32);
             }
 
-            hd = 2;
-            od = 50;
-            nd = floor(od/(3*hd));
+            hd = 1.9;
+            // od = 50;
+            // nd = floor(od/(3*hd));
+            nd = 8;
             // Air holes
             for (d=[1:nd], an=[360/(d*6)+30:360/(d*6):360+30]) {
                 translate([sin(an)*d*hd*3, cos(an)*d*hd*3, -thi-0.01])
