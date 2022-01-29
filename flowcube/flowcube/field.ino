@@ -1,15 +1,29 @@
 #include "settings.h"
 
 // Status of playing field
-int selected; // currently selected key
+int selected; // currently selected endpoint
+
+unsigned long lastpress = 0;
+int lastkey = 0; // Last key pressed
+int curkey = 0; // Key currently being held down
 
 struct fieldcell_t {
-    char right;
-    char down;
-    char color;
-    char flags;
-    int pixel[4];
+    uint16_t pixel[4];
+    union {
+        struct { int8_t up, left, down, right; };
+        int8_t neighbour[4];
+    };
+    int8_t next, prev;
+    int8_t color;
+    unsigned is_fold:1;
+    unsigned is_endpoint:1;
 };
+
+static_assert(sizeof(fieldcell_t) <= 16, "Size of fieldcell_t is bigger than 16");
+static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
+static_assert(offsetof(fieldcell_t, left ) == offsetof(fieldcell_t, neighbour)+1, "Neighbour doesn't match left");
+static_assert(offsetof(fieldcell_t, down ) == offsetof(fieldcell_t, neighbour)+2, "Neighbour doesn't match down");
+static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3, "Neighbour doesn't match right");
 
 #define FIELD_ENDPOINT 0x01
 #define FIELD_FOLD 0x02
@@ -22,7 +36,9 @@ struct fieldcell_t {
 #define FSZ 5
 #define DSZ (FSZ*2)
 
-fieldcell_t field[3*FSZ*FSZ];
+#define NUMKEYS (3*FSZ*FSZ)
+
+fieldcell_t field[NUMKEYS];
 
 /*
    Field layout:
@@ -82,62 +98,92 @@ void field_init()
             field[idx].pixel[(cellrot+1)%4] = cell.down;   // right
             field[idx].pixel[(cellrot+2)%4] = cell.left^1; // down
             field[idx].pixel[(cellrot+3)%4] = cell.down^1; // left
-            field[idx].flags = 0;
+            field[idx].up = -1;
+            field[idx].left = -1;
+            field[idx].is_fold = 0;
+            field[idx].is_endpoint = 0;
             if ((x == FSZ-1) && (y < FSZ)) {
                 // Right edge of upper left folds to top of lower right
                 field[idx].right = field_idx(DSZ-1-x, DSZ-1-y);
-                field[idx].flags = FIELD_FOLD;
+                field[idx].is_fold = 1;
             } else if (x == DSZ-1) {
                 // Sentinel value for no right neighbour
-                // Real right or down neighbours are never 0 (0 is top left)
-                field[idx].right = 0;
+                field[idx].right = -1;
             } else {
                 field[idx].right = field_idx(y,x+1);
             }
             // Down never folds
             if (y == DSZ-1) {
-                field[idx].down = 0;
+                field[idx].down = -1;
             } else {
                 field[idx].down = field_idx(y+1,x);
             }
         }
     }
-    /*
-    for (int idx = 0; idx < 3*FSZ*FSZ; idx++) {
+    for (int idx = 0; idx < NUMKEYS; idx++) {
+        // Back connections
+        int right = field[idx].right;
+        if (right >= 0) {
+            if (field[idx].is_fold) {
+                field[right].up = idx;
+            } else {
+                field[right].left = idx;
+            }
+        }
+        int down = field[idx].down;
+        if (down >= 0) {
+            field[down].up = idx;
+        }
+        /*
         serprintf("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
             idx, field[idx].right, field[idx].down,
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3]);
+        */
     }
-    */
-    int endpoints[][2] = {
-        {3,1}, {5,5},
-        {1,2}, {7,2},
-        {6,5}, {5,6},
-        {5,9}, {9,9},
-        {1,1}, {6,6},
-        {-1,-1}
-    };
-    set_endpoints(endpoints);
 }
 
-void set_endpoints(int endpoints[][2])
+void field_clear()
 {
-    for (int c = 0; endpoints[c*2][0] >= 0; c++) {
-        int idx = field_idx(endpoints[c*2][0], endpoints[c*2][1]);
-        field[idx].color = idx+1;
-        field[idx].flags |= FIELD_ENDPOINT;
+    serprintf("Clearing game field");
+    for (int idx = 0; idx < NUMKEYS; idx++) {
+        field[idx].color = 0;
+        field[idx].is_endpoint = 0;
+    }
+    int8_t endpoints[] = {
+        3,1, 5,5,
+        1,2, 7,2,
+        6,5, 5,6,
+        5,9, 9,9,
+        1,1, 6,6,
+        -1
+    };
+    set_endpoints(endpoints);
+    selected = 0;
+    draw_field();
+    serprintf("Inited game field");
+}
+
+void set_endpoints(int8_t endpoints[])
+{
+    for (int c = 0; endpoints[c*2] >= 0; c++) {
+        serprintf("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
+        int idx = field_idx(endpoints[c*2], endpoints[c*2+1]);
+        field[idx].color = c+1;
+        field[idx].is_endpoint = 1;
     }
 }
 
 static void draw_field()
 {
     pixels.clear();
-    for (int idx = 0; idx < 3*FSZ*FSZ; idx++) {
+    for (int idx = 0; idx < NUMKEYS; idx++) {
         int color = field[idx].color;
         if (color) {
-            uint32_t colorval = colors[color-1];
-            if (field[idx].flags & FIELD_ENDPOINT) {
+            uint32_t colorval = colors[(color-1)/2];
+            // serprintf("color = %d, idx=%d, colorval = 0x%06x", color, (color-1)/2, colorval);
+            if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
+            if (field[idx].is_endpoint) {
                 for (int i = 0; i < 4; i++) {
                     pixels.setPixelColor(field[idx].pixel[i], colorval);
                 }
@@ -151,8 +197,8 @@ static void draw_field()
             }
 
             int right = field[idx].right;
-            if ((right > 0) && (field[right].color == color)) {
-                int left = (field[idx].flags & FIELD_FOLD) ? FIELD_UP : FIELD_LEFT;
+            if ((right >= 0) && (field[right].color == color)) {
+                int left = (field[idx].is_fold) ? FIELD_UP : FIELD_LEFT;
                 pixels.setPixelColor(field[idx].pixel[FIELD_RIGHT], colorval);
                 pixels.setPixelColor(field[right].pixel[left], colorval);
                 /*
@@ -163,7 +209,7 @@ static void draw_field()
                 */
             }
             int down = field[idx].down;
-            if ((down > 0) && (field[down].color == color)) {
+            if ((down >= 0) && (field[down].color == color)) {
                 pixels.setPixelColor(field[idx].pixel[FIELD_DOWN], colorval);
                 pixels.setPixelColor(field[down].pixel[FIELD_UP], colorval);
                 /*
@@ -172,6 +218,12 @@ static void draw_field()
                     field[idx].pixel[FIELD_DOWN], field[down].pixel[FIELD_UP],
                     colorval);
                 */
+            }
+        }
+        if (idx == (curkey-1)) {
+            uint32_t colorval = pixels.Color(255,255,255);
+            for (int i = 0; i < 4; i++) {
+                pixels.setPixelColor(field[idx].pixel[i], colorval);
             }
         }
     }
@@ -196,29 +248,89 @@ static void testdelay(int dly)
 
 void field_test()
 {
-    for (int idx = 0; idx < 3*FSZ*FSZ; idx++) {
+    for (int idx = 0; idx < NUMKEYS; idx++) {
         field[idx].color = 0;
-        field[idx].flags &= ~FIELD_ENDPOINT;
+        field[idx].is_endpoint = 0;
     }
-    serprintf("Init field test");
+    serprintf("Init field test (field size = %d)", sizeof(fieldcell_t));
     draw_field();
     for (int ln = 0; ln < 5; ln++) {
         testdelay(500);
-        serprintf("Field test line %d, color 0x%06x, from %2d to %2d",
-            ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7]);
-        field[field_test_lines[ln][0]].color = ln+1;
-        field[field_test_lines[ln][0]].flags |= FIELD_ENDPOINT;
-        field[field_test_lines[ln][7]].color = ln+1;
-        field[field_test_lines[ln][7]].flags |= FIELD_ENDPOINT;
+        serprintf("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
+            ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7],
+            (ln+1)*2, (ln+1)*2+1);
+        selected = ln*2+1;
+        field[field_test_lines[ln][0]].color = ln*2+1;
+        field[field_test_lines[ln][0]].is_endpoint = 1;
+        field[field_test_lines[ln][7]].color = ln*2+2;
+        field[field_test_lines[ln][7]].is_endpoint = 1;
         draw_field();
         for (int p = 1; p < 7; p++) {
             testdelay(500);
-            field[field_test_lines[ln][p]].color = ln+1;
-            serprintf("Field test set %d = %2d (0x%x)",
-                p, field_test_lines[ln][p],
-                field[field_test_lines[ln][p]].flags);
+            field[field_test_lines[ln][p]].color = ln*2+1;
             draw_field();
         }
+        testdelay(500);
+        field[field_test_lines[ln][7]].color = ln*2+1;
+        draw_field();
     }
+    selected = 0;
+    testdelay(500);
+    draw_field();
+
     testdelay(2000);
+}
+
+static void press_key(int key)
+{
+    if (selected) {
+        serprintf("TODO: Press %d while selected %d", key, selected);
+        selected = 0;
+    } else {
+        if (field[key].color) {
+            // Select this color
+            selected = field[key].color;
+            serprintf("Press %d selects %d", key, selected);
+        } else {
+            int color = 0;
+            int cnt = 0;
+            for (int n = 0; n < 4; n++) {
+                int nb = field[key].neighbour[n];
+                if ((nb >= 0) && (field[nb].color)) {
+                    cnt++;
+                    color = field[nb].color;
+                }
+            }
+            if (cnt == 1) {
+                field[key].color = color;
+                selected = color;
+                serprintf("Press %d selects neighbouring %d", key, selected);
+            }
+            // TODO: Connect two lines ?
+        }
+    }
+    draw_field();
+}
+
+void field_update()
+{
+    int key = keys_scan();
+    if (key < 0) {
+        serprintf("Key scan error");
+        delay(100);
+        return;
+    }
+    unsigned long tick = millis();
+    if (key != curkey) {
+        serprintf("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%d", key, curkey, lastkey, tick);
+        curkey = key;
+        if (key >= 0) {
+            if ((key != lastkey) || (lastpress+50 < tick)) {
+                lastkey = key;
+                press_key(key-1);
+            }
+        } else {
+            draw_field(); // Uncolor pressed key
+        }
+    }
 }

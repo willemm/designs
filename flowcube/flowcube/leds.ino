@@ -4,11 +4,11 @@
 // Which pin on the Arduino is connected to the NeoPixels?
 #define PIN 2
 
-#define NUMKEYS 5
-#define SIDEKEYS (NUMKEYS*NUMKEYS)
+#define EDGESIZE 5
+#define SIDEKEYS (EDGESIZE*EDGESIZE)
 
-#define NUMROWS (2*NUMKEYS)
-#define PERROW (2*NUMKEYS)
+#define NUMROWS (2*EDGESIZE)
+#define PERROW (2*EDGESIZE)
 #define NUMPIXELS (3*NUMROWS*PERROW)
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
@@ -22,7 +22,7 @@ void leds_init()
 }
 
 uint32_t colors[] = {
-    pixels.Color(151,0,0),
+    pixels.Color(127,0,0),
     pixels.Color(0,101,0),
     pixels.Color(0,0,121),
     pixels.Color(94,86,0),
@@ -33,7 +33,7 @@ uint32_t colors[] = {
 void leds_test()
 {
     for(int rgb=0; rgb < sizeof(colors)/sizeof(colors[0]); rgb++) {
-        keys_scan();
+        //keys_scan();
         delay(100);
 
         for(int i=0; i<PERROW; i++) {
@@ -44,7 +44,7 @@ void leds_test()
             }
 
             pixels.show();
-            keys_scan();
+            //keys_scan();
             delay(50);
         }
     }
@@ -53,13 +53,13 @@ void leds_test()
 ledset_t leds_keyidx(int keyidx)
 {
     int side = (keyidx/SIDEKEYS) * (SIDEKEYS*4);
-    int y = (keyidx%SIDEKEYS) / NUMKEYS;
-    int x = keyidx%NUMKEYS;
+    int y = (keyidx%SIDEKEYS) / EDGESIZE;
+    int x = keyidx%EDGESIZE;
     ledset_t cell;
     int s1 = (y%2) ? -1 : 1;
-    cell.left = side + y*(NUMKEYS*2) + (NUMKEYS-1) + s1*((x*2)-(NUMKEYS-1)) + (y%2);
+    cell.left = side + y*(EDGESIZE*2) + (EDGESIZE-1) + s1*((x*2)-(EDGESIZE-1)) + (y%2);
     int s2 = (x%2) ? -1 : 1;
-    cell.down = side + (SIDEKEYS*4-2) - (x*(NUMKEYS*2) + (NUMKEYS-1) + s2*((y*2)-(NUMKEYS-1))) + (x%2);
+    cell.down = side + (SIDEKEYS*4-2) - (x*(EDGESIZE*2) + (EDGESIZE-1) + s2*((y*2)-(EDGESIZE-1))) + (x%2);
     return cell;
 }
 
@@ -67,16 +67,16 @@ void leds_setkey(int keyidx, int colorindex, int direction=0xF)
 {
     uint32_t color = colors[colorindex];
     int side = keyidx/SIDEKEYS;
-    int y = (keyidx%SIDEKEYS) / NUMKEYS;
-    int x = keyidx%NUMKEYS;
+    int y = (keyidx%SIDEKEYS) / EDGESIZE;
+    int x = keyidx%EDGESIZE;
     int s1 = (y%2) ? -1 : 1;
-    int c1 = y*(NUMKEYS*2) + (NUMKEYS-1) + s1*((x*2)-(NUMKEYS-1));
+    int c1 = y*(EDGESIZE*2) + (EDGESIZE-1) + s1*((x*2)-(EDGESIZE-1));
     int s2 = (x%2) ? -1 : 1;
-    int c2 = (SIDEKEYS*4-2) - (x*(NUMKEYS*2) + (NUMKEYS-1) + s2*((y*2)-(NUMKEYS-1)));
+    int c2 = (SIDEKEYS*4-2) - (x*(EDGESIZE*2) + (EDGESIZE-1) + s2*((y*2)-(EDGESIZE-1)));
 
     /*
     serprintf("Set key(%d,%d,%d)", side, x, y);
-    serprintf("  c1 = %d*%d + %d + %d*(%d-%d) = %d", y, NUMKEYS*2, NUMKEYS-1, s1, x, NUMKEYS-1, c1);
+    serprintf("  c1 = %d*%d + %d + %d*(%d-%d) = %d", y, EDGESIZE*2, EDGESIZE-1, s1, x, EDGESIZE-1, c1);
     serprintf("    s1=%d, c1=%d, s2=%d, c2=%d", s1, c1, s2, c2);
     */
 
@@ -91,18 +91,18 @@ void leds_setline(int keyidx1, int keyidx2, int colorindex)
     uint32_t color = colors[colorindex];
     int side1 = keyidx1/SIDEKEYS;
     int side2 = keyidx2/SIDEKEYS;
-    int y1 = (keyidx1%SIDEKEYS) / NUMKEYS;
-    int x1 = keyidx1%NUMKEYS;
-    int y2 = (keyidx2%SIDEKEYS) / NUMKEYS;
-    int x2 = keyidx2%NUMKEYS;
+    int y1 = (keyidx1%SIDEKEYS) / EDGESIZE;
+    int x1 = keyidx1%EDGESIZE;
+    int y2 = (keyidx2%SIDEKEYS) / EDGESIZE;
+    int x2 = keyidx2%EDGESIZE;
     if (side1 == side2) {
         int c1;
         if (y1 == y2) {
             int s = (y1%2) ? -1 : 1;
-            c1 = y1*(NUMKEYS*2) + (NUMKEYS-1) + (x1+x2-(NUMKEYS-1))*s;
+            c1 = y1*(EDGESIZE*2) + (EDGESIZE-1) + (x1+x2-(EDGESIZE-1))*s;
         } else {
             int s = (x1%2) ? -1 : 1;
-            c1 = (SIDEKEYS*4-2)-(x1*(NUMKEYS*2) + (NUMKEYS-1) + (y1+y2-(NUMKEYS-1))*s);
+            c1 = (SIDEKEYS*4-2)-(x1*(EDGESIZE*2) + (EDGESIZE-1) + (y1+y2-(EDGESIZE-1))*s);
         }
         pixels.setPixelColor(c1, color);
         pixels.setPixelColor(c1+1, color);
@@ -134,7 +134,7 @@ void test_lines()
     for (int st = 0; st < 4*6; st++) {
         for (int d = 0; d < 1; d++) {
             delay(500);
-            keys_scan();
+            //keys_scan();
         }
         pixels.clear();
         int nl = st/6;
@@ -151,7 +151,7 @@ void test_lines()
     }
     for (int d = 0; d < 10; d++) {
         delay(500);
-        keys_scan();
+        //keys_scan();
     }
 }
 

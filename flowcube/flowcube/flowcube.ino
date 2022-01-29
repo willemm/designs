@@ -28,9 +28,12 @@ void setup() {
     leds_test();
     keys_init();
     field_init();
+    field_test();
+    field_clear();
 }
 
 void loop()
 {
-    field_test();
+    field_update();
+    delay(20);
 }

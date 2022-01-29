@@ -63,7 +63,6 @@ byte keyrows[] = {
 
 int keys_scan()
 {
-    return 0;
     int key = 0;
     if (mcpwrite(MCP_GPPU, KEYROW1|KEYROW2|KEYROW3) < 0) return -1;
     if (mcpwrite(MCP_IODIR, 0xFFFF) < 0) return -1;
@@ -77,13 +76,21 @@ int keys_scan()
                 if (mcpwrite(MCP_GPIO, ~(1<<ob)) < 0) return -1;
 
                 int32_t res = mcpread(MCP_GPIO);
-                if (res < 0) return -1;
+                if (res < 0) {
+                    mcpwrite(MCP_IODIR, 0xFFFF);
+                    return -1;
+                }
                 // serprintf("Got result 0x%04x, scanning 0x%04x", res, scanrows[r][1]);
                 for (int ib = 0; ib < 16; ib++) {
                     if (scanrows[r][1] & (1 << ib)) {
                         if ((res & (1 << ib)) == 0) {
+                            if (key > 0) {
+                                // Double press
+                                mcpwrite(MCP_IODIR, 0xFFFF);
+                                return 0;
+                            }
                             key = keyoff[r]+keyrows[ib]*5+keyrows[ob]+1;
-                            serprintf("Pressed: %d,%d = %d", ob, ib, key);
+                            // serprintf("Pressed: %d,%d = %d", ob, ib, key);
                         }
                     }
                 }
