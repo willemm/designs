@@ -8,15 +8,18 @@ int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
 struct fieldcell_t {
-    uint16_t pixel[4];
     union {
         struct { int8_t up, left, down, right; };
         int8_t neighbour[4];
     };
+    uint8_t pixel[4];
+    uint8_t side;
     int8_t next, prev;
+    uint8_t dist;
     int8_t color;
-    unsigned is_fold:1;
     unsigned is_endpoint:1;
+    unsigned is_fold:1;
+    unsigned is_upfold:1;
 };
 
 static_assert(sizeof(fieldcell_t) <= 16, "Size of fieldcell_t is bigger than 16");
@@ -35,6 +38,7 @@ static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3
 
 #define FSZ 5
 #define DSZ (FSZ*2)
+#define LEDSZ (DSZ*DSZ)
 
 #define NUMKEYS (3*FSZ*FSZ)
 
@@ -94,12 +98,15 @@ void field_init()
             int idx = field_idx(y,x);
             ledset_t cell = leds_keyidx(idx);
             int cellrot = (idx/(FSZ*FSZ)); // Rotate by 1 or 2 steps depending on face
+            field[idx].side = cell.side;
             field[idx].pixel[(cellrot+0)%4] = cell.left;   // up
             field[idx].pixel[(cellrot+1)%4] = cell.down;   // right
             field[idx].pixel[(cellrot+2)%4] = cell.left^1; // down
             field[idx].pixel[(cellrot+3)%4] = cell.down^1; // left
             field[idx].up = -1;
             field[idx].left = -1;
+            field[idx].prev = -1;
+            field[idx].next = -1;
             field[idx].is_fold = 0;
             field[idx].is_endpoint = 0;
             if ((x == FSZ-1) && (y < FSZ)) {
@@ -125,6 +132,7 @@ void field_init()
         int right = field[idx].right;
         if (right >= 0) {
             if (field[idx].is_fold) {
+                field[right].is_upfold = 1;
                 field[right].up = idx;
             } else {
                 field[right].left = idx;
@@ -178,6 +186,7 @@ static void draw_field()
 {
     pixels.clear();
     for (int idx = 0; idx < NUMKEYS; idx++) {
+        int side = ((int)field[idx].side)*LEDSZ;
         int color = field[idx].color;
         if (color) {
             uint32_t colorval = colors[(color-1)/2];
@@ -185,22 +194,15 @@ static void draw_field()
             if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
             if (field[idx].is_endpoint) {
                 for (int i = 0; i < 4; i++) {
-                    pixels.setPixelColor(field[idx].pixel[i], colorval);
+                    pixels.setPixelColor(side+field[idx].pixel[i], colorval);
                 }
-                /*
-                serprintf("Set endpoint %2d: (%3d,%3d,%3d,%3d) = 0x%06x",
-                    idx,
-                    field[idx].pixel[0], field[idx].pixel[1],
-                    field[idx].pixel[2], field[idx].pixel[3],
-                    colorval);
-                */
             }
 
             int right = field[idx].right;
             if ((right >= 0) && (field[right].color == color)) {
                 int left = (field[idx].is_fold) ? FIELD_UP : FIELD_LEFT;
-                pixels.setPixelColor(field[idx].pixel[FIELD_RIGHT], colorval);
-                pixels.setPixelColor(field[right].pixel[left], colorval);
+                pixels.setPixelColor(side+field[idx].pixel[FIELD_RIGHT], colorval);
+                pixels.setPixelColor(side+field[right].pixel[left], colorval);
                 /*
                 serprintf("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, right,
@@ -210,8 +212,8 @@ static void draw_field()
             }
             int down = field[idx].down;
             if ((down >= 0) && (field[down].color == color)) {
-                pixels.setPixelColor(field[idx].pixel[FIELD_DOWN], colorval);
-                pixels.setPixelColor(field[down].pixel[FIELD_UP], colorval);
+                pixels.setPixelColor(side+field[idx].pixel[FIELD_DOWN], colorval);
+                pixels.setPixelColor(side+field[down].pixel[FIELD_UP], colorval);
                 /*
                 serprintf("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, down,
@@ -223,7 +225,7 @@ static void draw_field()
         if (idx == (curkey-1)) {
             uint32_t colorval = pixels.Color(255,255,255);
             for (int i = 0; i < 4; i++) {
-                pixels.setPixelColor(field[idx].pixel[i], colorval);
+                pixels.setPixelColor(side+field[idx].pixel[i], colorval);
             }
         }
     }
@@ -284,14 +286,86 @@ void field_test()
 static void press_key(int key)
 {
     if (selected) {
-        serprintf("TODO: Press %d while selected %d", key, selected);
-        selected = 0;
+        if (field[key].color) {
+            serprintf("TODO: Press %d coloured %d while selected %d", key, field[key].color, selected);
+            selected = 0;
+        } else {
+            // Expand the selected line.
+            // Look for the selected line orthogannly through uncolored cells
+            serprintf("Expand selected line %d to key %d", selected, key);
+            int max_dist = -1;
+            int fnd = -1;
+            int fdir = 0;
+            for (int dr = 0; dr < 4; dr++) {
+                int dir = dr;
+                int idx = key;
+                // Walk into direction dir
+                serprintf("Looking in direction %d", dir);
+                int next;
+                while ((next = field[idx].neighbour[dir]) >= 0) {
+                    if (field[next].color) {
+                        if (field[next].color == selected) {
+                            if (field[next].dist > max_dist) {
+                                max_dist = field[next].dist;
+                                fnd = next;
+                                fdir = (dir+2)%4;
+                            }
+                        }
+                        serprintf("Found color %d at %d, fnd = %d, dist = %d, dir = %d",
+                            field[next].color, next, fnd, max_dist, fdir);
+                        break;
+                    }
+                    // Cross the fold from quadrant 1 to 3 or vv, rotate direction 
+                    if (dir == FIELD_UP) {
+                        if (field[idx].is_upfold) { dir = FIELD_LEFT; }
+                    } else if (dir == FIELD_RIGHT) {
+                        if (field[idx].is_fold) { dir = FIELD_DOWN; }
+                    }
+                    idx = next;
+                }
+            }
+            if (fnd >= 0) {
+                // Found a selected cell, walk back to key cell
+                int dist = field[fnd].dist;
+                int idx = fnd;
+                int next;
+                serprintf("Disconnecting further from %d", fnd);
+                while ((next = field[idx].next) >= 0) {
+                    field[next].color = 0;
+                    field[next].dist = 0;
+                    field[next].prev = -1;
+                    field[idx].next = -1;
+                    idx = next;
+                }
+                serprintf("Connecting back from %d to %d", fnd, key);
+                while (fnd != key) {
+                    int next = field[fnd].neighbour[fdir];
+                    if (next < 0) {
+                        // Assertion, can't happen
+                        serprintf("ERROR: Walk back didn't find field %d", key);
+                        break;
+                    }
+                    dist++;
+                    field[next].dist = dist;
+                    field[next].prev = fnd;
+                    field[next].color = selected;
+                    field[fnd].next = next;
+                    if (fdir == FIELD_UP) {
+                        if (field[fnd].is_upfold) { fdir = FIELD_LEFT; }
+                    } else if (fdir == FIELD_RIGHT) {
+                        if (field[fnd].is_fold) { fdir = FIELD_DOWN; }
+                    }
+                    fnd = next;
+                }
+            }
+        }
     } else {
         if (field[key].color) {
             // Select this color
             selected = field[key].color;
             serprintf("Press %d selects %d", key, selected);
         } else {
+            /*
             int color = 0;
             int cnt = 0;
             for (int n = 0; n < 4; n++) {
@@ -306,6 +380,7 @@ static void press_key(int key)
                 selected = color;
                 serprintf("Press %d selects neighbouring %d", key, selected);
             }
+            */
             // TODO: Connect two lines ?
         }
     }
@@ -324,7 +399,7 @@ void field_update()
     if (key != curkey) {
         serprintf("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%d", key, curkey, lastkey, tick);
         curkey = key;
-        if (key >= 0) {
+        if (key > 0) {
             if ((key != lastkey) || (lastpress+50 < tick)) {
                 lastkey = key;
                 press_key(key-1);

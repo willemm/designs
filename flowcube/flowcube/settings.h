@@ -7,8 +7,9 @@
 #define LEDS_DOWN  0x08
 
 struct ledset_t {
-    int left;
-    int down;
+    uint8_t side;
+    uint8_t left;
+    uint8_t down;
 };
 
 extern uint32_t colors[];
