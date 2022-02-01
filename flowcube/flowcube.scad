@@ -85,16 +85,18 @@ intersection() {
     rotate([-90,0,90]) cubeside();
 }
 
-*render() translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
-    bottomsidepart();
+color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
+    render(convexity=6) bottomsidepart();
+
+*color("#333") translate([0,0,-1]) bottomside();
 
 *color("#666") bottomfeet();
 
-*color("#666") bottomplate();
+color("#666") bottomplate();
 
-color("#696") render(convexity=5) bottomplate1();
-translate([5,2.5,0]) color("#669") render(convexity=5) bottomplate2();
-translate([0,5,0]) color("#966") render(convexity=5) bottomplate3();
+*color("#696") render(convexity=5) bottomplate1();
+*translate([5,2.5,0]) color("#669") render(convexity=5) bottomplate2();
+*translate([0,5,0]) color("#966") render(convexity=5) bottomplate3();
 
 
 *color("#5954") translate([boxx+20-250/2, boxy+3-200/2,-208]) cube([250,200,2],true);
@@ -106,12 +108,11 @@ translate([0,5,0]) color("#966") render(convexity=5) bottomplate3();
 
 *color("#333") plugcase();
 
-*color("#333") translate([0,0,-1]) bottomside();
 
-*psu();
-*if (vertpc) { powerplug(); } else { powerplug_h(); }
-*mcp();
-*esp();
+psu();
+if (vertpc) { powerplug(); } else { powerplug_h(); }
+mcp();
+esp();
 
 }
 
@@ -149,9 +150,9 @@ module esp(xof=xsof*butsp, bof=10, zof=-2.3)
     ln = 25.6;
     wd = 34.4;
     th = 2.0;
-    translate([50, -ihr+3, rcz+5]) rotate([-90,0,0])  {
+    translate([52, -ihr+3, rcz+5]) rotate([-90,0,0])  {
         color("#559") translate([0,0,th/2+12]) cube([ln, wd, th], true);
-        color("#873") translate([0,-3*2.54,1.6/2]) cube([10*2.54, 16*2.54, 1.6], true);
+        color("#873") translate([0*2.54,-3*2.54,1.6/2]) cube([12*2.54, 16*2.54, 1.6], true);
 
         color("#ddd") translate([-0*2.54, -10*2.54+0.4, 1.6+7/2]) cube([20.0, 5.8, 7], true);
         color("#333") translate([-4.5*2.54, 1*2.54, 1.6+9/2]) cube([2.54, 8*2.54, 9], true);
@@ -170,7 +171,7 @@ module mcp(xof=xsof*butsp, bof=10, zof=-2.3)
     ln = 65.6;
     wd = 19.2;
     th = 1.5;
-    translate([0, -ihr+3, rcz-5]) rotate([-90,0,0])  {
+    translate([2, -ihr+3, rcz-2.5]) rotate([-90,0,0])  {
         difference() {
             color("#595") translate([0,0,th/2]) cube([ln, wd, th], true);
             translate([-(ln/2 -  5.0), (wd/2 - 6.6), -0.01]) cylinder(1.52, 1.7, 1.7, $fn=24);
@@ -331,7 +332,7 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
     bothi = 23;
 
     br = rcx+1.3;
-    br2 = 40;
+    br2 = 125/2;
 
     ethi = 1.2;
 
@@ -857,6 +858,24 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
             translate([0, ihr+3, rcz-bothi-0.01]) cylinder(8.01, boltrad, boltrad, $fn=24);
             translate([0, ihr+3, rcz-bothi+2+2.8/2]) cube([6,6.2,2.8], true);
         }
+
+        nd1 = 2.8;
+        nd2 = nd1 + 2.8;
+        nd3 = 8;
+        nw1 = boltrad;
+        nw2 = 3.2;
+        boltslot = [
+            [-nw1, 0.01], [-nw1, -nd1], [-nw2, -nd1],
+            [-nw2, -nd2], [-nw1, -nd2], [-nw1, -nd3],
+            [ nw1, -nd3], [ nw1, -nd2], [ nw2, -nd2],
+            [ nw2, -nd1], [ nw1, -nd1], [ nw1, 0.01] ];
+        // Bolt slots for electronics
+        translate([52, -ihr, rcz-bothi-0.01]) linear_extrude(height=50, convexity=4)
+            polygon(boltslot);
+        translate([2-(65.6/2-5.0), -ihr, rcz-bothi-0.01]) linear_extrude(height=23, convexity=4)
+            polygon(boltslot);
+        translate([2+(65.6/2-16.8), -ihr, rcz-bothi-0.01]) linear_extrude(height=23, convexity=4)
+            polygon(boltslot);
     }
     // Bolt holes for bottom plate, sacrificial layer
     #for (an=[0:60:300]) rotate([0,0,an]) {
@@ -877,7 +896,7 @@ module bottomsidepart(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
     render(convexity=4)
     difference() {
         intersection() {
-            bottomside(xof,bof,zof,tol);
+            rotate([0,0,-120]) bottomside(xof,bof,zof,tol);
             translate([-(rcx+2),0,rcz-bothi-0.1]) cylinder(-rcz, rcx+2, rcx+2, $fn=6);
         }
         for (m=[0,1], z=[[2.5,2],[2.5,17.5],[10,12]]) mirror([0,m,0]) {
