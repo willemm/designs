@@ -85,10 +85,10 @@ intersection() {
     rotate([-90,0,90]) cubeside();
 }
 
-color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
+*color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     render(convexity=6) bottomsidepart();
 
-*color("#333") translate([0,0,-1]) bottomside();
+color("#333") translate([0,0,-1]) bottomside();
 
 *color("#666") bottomfeet();
 
@@ -152,9 +152,9 @@ module esp(xof=xsof*butsp, bof=10, zof=-2.3)
     th = 2.0;
     translate([52, -ihr+3, rcz+5]) rotate([-90,0,0])  {
         color("#559") translate([0,0,th/2+12]) cube([ln, wd, th], true);
-        color("#873") translate([0*2.54,-3*2.54,1.6/2]) cube([12*2.54, 16*2.54, 1.6], true);
+        color("#873") translate([0*2.54,-4*2.54,1.6/2]) cube([12*2.54, 18*2.54, 1.6], true);
 
-        color("#ddd") translate([-0*2.54, -10*2.54+0.4, 1.6+7/2]) cube([20.0, 5.8, 7], true);
+        color("#ddd") translate([-5*2.54, -10*2.54, 1.6+7/2]) cube([5.8, 15.0, 7], true);
         color("#333") translate([-4.5*2.54, 1*2.54, 1.6+9/2]) cube([2.54, 8*2.54, 9], true);
         color("#333") translate([+4.5*2.54, 1*2.54, 1.6+9/2]) cube([2.54, 8*2.54, 9], true);
     }
@@ -870,7 +870,7 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
             [ nw1, -nd3], [ nw1, -nd2], [ nw2, -nd2],
             [ nw2, -nd1], [ nw1, -nd1], [ nw1, 0.01] ];
         // Bolt slots for electronics
-        translate([52, -ihr, rcz-bothi-0.01]) linear_extrude(height=50, convexity=4)
+        translate([52, -ihr, rcz-bothi-0.01]) linear_extrude(height=60, convexity=4)
             polygon(boltslot);
         translate([2-(65.6/2-5.0), -ihr, rcz-bothi-0.01]) linear_extrude(height=23, convexity=4)
             polygon(boltslot);
