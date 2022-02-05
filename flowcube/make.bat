@@ -10,4 +10,5 @@ openscad -D doitem=\"bottomside\" -o fc_bottomside_black.stl flowcube.scad
 openscad -D doitem=\"bottomplate1\" -o fc_bottomplate1_black.stl flowcube.scad
 openscad -D doitem=\"bottomplate2\" -o fc_bottomplate2_black.stl flowcube.scad
 openscad -D doitem=\"bottomplate3\" -o fc_bottomplate3_black.stl flowcube.scad
+openscad -D doitem=\"bottomfoot\" -o fc_bottomfoot_black.stl flowcube.scad
 openscad -D doitem=\"plugcase\" -o fc_plugcase_black.stl flowcube.scad

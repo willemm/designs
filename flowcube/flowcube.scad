@@ -48,6 +48,8 @@ if (doitem == "bottomplate1") { bottomplate1(); }
 if (doitem == "bottomplate2") { rotate([0, 0, 90]) bottomplate2(); }
 if (doitem == "bottomplate3") { bottomplate3(); }
 if (doitem == "plugcase")     { rotate([0, 90, 0]) plugcase(); }
+if (doitem == "bottomfoot")   { rotate([180,0,0]) bottomfoot(); }
+if (doitem == "strip")        { cube([75,8,1]); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -88,7 +90,7 @@ intersection() {
 *color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     render(convexity=6) bottomsidepart();
 
-color("#333") translate([0,0,-1]) bottomside();
+*color("#333") translate([0,0,-1]) bottomside();
 
 *color("#666") bottomfeet();
 
@@ -106,13 +108,13 @@ color("#666") bottomplate();
 *color("#333") bottomblob();
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
 
-*color("#333") plugcase();
+color("#777") plugcase();
 
 
-psu();
+*psu();
 if (vertpc) { powerplug(); } else { powerplug_h(); }
-mcp();
-esp();
+*mcp();
+*esp();
 
 }
 
@@ -342,7 +344,7 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
     nly = 20;
     hei = 120;
 
-    rimh = 50;
+    rimh = 35;
 
     ho = botholeoff;
     ihr = (rcx-5) * sqrt(3)/2;
@@ -393,7 +395,7 @@ module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
     w = 38; // width
     h = 17; // height
     l = 21; // length
-    d = 9; // diagonal
+    d = 11; // diagonal
     s = 8; // inset
     t = thi; // thickness
     s2 = 1/sqrt(2);
@@ -408,6 +410,7 @@ module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
             union() {
                 translate([-l/2, (w/2+fw/2-1),2+ft/2]) cube([l, fw, ft], true);
                 translate([-l/2,-(w/2+fw/2-1),2+ft/2]) cube([l, fw, ft], true);
+                translate([-l-2/2, 0, 2+6/2]) cube([2, w, 6], true);
                 polyhedron(convexity=5, points=[
                     [-d,-w/2+d,-h], [-d, w/2-d,-h], [-l, w/2-d,-d2],    [-l,-w/2+d,-d2],
                     [ 0,-w/2,-h],   [ 0, w/2,-h],   [-l,   w/2,0],    [-l,  -w/2,0],
@@ -434,7 +437,7 @@ module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
             }
             translate([-l+2+0.01, 12, 4]) rotate([0,-90,0]) {
                 minkowski() {
-                    cylinder(t+0.02, 1.8, 1.8, $fn=24);
+                    cylinder(t+2.02, 1.9, 1.9, $fn=24);
                     cube([0.001, 2, 0.001], true);
                 }
             }
