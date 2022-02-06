@@ -90,11 +90,14 @@ intersection() {
 *color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     render(convexity=6) bottomsidepart();
 
+//color("#666") for(an=[0:120:240]) rotate([0,0,an])
+    bottomsideconnect();
+
 *color("#333") translate([0,0,-1]) bottomside();
 
 *color("#666") bottomfeet();
 
-color("#666") bottomplate();
+*color("#666") bottomplate();
 
 *color("#696") render(convexity=5) bottomplate1();
 *translate([5,2.5,0]) color("#669") render(convexity=5) bottomplate2();
@@ -108,12 +111,13 @@ color("#666") bottomplate();
 *color("#333") bottomblob();
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
 
-color("#777") plugcase();
+*color("#777") plugcase();
 
 
 *psu();
-if (vertpc) { powerplug(); } else { powerplug_h(); }
+*if (vertpc) { powerplug(); } else { powerplug_h(); }
 *mcp();
+*rotate([90,0,0]) mcpback();
 *esp();
 
 }
@@ -182,6 +186,29 @@ module mcp(xof=xsof*butsp, bof=10, zof=-2.3)
         color("#ddd") translate([-ln/2+22.5/2, -wd/2-0.8+5.9/2, 1.6+7/2]) cube([22.5, 5.9, 7], true);
         color("#ddd") translate([-ln/2+22.5/2+25.4, -wd/2-0.8+5.9/2, 1.6+7/2]) cube([22.5, 5.9, 7], true);
         color("#ddd") translate([ ln/2-5.8/2-1.3, -wd/2-0.8+12.6/2, 1.6+7/2]) cube([5.8, 12.6, 7], true);
+    }
+}
+
+module mcpback(xof=xsof*butsp, bof=10, zof=-2.3)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    ihr = (rcx-5) * sqrt(3)/2;
+
+    ln = 65.6;
+    wd = 19.2;
+    th = 2;
+
+    ex = 7;
+    ey = 3;
+    translate([2, -ihr+3, rcz-2.5]) rotate([-90,0,0])  {
+        difference() {
+            color("#333") translate([-ex/2, ey/2, -th/2]) cube([ln-ex, wd-ey, th], true);
+            translate([-(ln/2 -  5.0), (wd/2 - 6.6), -th-0.01]) cylinder(th+0.02, 1.7, 1.7, $fn=24);
+            translate([ (ln/2 - 16.8), (wd/2 - 6.6), -th-0.01]) cylinder(th+0.02, 1.7, 1.7, $fn=24);
+        }
     }
 }
 
@@ -848,6 +875,7 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
                 cube(cw-10);
             }
         }
+        // Bolt holes for cube mount
         botboltoff = (numbut+0.5)*butsp-ewid/2-3;
         for (an=[0:120:240]) rotate([0,0,an])
         rotate([0,180+atan(sqrt(2)),0]) rotate([0,0,135]) {
@@ -884,6 +912,27 @@ module bottomside(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)
     #for (an=[0:60:300]) rotate([0,0,an]) {
         translate([0, ihr+3, rcz-bothi+2+2.8+0.1]) cube([4,4,0.2], true);
     }
+}
+
+module bottomsideconnect(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.1)
+{
+    bothi = 22;
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+
+    connh = 10;
+    cx = 10/2;
+    cy = 6/2-tol;
+    ct = 2/2-tol;
+
+    translate([rcx-5, 0, rcz-bothi-1]) linear_extrude(height=connh-tol, convexity=6) polygon([
+        [-cy,-cx-ct], [-cy,-cx+ct], [-ct,-cx+ct],
+        [-ct, cx-ct], [-cy, cx-ct], [-cy, cx+ct],
+        [ cy, cx+ct], [ cy, cx-ct], [ ct, cx-ct],
+        [ ct,-cx+ct], [ cy,-cx+ct], [ cy,-cx-ct]
+    ]);
 }
 
 module bottomsidepart(xof=xsof*butsp, bof=10, zof=-2.3, tol=0.2)

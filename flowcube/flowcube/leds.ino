@@ -2,7 +2,7 @@
 #include "settings.h"
 
 // Which pin on the Arduino is connected to the NeoPixels?
-#define PIN 2
+#define PIN 14
 
 #define EDGESIZE 5
 #define SIDEKEYS (EDGESIZE*EDGESIZE)
