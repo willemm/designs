@@ -78,6 +78,9 @@ intersection() {
 }
 */
 
+rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) 
+cubecorner();
+
 *rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     color("#333") cubecorner();
     *cubecornernut();
@@ -90,7 +93,7 @@ intersection() {
 *color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
     render(convexity=6) bottomsidepart();
 
-//color("#666") for(an=[0:120:240]) rotate([0,0,an])
+*color("#666") for(an=[0:120:240]) rotate([0,0,an])
     bottomsideconnect();
 
 *color("#333") translate([0,0,-1]) bottomside();
@@ -1128,7 +1131,7 @@ module cubeedgeinside(sd, ins, rd=10, cp=32)
     ));
 }
 
-module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=16, thi=1.2, tol=0.2)
+module cubecorner(xof=xsof*butsp, bof=10, zof=-2.3, cp=32, thi=1.2, tol=0.2)
 {
     sd = (butsp-ewid)/2-xof;
     /*

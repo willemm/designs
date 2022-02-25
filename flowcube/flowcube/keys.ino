@@ -85,6 +85,7 @@ int keys_scan()
                     if (scanrows[r][1] & (1 << ib)) {
                         if ((res & (1 << ib)) == 0) {
                             if (key > 0) {
+                                // serprintf("Double (%d) Pressed: %d,%d = %d", key, ob, ib, keyoff[r]+keyrows[ib]*5+keyrows[ob]+1);
                                 // Double press
                                 mcpwrite(MCP_IODIR, 0xFFFF);
                                 return 0;
@@ -103,6 +104,10 @@ int keys_scan()
 
 void keys_init()
 {
+    pinMode(0, OUTPUT);
+    digitalWrite(0, LOW);
+    delay(20);
+    digitalWrite(0, HIGH);
     Wire.begin();
     /*
     serprintf("Scanning I2C bus...");
