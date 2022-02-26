@@ -14,12 +14,12 @@ if (doitem == "house") { house(); }
 if (doitem == "slider") { slider(); }
 if (doitem == "") {
 
-    *filament_end();
-    *nut();
-    *translate([2,0,0]) bolt();
+    filament_end();
+    nut();
+    translate([2,0,0]) bolt();
 
     house();
-    *translate([2,0,0]) slider();
+    translate([2,0,0]) slider();
 }
 
 
@@ -73,7 +73,7 @@ module filament_end()
 
 module bolt()
 {
-    color("#444") translate([offset-5.2,0,0]) rotate([0,90,0]) union() {
+    color("#444") translate([offset2-5.2,0,0]) rotate([0,90,0]) union() {
         cylinder(9.3, 1.5, 1.5, $fn=30);
         cylinder(1.6, 5.8/2, 5.8/2, $fn=30);
     }
@@ -81,5 +81,5 @@ module bolt()
 
 module nut()
 {
-    color("#777") translate([offset+1.2+2.6/2,0,0]) cube([2.3, 5.5, 5.5], true);
+    color("#777") translate([offset2+1.2+2.6/2,0,0]) cube([2.3, 5.5, 5.5], true);
 }
