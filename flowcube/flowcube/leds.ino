@@ -56,7 +56,7 @@ ledset_t leds_keyidx(int keyidx)
     int x = keyidx%EDGESIZE;
     ledset_t cell;
     int s1 = (y%2) ? -1 : 1;
-    cell.side = (keyidx/SIDEKEYS) * (SIDEKEYS*4);
+    cell.side = (keyidx/SIDEKEYS);
     cell.left = y*(EDGESIZE*2) + (EDGESIZE-1) + s1*((x*2)-(EDGESIZE-1)) + (y%2);
     int s2 = (x%2) ? -1 : 1;
     cell.down = (SIDEKEYS*4-2) - (x*(EDGESIZE*2) + (EDGESIZE-1) + s2*((y*2)-(EDGESIZE-1))) + (x%2);

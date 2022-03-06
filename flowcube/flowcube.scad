@@ -39,6 +39,7 @@ if (doitem == "sidefacet"   ) { mirror([0,0,1]) sidefacet(); }
 if (doitem == "side"        ) { whiteside(); }
 if (doitem == "backendfront") { backendfront(); }
 if (doitem == "backendback" ) { backendback(); }
+if (doitem == "backendguide") { rotate([180,0,0]) backendguide(); }
 if (doitem == "button"      ) { button(); }
 if (doitem == "edgeblack"   ) { rotate([0, 90,0]) cubeedgeblack(); }
 if (doitem == "edgewhite"   ) { rotate([0,-90,0]) cubeedgewhite(); }
@@ -78,16 +79,17 @@ intersection() {
 }
 */
 
-rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) 
-cubecorner();
+*rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) cubecorner();
+
+cubeside();
 
 *rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
-    color("#333") cubecorner();
+    *color("#333") cubecorner();
     *cubecornernut();
 
     cubeside();
-    rotate([90,90,0]) cubeside();
-    rotate([-90,0,90]) cubeside();
+    *rotate([90,90,0]) cubeside();
+    *rotate([-90,0,90]) cubeside();
 }
 
 *color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
@@ -131,20 +133,21 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        cubeedgeswhite(xof, bof, zof);
-        cubeedgesblack(xof, bof, zof);
-        color("#333") cubebackedges(xof, bof, zof);
+        *cubeedgeswhite(xof, bof, zof);
+        *cubeedgesblack(xof, bof, zof);
+        *color("#333") cubebackedges(xof, bof, zof);
 
-        whiteside(xof, bof, zof);
-        sidefacets(zof, bof, zof);
+        *whiteside(xof, bof, zof);
+        *sidefacets(zof, bof, zof);
 
         *cubebacknuts(xof, bof, zof);
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        *partseries(xof, bof, zof);
+        partseries(xof, bof, zof);
         *color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
-        *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
+        color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
+        color("#8cc") translate([0, 0, ledz-1.8-0.2]) backendguide();
     }
 }
 
@@ -1563,6 +1566,57 @@ module sidefacets(xof, bof, zof)
 {
     color("#333") for (x=[1:numbut-1], y=[1:numbut-1]) {
         translate([butsp*x,butsp*y,11]) sidefacet();
+    }
+}
+
+module backendguide(nb = numbut, thi = 0.4)
+{
+    cwid = butsp-8;
+    swid = 20;
+    twid = 10;
+    bwid = 3;
+    hi = 2.6;
+
+    wid = 1.4;
+    wid2 = 4.0;
+    ext = 0.2;
+    translate([0,0.15,0]) union() {
+        for (x=[0:nb-1]) {
+            translate([x*butsp+9.5, 9.5, -thi]) cube([wid, nb*butsp-19.5, thi]);
+        }
+        for (y=[0:nb-1]) {
+            translate([9.5, y*butsp+9.5, -thi]) cube([nb*butsp-19.5, wid, thi]);
+        }
+        for (x=[0:nb-1], y=[0:nb-1]) {
+            translate([x*butsp+9.5, y*butsp+9.5, -hi]) difference() {
+                union() {
+                    linear_extrude(height=hi) polygon([
+                        [-ext,0],[0,-ext],[wid,-ext],[wid+ext,0],
+                        [wid+ext,wid],[wid,wid+ext],[0,wid+ext],[-ext,wid]
+                    ]);
+                    translate([0,0,1]) linear_extrude(height=hi-1) polygon([
+                        [-ext,0],[0,-ext],[wid2,-ext],[wid2+ext,0],
+                        [wid2+ext,wid],[wid2,wid+ext],[0,wid+ext],[-ext,wid]
+                    ]);
+                }
+                translate([-ext-0.01, wid/2, 1.8]) rotate([0,90,0]) cylinder(wid2+ext*2+0.02, 0.4, 0.4, $fn=24);
+                translate([wid/2, wid+ext+0.01, 0.8]) rotate([90,0,0]) cylinder(wid+ext*2+0.02, 0.4, 0.4, $fn=24);
+            }
+            translate([x*butsp+19.5, y*butsp+9.5, -hi]) difference() {
+                translate([0,0,1]) linear_extrude(height=hi-1) polygon([
+                    [0,0],[ext,-ext],[wid-ext,-ext],[wid,0],
+                    [wid,wid],[wid-ext,wid+ext],[ext,wid+ext],[0,wid]
+                ]);
+                translate([-ext-0.01, wid/2, 1.8]) rotate([0,90,0]) cylinder(wid+ext*2+0.02, 0.4, 0.4, $fn=24);
+            }
+            translate([x*butsp+9.5, y*butsp+19.5, -hi]) difference() {
+                linear_extrude(height=hi) polygon([
+                    [-ext,ext],[0,0],[wid,0],[wid+ext,ext],
+                    [wid+ext,wid-ext],[wid,wid],[0,wid],[-ext,wid-ext]
+                ]);
+                translate([wid/2, wid+ext+0.01, 0.8]) rotate([90,0,0]) cylinder(wid+ext*2+0.02, 0.4, 0.4, $fn=24);
+            }
+        }
     }
 }
 

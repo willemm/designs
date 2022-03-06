@@ -2,6 +2,7 @@ openscad -D doitem=\"sidefacet\" -o fc_sidefacet_black.stl flowcube.scad
 openscad -D doitem=\"side\" -o fc_side_white.stl flowcube.scad
 openscad -D doitem=\"backendfront\" -o fc_backendfront_white.stl flowcube.scad
 openscad -D doitem=\"backendback\" -o fc_backendback_any.stl flowcube.scad
+openscad -D doitem=\"backendguide\" -o fc_backendguide_any.stl flowcube.scad
 openscad -D doitem=\"button\" -o fc_button_white.stl flowcube.scad
 openscad -D doitem=\"edgeblack\" -o fc_edge_black.stl flowcube.scad
 openscad -D doitem=\"edgewhite\" -o fc_edge_white.stl flowcube.scad
