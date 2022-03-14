@@ -12,6 +12,7 @@ slideth = 3;
 
 numbatteries = 2;
 batteryoffset = 15;
+batteryan = 240;
 
 batth = 1.2;
 batty = 60;
@@ -32,13 +33,14 @@ if (doitem == "try") { cover_holder(159.6, 19); }
 if (doitem == "") {
     if (1) {
         hexbase_top();
-        translate([0,0,14]) cover_top();
+        *translate([0,0,14]) cover_top();
         translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
-        translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
+        *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
-        batteries();
+        rotate([0,0,batteryan]) batteries();
         ws2811();
         digispark();
+        receiver();
     } else {
         hexbase_bot();
         translate([0,0,14]) cover_bot();
@@ -145,7 +147,7 @@ module cover_top()
     color("#7a2") translate([0,0,0]) linear_extrude(height = rti, convexity=6) {
         difference() {
             polygon( [for (an=[0:60:300]) [di2/2 * sin(an), di2/2 * cos(an)]] );
-            polygon([
+            rotate([0,0,batteryan]) polygon([
                 [-by+battof,-bx], [-by+battof, bx],
                 [ by+battof, bx], [ by+battof,-bx]
             ]);
@@ -175,7 +177,7 @@ module cover_top()
     color("#8c3") translate([0,0,rti]) linear_extrude(height = thi, convexity=6) {
         difference() {
             polygon( [for (an=[0:60:300]) [di2/2 * sin(an), di2/2 * cos(an)]] );
-            polygon([
+            rotate([0,0,batteryan]) polygon([
                 [-by+battof,-bx], [-by+battof, bx],
                 [ by+battof, bx], [ by+battof,-bx]
             ]);
@@ -407,8 +409,8 @@ module hexbase_bot()
     }
 
     for (an=[0:60:240]) rotate([0,0,an]) {
-        translate([cx, 0, 0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
-            [0, -cy+5], [14, -cy+19], [14, cy-19], [0, cy-5],
+        translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
+            [0, -cy+7], [12, -cy+19], [12, cy-19], [0, cy-7],
         ]);
     }
 
@@ -547,7 +549,7 @@ module hexbase_top()
                     [+2.5, cy*2-3.8], [-2.5, cy*2-3.8],
                 ]);
             }
-            polygon([
+            rotate([0,0,batteryan]) polygon([
                 [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
                 [ batty/2+battof+0.1, battx/2+0.1], [ batty/2+battof+0.1,-battx/2-0.1]
             ]);
@@ -555,15 +557,15 @@ module hexbase_top()
     }
 
     for (an=[0:60:240]) rotate([0,0,an]) {
-        translate([cx, 0, 0]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
-            [0, -cy+5], [14, -cy+19], [14, cy-19], [0, cy-5],
+        translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
+            [0, -cy+7], [12, -cy+19], [12, cy-19], [0, cy-7],
         ]);
     }
 
     for (an=[0:120:240]) rotate([0,0,an]) {
         translate([cx-6/2 -shox, cy-9.6/2 -shoy, 4]) rotate([0,90,0]) house();
     }
-    batterybox();
+    rotate([0,0,batteryan]) batterybox();
 }
 
 module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.9)
@@ -608,8 +610,31 @@ module digispark()
     cy = dia/4;
 
     // color("#55c") rotate([0,0,240]) translate([cx-18 -18/2, cy-3.5, 5+1.5/2]) cube([18, 23, 1.5], true);
-    color("#55c") rotate([0,0,0]) translate([cx-19 -23/2, -26, 5+1.5/2])
+    color("#55c") rotate([0,0,240]) translate([cx-19 -23/2, 26, 5+1.5/2])
         cube([23, 18, 1.5], true);
+}
+
+module receiver(small=0)
+{
+    dia = 109.6;
+    cx = dia*s3/4;
+    cy = dia/4;
+
+    if (small) {
+        h = 17;
+        w = 11.6;
+        th = 1.5;
+
+        color("#59a") rotate([0,0,240]) translate([-cx+2.2 + w/2, 16 - h/2, 5+th/2])
+            cube([w, h, th], true);
+    } else {
+        h = 30;
+        w = 13.5;
+        th = 1.5;
+
+        color("#59a") rotate([0,0,0]) translate([-cx+2.2 + w/2, 16 - h/2, 5+th/2])
+            cube([w, h, th], true);
+    }
 }
 
 module batteries(num = numbatteries, bo = batteryoffset)

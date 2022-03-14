@@ -9,8 +9,7 @@
 #define PIN        0 // On Trinket or Gemma, suggest changing this to 1
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS 1 // Popular NeoPixel ring size
-
+#define NUMPIXELS 10
 // When setting up the NeoPixel library, we tell it how many pixels,
 // and which pin to use to send signals. Note that for older NeoPixel
 // strips you might need to change the third parameter -- see the
@@ -57,8 +56,48 @@ uint32_t colori(uint32_t ang)
   return pixels.Color(bri*(120-(ang-240))/120, bri, bri*((ang-240))/120);
 }
 
-void loop() {
+/*
+uint32_t colors[] = {
+  pixels.Color(255,0,0),
+  pixels.Color(255,255,0),
+  pixels.Color(0,255,0),
+  pixels.Color(0,255,255),
+  pixels.Color(0,0,255),
+  pixels.Color(255,0,255)
+};
+*/
 
+void loop() {
+  /*
+  pixels.setPixelColor(0, pixels.Color(255,0,0));
+  delay(500);
+  pixels.show();
+  pixels.setPixelColor(0, pixels.Color(0,255,0));
+  delay(500);
+  pixels.show();
+  pixels.setPixelColor(0, pixels.Color(0,0,255));
+  delay(500);
+  pixels.show();
+  pixels.setPixelColor(0, pixels.Color(255,255,0));
+  delay(500);
+  pixels.show();
+  pixels.setPixelColor(0, pixels.Color(255,0,255));
+  delay(500);
+  pixels.show();
+  pixels.setPixelColor(0, pixels.Color(0,255,255));
+  delay(500);
+  pixels.show();
+  */
+  /*
+  for (int i = 0; i < 6; i++) {
+    for (int j = 0; j < NUMPIXELS; j++) {
+      pixels.setPixelColor((j+NUMPIXELS-1)%NUMPIXELS, 0);
+      pixels.setPixelColor(j, colors[i]);
+      pixels.show();
+      delay(200);
+    }
+  }
+  */
   for(uint32_t bri = 0; bri < 256; bri += 1) {
     pixels.setPixelColor(0, pixels.Color(bri, bri, bri));
     pixels.show();
