@@ -15,9 +15,12 @@ batteryoffset = 15;
 batteryan = 240;
 
 batth = 1.2;
-batty = 60;
+batty = 57;
 battx = batteryoffset * numbatteries;
-battof = -2;
+battof = -1;
+
+digipos = [27.5, 25.4, 240];
+wspos = [42, 23.9, 240];
 
 s3 = sqrt(3);
 
@@ -39,7 +42,7 @@ if (doitem == "") {
 
         rotate([0,0,batteryan]) batteries();
         ws2811();
-        digispark();
+        #digispark();
         receiver();
     } else {
         hexbase_bot();
@@ -435,7 +438,7 @@ module hexbase_top()
     h2 = 2;
     h3 = 6;
 
-    hx = cx-6;
+    hx = cx-7;
 
     hx2 = cx-18;
     h22 = 10;
@@ -553,8 +556,24 @@ module hexbase_top()
                 [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
                 [ batty/2+battof+0.1, battx/2+0.1], [ batty/2+battof+0.1,-battx/2-0.1]
             ]);
+            
+            // digispark
+            rotate([0,0,digipos[2]]) polygon([
+                [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
+                [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
+            ]);
         }
+        rotate([0,0,digipos[2]]) polygon(points=[
+            [digipos.x+1.4, digipos.y-10.4], [digipos.x-24.4, digipos.y-10.4],
+            [digipos.x-24.4, digipos.y+10.4], [digipos.x+1.4, digipos.y+10.4],
+            [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
+            [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
+        ], paths=[
+            [0,1,2,3],[4,5,6,7],
+        ]);
     }
+    color("#b83") rotate([0,0,digipos[2]]) translate([digipos.x-23/2-2.5, digipos.y+2.5, 1+3/2])
+        cube([19, 14, 3], true);
 
     for (an=[0:60:240]) rotate([0,0,an]) {
         translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
@@ -600,7 +619,7 @@ module ws2811()
     cx = dia*s3/4;
     cy = dia/4;
 
-    color("#5c5") rotate([0,0,240]) translate([cx-4 -12.5/2, cy-3.5, 5+1.5/2]) cube([12.5, 9, 1.5], true);
+    color("#5c5") rotate([0,0,240]) translate([wspos.x -12.5/2, wspos.y, 5+1.5/2]) cube([12.5, 9, 1.5], true);
 }
 
 module digispark()
@@ -610,7 +629,7 @@ module digispark()
     cy = dia/4;
 
     // color("#55c") rotate([0,0,240]) translate([cx-18 -18/2, cy-3.5, 5+1.5/2]) cube([18, 23, 1.5], true);
-    color("#55c") rotate([0,0,240]) translate([cx-19 -23/2, 26, 5+1.5/2])
+    color("#55c") rotate([0,0,240]) translate([digipos.x -23/2, digipos.y, 3.5+1.5/2])
         cube([23, 18, 1.5], true);
 }
 
@@ -642,9 +661,9 @@ module batteries(num = numbatteries, bo = batteryoffset)
     bdia = 14.5;
     color("#585") rotate([0,0,0]) for (y=[-(num-1)/2:(num-1)/2]) {
         dr = ((y+(num-1)/2) % 2) ? 1 : -1;
-        translate([0, y*bo, 15/2+2]) rotate([0,90,0]) {
-            translate([0,0,-50/2+dr*2]) cylinder(49, bdia/2, bdia/2, $fn=48);
-            translate([0,0, dr*(50/2+2)-1]) cylinder(1, 3, 3, $fn=48);
+        translate([battof, y*bo, 15/2+2]) rotate([0,90,0]) {
+            translate([0,0,-50/2+dr*1]) cylinder(49, bdia/2, bdia/2, $fn=48);
+            translate([0,0, dr*(50/2+1)-1]) cylinder(1.5, 3, 3, $fn=48);
         }
     }
 }
