@@ -24,6 +24,7 @@ void setup() {
     Serial.println();
     Serial.println("Initializing...");
 #endif
+    ota_check();
     leds_init();
     leds_test();
     keys_init();
@@ -35,5 +36,6 @@ void setup() {
 void loop()
 {
     field_update();
+    ota_check();
     delay(20);
 }

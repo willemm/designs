@@ -37,7 +37,7 @@ void leds_test()
         delay(100);
 
         for(int i=0; i<PERROW; i++) {
-            for (int j = 0; j < NUMROWS*2; j++) {
+            for (int j = 0; j < NUMROWS*3; j++) {
                 int o = ((rgb+j)%2) ? (PERROW-1) : 0;
                 int s = ((rgb+j)%2) ? -1 : 1;
                 pixels.setPixelColor(j*PERROW+o+i*s, colors[rgb]);

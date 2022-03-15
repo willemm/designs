@@ -7,6 +7,13 @@ unsigned long lastpress = 0;
 int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
+#define DP_INIT 1
+#define DP_DRAW 2
+#define DP_KEY 4
+#define DP_TEST 4
+
+#define DEBUGPRINT 0
+
 struct fieldcell_t {
     union {
         struct { int8_t up, left, down, right; };
@@ -38,7 +45,7 @@ static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3
 
 #define FSZ 5
 #define DSZ (FSZ*2)
-#define LEDSZ (DSZ*DSZ)
+#define LEDSZ ((int)(DSZ*DSZ))
 
 #define NUMKEYS (3*FSZ*FSZ)
 
@@ -142,12 +149,12 @@ void field_init()
         if (down >= 0) {
             field[down].up = idx;
         }
-        /*
+#if (DEBUGPRINT & DP_INIT)
         serprintf("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
             idx, field[idx].right, field[idx].down,
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3]);
-        */
+#endif
     }
 }
 
@@ -190,7 +197,9 @@ static void draw_field()
         int color = field[idx].color;
         if (color) {
             uint32_t colorval = colors[(color-1)/2];
-            // serprintf("color = %d, idx=%d, colorval = 0x%06x", color, (color-1)/2, colorval);
+#if (DEBUGPRINT & DP_DRAW)
+            serprintf("color = %d, idx=%d, colorval = 0x%06x", color, (color-1)/2, colorval);
+#endif
             if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
             if (field[idx].is_endpoint) {
                 for (int i = 0; i < 4; i++) {
@@ -201,25 +210,27 @@ static void draw_field()
             int right = field[idx].right;
             if ((right >= 0) && (field[right].color == color)) {
                 int left = (field[idx].is_fold) ? FIELD_UP : FIELD_LEFT;
+                int rside = (int)field[right].side * LEDSZ;
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_RIGHT], colorval);
-                pixels.setPixelColor(side+field[right].pixel[left], colorval);
-                /*
+                pixels.setPixelColor(rside+field[right].pixel[left], colorval);
+#if (DEBUGPRINT & DP_DRAW)
                 serprintf("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, right,
-                    field[idx].pixel[FIELD_RIGHT], field[right].pixel[left],
+                    side+field[idx].pixel[FIELD_RIGHT], rside+field[right].pixel[left],
                     colorval);
-                */
+#endif
             }
             int down = field[idx].down;
             if ((down >= 0) && (field[down].color == color)) {
+                int dside = (int)field[down].side * LEDSZ;
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_DOWN], colorval);
-                pixels.setPixelColor(side+field[down].pixel[FIELD_UP], colorval);
-                /*
+                pixels.setPixelColor(dside+field[down].pixel[FIELD_UP], colorval);
+#if (DEBUGPRINT & DP_DRAW)
                 serprintf("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, down,
-                    field[idx].pixel[FIELD_DOWN], field[down].pixel[FIELD_UP],
+                    side+field[idx].pixel[FIELD_DOWN], dside+field[down].pixel[FIELD_UP],
                     colorval);
-                */
+#endif
             }
         }
         if (idx == (curkey-1)) {
@@ -254,13 +265,17 @@ void field_test()
         field[idx].color = 0;
         field[idx].is_endpoint = 0;
     }
+#if (DEBUGPRINT & DP_TEST)
     serprintf("Init field test (field size = %d)", sizeof(fieldcell_t));
+#endif
     draw_field();
     for (int ln = 0; ln < 5; ln++) {
         testdelay(500);
+#if (DEBUGPRINT & DP_TEST)
         serprintf("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
             ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7],
             (ln+1)*2, (ln+1)*2+1);
+#endif
         selected = ln*2+1;
         field[field_test_lines[ln][0]].color = ln*2+1;
         field[field_test_lines[ln][0]].is_endpoint = 1;
@@ -292,7 +307,9 @@ static void press_key(int key)
         } else {
             // Expand the selected line.
             // Look for the selected line orthogannly through uncolored cells
+#if (DEBUGPRINT & DP_KEY)
             serprintf("Expand selected line %d to key %d", selected, key);
+#endif
             int max_dist = -1;
             int fnd = -1;
             int fdir = 0;
@@ -300,7 +317,9 @@ static void press_key(int key)
                 int dir = dr;
                 int idx = key;
                 // Walk into direction dir
+#if (DEBUGPRINT & DP_KEY)
                 serprintf("Looking in direction %d", dir);
+#endif
                 int next;
                 while ((next = field[idx].neighbour[dir]) >= 0) {
                     if (field[next].color) {
@@ -311,8 +330,10 @@ static void press_key(int key)
                                 fdir = (dir+2)%4;
                             }
                         }
+#if (DEBUGPRINT & DP_KEY)
                         serprintf("Found color %d at %d, fnd = %d, dist = %d, dir = %d",
                             field[next].color, next, fnd, max_dist, fdir);
+#endif
                         break;
                     }
                     // Cross the fold from quadrant 1 to 3 or vv, rotate direction 
@@ -329,7 +350,9 @@ static void press_key(int key)
                 int dist = field[fnd].dist;
                 int idx = fnd;
                 int next;
+#if (DEBUGPRINT & DP_KEY)
                 serprintf("Disconnecting further from %d", fnd);
+#endif
                 while ((next = field[idx].next) >= 0) {
                     field[next].color = 0;
                     field[next].dist = 0;
@@ -337,7 +360,9 @@ static void press_key(int key)
                     field[idx].next = -1;
                     idx = next;
                 }
+#if (DEBUGPRINT & DP_KEY)
                 serprintf("Connecting back from %d to %d", fnd, key);
+#endif
                 while (fnd != key) {
                     int next = field[fnd].neighbour[fdir];
                     if (next < 0) {
@@ -363,7 +388,9 @@ static void press_key(int key)
         if (field[key].color) {
             // Select this color
             selected = field[key].color;
+#if (DEBUGPRINT & DP_KEY)
             serprintf("Press %d selects %d", key, selected);
+#endif
         } else {
             /*
             int color = 0;
@@ -391,13 +418,15 @@ void field_update()
 {
     int key = keys_scan();
     if (key < 0) {
-        serprintf("Key scan error");
+        serprintf("ERROR: Key scan error");
         delay(100);
         return;
     }
     unsigned long tick = millis();
     if (key != curkey) {
+#if (DEBUGPRINT & DP_KEY)
         serprintf("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%d", key, curkey, lastkey, tick);
+#endif
         curkey = key;
         if (key > 0) {
             if ((key != lastkey) || (lastpress+50 < tick)) {

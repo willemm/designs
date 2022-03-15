@@ -6,6 +6,8 @@
 #define LEDS_UP    0x04
 #define LEDS_DOWN  0x08
 
+#define OTA_NAME "eos-flowcube-1"
+
 struct ledset_t {
     uint8_t side;
     uint8_t left;
