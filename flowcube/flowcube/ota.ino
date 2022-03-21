@@ -1,13 +1,14 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include "secret.h"
 
 int wifistatus = WL_IDLE_STATUS;
 
 void ota_setup()
 {
   ArduinoOTA.setHostname(OTA_NAME);
-  ArduinoOTA.setPassword("");
+  ArduinoOTA.setPassword(OTA_PASS);
   serprintf("Setting op ota");
   ArduinoOTA
     .onStart([]() {
@@ -46,7 +47,7 @@ void ota_check()
         wifistatus = sts;
         if (sts == WL_DISCONNECTED) {
             WiFi.mode(WIFI_STA);
-            WiFi.begin("", "");
+            WiFi.begin(WIFI_SSID, WIFI_PASS);
         }
         if (sts == WL_CONNECTED) {
             ota_setup();
