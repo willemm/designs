@@ -33,6 +33,7 @@ if (doitem == "cover_bot") { cover_bot(); }
 if (doitem == "cover_pin") { cover_pin(); }
 if (doitem == "wire_guide") { wire_guide(); }
 if (doitem == "try") { cover_holder(159.6, 19); }
+if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "") {
     if (1) {
         hexbase_top();
@@ -40,7 +41,7 @@ if (doitem == "") {
         translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
-        rotate([0,0,batteryan]) batteries();
+        *rotate([0,0,batteryan]) batteries();
         ws2811();
         #digispark();
         receiver();
@@ -490,6 +491,14 @@ module hexbase_top()
                 polygon([ [hx, cy-h1], [hx, cy-h1-1], [hx+1,cy-h1-1], [hx+1, cy-h1]]);
                 polygon([ [hx, cy-h4], [hx, cy-h4-1], [hx+4,cy-h4-1], [hx+4, cy-h4]]);
             }
+            rotate([0,0,batteryan]) polygon([
+                [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
+                [-batty/2+battof+1.9, battx/2+0.1], [-batty/2+battof+1.9,-battx/2-0.1]
+            ]);
+            *rotate([0,0,batteryan]) polygon([
+                [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
+                [ batty/2+battof+0.1, battx/2+0.1], [ batty/2+battof+0.1,-battx/2-0.1]
+            ]);
         }
     }
     // Middle bit
@@ -535,10 +544,10 @@ module hexbase_top()
                 ]);
                 polygon([
                     [cx-20, cy-shoy+2], [cx-20, cy+16/s3],
-                    [cx-30,  cy+26/s3], [cx-44,  cy+12/s3]
+                    [cx-30,  cy+26/s3], [cx-45,  cy+11/s3]
                 ]);
                 polygon([
-                    [cx-20, cy-shoy], [cx-46, cy+10/s3],
+                    [cx-20, cy-shoy], [cx-46, cy+9/s3],
                     [cx-46, 4/s3]
                 ]);
                 polygon([
@@ -552,9 +561,10 @@ module hexbase_top()
                     [+2.5, cy*2-3.8], [-2.5, cy*2-3.8],
                 ]);
             }
-            rotate([0,0,batteryan]) polygon([
-                [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
-                [ batty/2+battof+0.1, battx/2+0.1], [ batty/2+battof+0.1,-battx/2-0.1]
+            rotate([0,0,batteryan]) translate([battof,0,0]) polygon([
+                [-batty/2-0.1,-battx/2-0.1], [-batty/2-1.1,-battx/2+0.9],
+                [-batty/2-1.1, battx/2-0.9], [-batty/2-0.1, battx/2+0.1],
+                [ batty/2+2.1, battx/2+0.1], [ batty/2+2.1,-battx/2-0.1],
             ]);
             
             // digispark
@@ -589,28 +599,56 @@ module hexbase_top()
 
 module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.9)
 {
-    x1 = -batty/2+battof;
-    x2 =  batty/2+battof;
+    x1 = -batty/2;
+    x2 =  batty/2;
     yo = num/2*bo;
     xo = 15/2+2;
 
     bhdi = (14.5+0.5)/2;
 
-    color("#333") union() {
-        translate([x1, -num/2*bo-thi, bof]) cube([x2-x1, thi, 17]);
-        translate([x1,  num/2*bo    , bof]) cube([x2-x1, thi, 17]);
+    hw1 = 10;
+    hw2 = 7;
+    ht = 1;
 
-        translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 17]);
-        translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 17]);
+    // color("#333")
+    translate([battof,0,0]) difference() {
+        union() {
+            translate([x1, -num/2*bo-thi, bof]) cube([x2-x1, thi, 17]);
+            translate([x1,  num/2*bo    , bof]) cube([x2-x1, thi, 17]);
 
-        translate([x2+thi/2, 0, 0]) rotate([0,-90,0]) linear_extrude(height=x2-x1+thi, convexity=6) {
-            polygon(concat(
-                [[xo-sin(15)*bhdi,yo+1], [bof, yo+1], [bof,-yo-1], [xo-sin(165)*bhdi,-yo-1]],
-                [for (y=[-(num-1)/2:(num-1)/2], an=[15:5:165]) [xo-sin(an)*bhdi, y*bo-cos(an)*bhdi]],
-                []
-            ));
+            translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 17]);
+            translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 17]);
+
+            translate([x2+0.1, 0, 0]) rotate([0,-90,0]) linear_extrude(height=x2-x1+0.2, convexity=6) {
+                polygon(concat(
+                    [[xo-sin(15)*bhdi,yo+1], [bof, yo+1], [bof,-yo-1], [xo-sin(165)*bhdi,-yo-1]],
+                    [for (y=[-(num-1)/2:(num-1)/2], an=[15:5:165]) [xo-sin(an)*bhdi, y*bo-cos(an)*bhdi]],
+                    []
+                ));
+            }
+
+            for (x=[0,1]) {
+                mirror([x,0,0]) {
+                    for (y=[(-num+1)/2:(num-1)/2]) {
+                        translate([x1, (y-0.5)*bo, bof]) cube([1,(bo-hw1)/2,17]);
+                        translate([x1, y*bo+hw1/2, bof]) cube([1,(bo-hw1)/2,17]);
+
+                        translate([x1+ht, (y-0.5)*bo, bof]) cube([0.8,(bo-hw2)/2,17]);
+                        translate([x1+ht, y*bo+hw2/2, bof]) cube([0.8,(bo-hw2)/2,17]);
+                    }
+                    translate([x1, -num/2*bo-thi, bof]) cube([1.8, num*bo+thi*2, 3.4]);
+                }
+            }
+        }
+        for (x=[0,1]) {
+            mirror([x,0,0]) {
+                for (y=[(-num+1)/2:(num-1)/2]) {
+                    translate([x1-1, y*bo, bof+2.0]) rotate([0,45,0]) cube([0.57,3,5], true);
+                }
+            }
         }
     }
+    *#translate([x1+battof + 1/2, bo/2, bof+8]) cube([1,10,9], true);
 }
 
 module ws2811()

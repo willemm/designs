@@ -1,4 +1,4 @@
 all:
-	$(MAKE) -C .. $@
+	$(MAKE) --print-directory -C .. $@
 %:
-	$(MAKE) -C .. $@
+	$(MAKE) --print-directory -C .. $@
