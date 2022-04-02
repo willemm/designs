@@ -37,14 +37,14 @@ if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "") {
     if (1) {
         hexbase_top();
-        *translate([0,0,14]) cover_top();
+        *translate([0,0,13.1]) cover_top();
         translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
         *rotate([0,0,batteryan]) batteries();
-        ws2811();
-        #digispark();
-        receiver();
+        *ws2811();
+        *digispark();
+        *receiver();
     } else {
         hexbase_bot();
         translate([0,0,14]) cover_bot();
@@ -152,8 +152,8 @@ module cover_top()
         difference() {
             polygon( [for (an=[0:60:300]) [di2/2 * sin(an), di2/2 * cos(an)]] );
             rotate([0,0,batteryan]) polygon([
-                [-by+battof,-bx], [-by+battof, bx],
-                [ by+battof, bx], [ by+battof,-bx]
+                [-by+battof+2.3,-bx], [-by+battof+2.3, bx],
+                [ by+battof-2.3, bx], [ by+battof-2.3,-bx]
             ]);
             for (an=[0:60:300]) rotate([0, 0, an]) {
                 polygon([
@@ -169,10 +169,32 @@ module cover_top()
                     [cx-3, -1.5], [cx-20, -1.5],
                     [cx-20, -cy+38/s3], [cx-3, -cy+21/s3],
                 ]);
+            }
+            for (an=[0,120,180,300]) rotate([0,0,an]) {
                 polygon([
                     [cx-24, cy-39/s3], [cx-32, cy-35/s3],
                     [cx-38, cy-41/s3], [cx-38, -cy+41/s3],
                     [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
+                ]);
+            }
+            rotate([0,0,60]) {
+                polygon([
+                    [cx-24, cy-39/s3], [cx-32, cy-35/s3],
+                    [cx-37-battof, cy-41/s3], [cx-37-battof, -cy+41/s3],
+                    [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
+                ]);
+            }
+            rotate([0,0,240]) {
+                polygon([
+                    [cx-24, cy-39/s3], [cx-32, cy-35/s3],
+                    [cx-37+battof, cy-41/s3], [cx-37+battof, -cy+41/s3],
+                    [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
+                ]);
+            }
+            for (an=[60,240]) rotate([0,0,an]) {
+                polygon([
+                    [cx-43, cy-37/s3], [-cx+43, cy-37/s3],
+                    [0, cy-11/s3]
                 ]);
             }
         }
@@ -182,8 +204,8 @@ module cover_top()
         difference() {
             polygon( [for (an=[0:60:300]) [di2/2 * sin(an), di2/2 * cos(an)]] );
             rotate([0,0,batteryan]) polygon([
-                [-by+battof,-bx], [-by+battof, bx],
-                [ by+battof, bx], [ by+battof,-bx]
+                [-by+battof+2.3,-bx], [-by+battof+2.3, bx],
+                [ by+battof-2.3, bx], [ by+battof-2.3,-bx]
             ]);
             for (an=[0:60:300]) rotate([0, 0, an]) {
                 polygon([
@@ -491,14 +513,6 @@ module hexbase_top()
                 polygon([ [hx, cy-h1], [hx, cy-h1-1], [hx+1,cy-h1-1], [hx+1, cy-h1]]);
                 polygon([ [hx, cy-h4], [hx, cy-h4-1], [hx+4,cy-h4-1], [hx+4, cy-h4]]);
             }
-            rotate([0,0,batteryan]) polygon([
-                [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
-                [-batty/2+battof+1.9, battx/2+0.1], [-batty/2+battof+1.9,-battx/2-0.1]
-            ]);
-            *rotate([0,0,batteryan]) polygon([
-                [-batty/2+battof-0.1,-battx/2-0.1], [-batty/2+battof-0.1, battx/2+0.1],
-                [ batty/2+battof+0.1, battx/2+0.1], [ batty/2+battof+0.1,-battx/2-0.1]
-            ]);
         }
     }
     // Middle bit
@@ -597,7 +611,7 @@ module hexbase_top()
     rotate([0,0,batteryan]) batterybox();
 }
 
-module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.9)
+module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
 {
     x1 = -batty/2;
     x2 =  batty/2;
@@ -613,11 +627,11 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.9)
     // color("#333")
     translate([battof,0,0]) difference() {
         union() {
-            translate([x1, -num/2*bo-thi, bof]) cube([x2-x1, thi, 17]);
-            translate([x1,  num/2*bo    , bof]) cube([x2-x1, thi, 17]);
+            translate([x1+1, -num/2*bo-thi, bof]) cube([x2-x1-2, thi, 17-bof]);
+            translate([x1+1,  num/2*bo    , bof]) cube([x2-x1-2, thi, 17-bof]);
 
-            translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 17]);
-            translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 17]);
+            translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 13-bof]);
+            translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 13-bof]);
 
             translate([x2+0.1, 0, 0]) rotate([0,-90,0]) linear_extrude(height=x2-x1+0.2, convexity=6) {
                 polygon(concat(
@@ -630,11 +644,11 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.9)
             for (x=[0,1]) {
                 mirror([x,0,0]) {
                     for (y=[(-num+1)/2:(num-1)/2]) {
-                        translate([x1, (y-0.5)*bo, bof]) cube([1,(bo-hw1)/2,17]);
-                        translate([x1, y*bo+hw1/2, bof]) cube([1,(bo-hw1)/2,17]);
+                        translate([x1, (y-0.5)*bo-thi, bof]) cube([1,(bo-hw1)/2+thi,13-bof]);
+                        translate([x1, y*bo+hw1/2, bof]) cube([1,(bo-hw1)/2+thi,13-bof]);
 
-                        translate([x1+ht, (y-0.5)*bo, bof]) cube([0.8,(bo-hw2)/2,17]);
-                        translate([x1+ht, y*bo+hw2/2, bof]) cube([0.8,(bo-hw2)/2,17]);
+                        translate([x1+ht, (y-0.5)*bo, bof]) cube([0.8,(bo-hw2)/2,17-bof]);
+                        translate([x1+ht, y*bo+hw2/2, bof]) cube([0.8,(bo-hw2)/2,17-bof]);
                     }
                     translate([x1, -num/2*bo-thi, bof]) cube([1.8, num*bo+thi*2, 3.4]);
                 }
@@ -645,6 +659,7 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.9)
                 for (y=[(-num+1)/2:(num-1)/2]) {
                     translate([x1-1, y*bo, bof+2.0]) rotate([0,45,0]) cube([0.57,3,5], true);
                 }
+                *#translate([x1-0.15, 0, 13+5.1/2]) cube([2.3, num*bo+2*thi+0.1, 5.1], true);
             }
         }
     }
