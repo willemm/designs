@@ -1,0 +1,117 @@
+UI
+
+Some points are set as endpoints (given a color plus the endpoint flag)
+
+The only possible interaction is to push a key
+(Rollover prevents more than one simultaneous key press from being unique)
+
+No cell selected:
+- Coloured cell: select it (or make that whole line selected?)
+- non coloured cell, next to exactly 1 colored cell: colour and select it
+- non coloured cell, next to 2 different colored cells of matching endpoints: connect lines
+- otherwise: nothing / maybe show error?
+
+Cell is selected:
+- Same as last keypress: undo last step?
+- Coloured cell of other line of same colour, that sees selected line in straight uncoloured line: colour that line, uncolour any cells of the selected line further than where it connected, uncolour any cells of the connecting line further than where it connected
+- Coloured cell of different line: select that line
+- Coloured cell of same line:
+  - line is connected to both endpoints: decolour this cell
+  - cell is furthest on line from endpoint: decolour cell, (or deselect line? maybe if that was last press?)
+  - otherwise: decolour cells further on line than this cell
+- Non coloured cell that sees selected line in straight uncoloured line: colour that line, uncolour any cells of the selected line further than where it connected
+- otherwise: deselect
+
+
+*) Endpoint flag as flag in flags field, or in color, or something else?  (check bitfield)
+
+
+No colour selected:
+    c = colour of pressed cell
+    if c:
+        set current selection to c
+    else:
+        arr = cell neighbours,
+                where colour is set
+                and next is not set (it is the end of a chain)
+        if arr.len is 1: (pressed cell is next to end of a chain)
+            c = colour of arr[0]
+            set current selection to c
+            set pressed cell colour to c
+            set pressed cell prev to arr[0]
+            set cell arr[0] next to pressed cell
+        if arr.len larger than 1: (pressed cell is next to several ends of chains)
+            loop idx <- 0 to arr.len-2:
+                loop idx2 <- idx+1 to arr.len-1:
+                    if arr idx colour is arr idx2 colour's mate:
+                        add idx and idx2 to arr2
+            if arr2.len is 2: (pressed cell is between exactly two chains who are mates)
+                c = colour of arr2[0]
+                set current selection to c
+                set pressed cell colour to c
+                set pressed cell prev to arr2[0]
+                set cell arr2[0] next to pressed cell
+                set cell arr2[1] next to pressed cell
+                loop, follow prev links from arr2[1]:
+                    set loop cell colour to c
+                    switch loop cell prev and next
+                
+
+colour C is selected:
+    c = colour of pressed cell
+    if c is C:
+        do nothing (I think?  Maybe disconnect further cells?)
+    else if c is partner of C:
+        TODO: Chain-connect
+    else if c is set:
+        loop cell neighbours: (find if pressed is next to selected chain end)
+            set found to neighbour,
+                    if neighbour colour is C
+                    and neighbour next is not set
+        if found: (connect to chain, breaking the other chain)
+            loop, follow next links from found: (disconnect chain)
+                if last link is endpoint:
+                    loop, follow prev links from last, until back at found:
+                        set loop cell colour to c-prime
+                        switch loop cell prev and next
+                else:
+                    loop, follow prev links from last, until back at found:
+                        set loop cell colour to none
+                        set loop prev and next links to none
+            set pressed cell colour to C
+            set found cell next tp pressed
+            set pressed prev to found
+    else:
+        loop cell neighbours: (find if pressed is next to selected chain)
+            set found to neighbour,
+                    if neighbour colour is C
+                    and found not set or found dist is larger than neighbour dist
+        if found:
+            loop, follow next links from found: (disconnect chain)
+                if last link is endpoint:
+                    do nothing
+                else:
+                    loop, follow prev links from last, until back at found:
+                        set loop cell colour to none
+                        set loop prev and next links to none
+            set found next to pressed
+            set pressed prev to found
+            set pressed colour to C
+        else:
+            TODO: Longer connection?  Only to last cell?
+
+Vars:
+    currently selected colour
+
+
+Field struct:
+    pixel index x4
+
+    neighbour fields x4
+
+    next/prev fields in chain
+    distance from endpoint
+
+    color of field/chain
+
+    flags (endpoint/fold/upfold)

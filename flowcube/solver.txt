@@ -1,0 +1,63 @@
+
+
+flow cube solving algorithm
+
+Rules:
+  Each start/end dot must be connected to the other dot of the same colour
+  Not all dots have to be used
+  It's ok (but not useful) to fill a 2x2 square with the same colour
+
+
+Solution data:
+
+foreach point(p):
+  c = colour
+  n1 = number of steps to one endpoint
+  p1 = direction to next step to one endpoint
+  n2 = number of steps to other endpoint
+  p2 = direction to next step to other endpoint
+
+
+Intermediate data:
+
+foreach point(p):
+  dictionary on c (colours):
+  n1 = smallest possible number of steps to reach one endpoint of c
+  p1 = direction of that possibility
+  n2 = smallest possible number of steps to reach other endpoint of c
+  p2 = direction of that possibility
+
+  Invariant: if point p1 colour c points to point p2, then p2 points to p1
+
+
+Initial data:
+
+foreach point(p):
+  For each endpoint (per colour, e1 and e2)
+  Determine coordinates of endpoint as if cube folded out on face of p
+  Calculate dx, dy
+  Smallest distance = |dx|+|dy|
+  if |dx| > |dy|
+    if dx > 0 direction +x else direction -x
+  else
+    if dy > 0 direction +y else direction -y
+
+
+Solving step (backtrackable?):
+
+ Pick point p (one that is off, pick a good one somehow)
+ Choose a colour for that point
+ Set point to 'on'
+ Remove all but dictionary c from point p
+ For each removed colour, for each point p1 it had as next step
+  Search all remaining neighbours of p1 for the smallest connection to colour c endpoint 2
+  If no point is found, (we must be at endpoint 1) fail this solving step and backtrack
+  If smallest point is the point in direction 1:
+   Set distance to endpoint 2 as n/a
+   Recurse to smallest point
+   (If not failed) Set direction 2 to that smallest point and update distance
+  Otherwise, set that as the new next step towards 2 and update the distance
+  If new next step was changed, recurse to point in direction p1 of that colour
+
+
+Finished if 
