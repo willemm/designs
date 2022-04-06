@@ -10,14 +10,14 @@ int curkey = 0; // Key currently being held down
 #define DP_INIT 1
 #define DP_DRAW 2
 #define DP_KEY 4
-#define DP_TEST 4
+#define DP_TEST 8
 
 #define DEBUGPRINT 0
 
 struct fieldcell_t {
     union {
-        struct { int8_t up, left, down, right; };
-        int8_t neighbour[4];
+        struct { int8_t none, up, left, down, right; };
+        int8_t neighbour[5];
     };
     uint8_t pixel[4];
     uint8_t side;
@@ -28,6 +28,32 @@ struct fieldcell_t {
     unsigned is_fold:1;
     unsigned is_upfold:1;
 };
+
+// Translate from 6 directions to four, depending on cube side
+// This way a straight line across a fold always has the same direction number
+static const int8_t step_dirs[3][6] = {
+    { 3, 4, 0, 1, 2, 0 },
+    { 3, 0, 4, 1, 0, 2 },
+    { 0, 3, 4, 0, 1, 2 }
+};
+
+// Find the field index in the given (one of six) direction
+static inline int step_dir(fieldcell_t field, int dir)
+{
+    int8_t sdir = step_dirs[field.side][dir];
+    return field.neighbour[sdir];
+}
+
+// Find the index of the led in the given (one of six) direction
+static inline int pixel_dir(fieldcell_t field, int dir)
+{
+    int8_t sdir = step_dirs[field.side][dir];
+    if (sdir <= 0) {
+        serprintf("ERROR CANTHAPPEN: Wants to get direction %d on side %d", dir, field.side);
+        return field.pixel[0];
+    }
+    return ((int)field.side)*LEDSZ + (int)field.pixel[(sdir+3)%4];
+}
 
 static_assert(sizeof(fieldcell_t) <= 16, "Size of fieldcell_t is bigger than 16");
 static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
@@ -110,6 +136,7 @@ void field_init()
             field[idx].pixel[(cellrot+1)%4] = cell.down;   // right
             field[idx].pixel[(cellrot+2)%4] = cell.left^1; // down
             field[idx].pixel[(cellrot+3)%4] = cell.down^1; // left
+            field[idx].none = -1;
             field[idx].up = -1;
             field[idx].left = -1;
             field[idx].prev = -1;
@@ -158,6 +185,15 @@ void field_init()
     }
 }
 
+int8_t field_endpoints[] = {
+    3,1, 5,5,
+    1,2, 7,2,
+    6,5, 5,6,
+    5,9, 9,9,
+    1,1, 6,6,
+    -1
+};
+
 void field_clear()
 {
     serprintf("Clearing game field");
@@ -165,6 +201,7 @@ void field_clear()
         field[idx].color = 0;
         field[idx].is_endpoint = 0;
     }
+    /*
     int8_t endpoints[] = {
         3,1, 5,5,
         1,2, 7,2,
@@ -173,7 +210,8 @@ void field_clear()
         1,1, 6,6,
         -1
     };
-    set_endpoints(endpoints);
+    */
+    set_endpoints(field_endpoints);
     selected = 0;
     draw_field();
     serprintf("Inited game field");
@@ -200,13 +238,28 @@ static void draw_field()
 #if (DEBUGPRINT & DP_DRAW)
             serprintf("color = %d, idx=%d, colorval = 0x%06x", color, (color-1)/2, colorval);
 #endif
-            if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
+            // if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
             if (field[idx].is_endpoint) {
                 for (int i = 0; i < 4; i++) {
                     pixels.setPixelColor(side+field[idx].pixel[i], colorval);
                 }
             }
 
+            for (int i = 0; i < 3; i++) {
+                int dir = step_dir(field[idx], i);
+                if ((dir >= 0) && (field[dir].color == color)) {
+                    pixels.setPixelColor(pixel_dir(field[idx], i), colorval);
+                    pixels.setPixelColor(pixel_dir(field[dir], i+3), colorval);
+#if (DEBUGPRINT & DP_DRAW)
+                    serprintf("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
+                        idx, dir,
+                        pixel_dir(field[idx], i), pixel_dir(field[dir], i+3),
+                        colorval);
+#endif
+                    }
+            }
+
+#if 0
             int right = field[idx].right;
             if ((right >= 0) && (field[right].color == color)) {
                 int left = (field[idx].is_fold) ? FIELD_UP : FIELD_LEFT;
@@ -231,6 +284,7 @@ static void draw_field()
                     side+field[idx].pixel[FIELD_DOWN], dside+field[down].pixel[FIELD_UP],
                     colorval);
 #endif
+#endif
             }
         }
         if (idx == (curkey-1)) {
@@ -238,6 +292,33 @@ static void draw_field()
             for (int i = 0; i < 4; i++) {
                 pixels.setPixelColor(side+field[idx].pixel[i], colorval);
             }
+        }
+    }
+    if (selected > 0) {
+        long now = millis();
+        int idx = field_idx(field_endpoints[selected*2-2], field_endpoints[selected*2-1]);
+        int len = 0;
+        int nxt = idx;
+        while (nxt >= 0) {
+            len++;
+            nxt = field.neighbours[field[idx].next];
+        }
+        int anpos = (now % 2000);
+        anpos = anpos * (len+1) / 2000;
+        nxt = idx;
+        uint32_t colorval = colors[selected/2];
+        while (nxt >= 0) {
+            int8_t nd = field[idx].next;
+            if (anpos <= 1 && anpos >= -1) {
+                if (anpos == 0) {
+                    colorval = colorval * 2;
+                } else {
+                    colorval = colorval * 2;
+                }
+                pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd]);
+            }
+            nxt = field.neighbours[nd];
+            anpos--;
         }
     }
     pixels.show();
@@ -354,6 +435,7 @@ static void press_key(int key)
                 serprintf("Disconnecting further from %d", fnd);
 #endif
                 while ((next = field[idx].next) >= 0) {
+                    next = field[idx].neighbours[next];
                     field[next].color = 0;
                     field[next].dist = 0;
                     field[next].prev = -1;
@@ -372,9 +454,9 @@ static void press_key(int key)
                     }
                     dist++;
                     field[next].dist = dist;
-                    field[next].prev = fnd;
+                    field[next].prev = (fdir+2)%4;
                     field[next].color = selected;
-                    field[fnd].next = next;
+                    field[fnd].next = fdir;
                     if (fdir == FIELD_UP) {
                         if (field[fnd].is_upfold) { fdir = FIELD_LEFT; }
                     } else if (fdir == FIELD_RIGHT) {
