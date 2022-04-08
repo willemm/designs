@@ -12,7 +12,7 @@ int curkey = 0; // Key currently being held down
 #define DP_KEY 4
 #define DP_TEST 8
 
-#define DEBUGPRINT 0
+#define DEBUGPRINT DP_KEY
 
 struct fieldcell_t {
     union {
@@ -408,24 +408,50 @@ static void press_key(int key)
         int color = field[key].color;
         if (color == selected) {
             // Nothing
+#if (DEBUGPRINT & DP_KEY)
+            serprintf("Press key %d, same colour %d, do nothing", key, color);
+#endif
         } else if (color == (selected ^ 1)) {
+#if (DEBUGPRINT & DP_KEY)
+            serprintf("Press key %d, matching colour %d, todo", key, color);
+#endif
             // TODO: Connect chains
         } else if (color >= 0) {
+#if (DEBUGPRINT & DP_KEY)
+            serprintf("Press key %d, different colour %d, todo", key, color);
+#endif
             // TODO: Overwrite chain
         } else {
             // Extend chain
+#if (DEBUGPRINT & DP_KEY)
+            serprintf("Press key %d, no colour %d, check neighbours", key, color);
+#endif
             int fnd = -1;
             int mindist = 1000;
             for (int n = 0; n < 6; n++) {
                 int nb = step_dir(field[key], n);
-                if ((nb >= 0) && (field[nb].color == color) && (field[nb].dist < mindist)) {
+#if (DEBUGPRINT & DP_KEY)
+                if (nb >= 0) {
+                    serprintf("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
+                }
+#endif
+                if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
+#if (DEBUGPRINT & DP_KEY)
+                    serprintf("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
+#endif
                     fnd = n;
                     mindist = field[nb].dist;
                 }
             }
             if (fnd >= 0) {
+#if (DEBUGPRINT & DP_KEY)
+                serprintf("Found neighbour %d at dist %d", fnd, mindist);
+#endif
                 int idx = step_dir(field[key], fnd);
                 int nxt = field[idx].neighbour[field[idx].next];
+#if (DEBUGPRINT & DP_KEY)
+                serprintf("Connect to chain at %d, disconnect %d", idx, nxt);
+#endif
                 // Disconnect other chain
                 while (nxt >= 0) {
                     int nn = field[nxt].next;
@@ -434,15 +460,16 @@ static void press_key(int key)
                     field[nxt].color = -1;
                     nxt = field[nxt].neighbour[nn];
                 }
-                field[idx].color = color;
-                field[idx].next = step_nb(field[idx], (fnd+3)%6);
+                field[key].color = field[idx].color;
+                field[key].dist = field[idx].dist + 1;
                 field[key].prev = step_nb(field[key], fnd);
+                field[idx].next = step_nb(field[idx], (fnd+3)%6);
             } else {
                 // TODO: Something ??
             }
         }
     } else {
-        if (field[key].color) {
+        if (field[key].color >= 0) {
             // Select this color
             selected = field[key].color;
 #if (DEBUGPRINT & DP_KEY)
