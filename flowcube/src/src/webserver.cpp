@@ -23,18 +23,19 @@ void webserver_log(const char *fmt, va_list args)
     }
 }
 
+static void handle_log()
+{
+    server.send(200, "text/plain", printbuffer);
+}
+
 void webserver_init()
 {
     server.on("/log", handle_log);
     server.begin();
 }
 
-void webserver_check()
+void webserver_update()
 {
     server.handleClient();
 }
 
-void handle_log()
-{
-    server.send(200, "text/plain", printbuffer);
-}

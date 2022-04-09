@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include "settings.h"
 
 #define MCP23017 0x20
 
@@ -13,7 +14,7 @@
 #define MCP_INTCAP  0x10
 #define MCP_GPIO    0x12
 #define MCP_OLAT    0x14
-static inline int mcpwrite(byte reg, uint16_t val)
+static inline int mcpwrite(uint8_t reg, uint16_t val)
 {
     Wire.beginTransmission(MCP23017);
     Wire.write(reg);
@@ -26,7 +27,7 @@ static inline int mcpwrite(byte reg, uint16_t val)
     return 0;
 }
 
-static inline int32_t mcpread(byte reg)
+static inline int32_t mcpread(uint8_t reg)
 {
     Wire.beginTransmission(MCP23017);
     Wire.write(reg);
@@ -35,7 +36,7 @@ static inline int32_t mcpread(byte reg)
         return -1;
     }
     Wire.requestFrom(MCP23017, 2);
-    byte lo, hi;
+    uint8_t lo, hi;
     lo = Wire.read();
     hi = Wire.read();
     return (hi << 8) | lo;
@@ -45,16 +46,16 @@ static inline int32_t mcpread(byte reg)
 #define KEYROW2 0b0001111100000000
 #define KEYROW3 0b0110000000000111
 
-uint16_t scanrows[][2] = {
+static const uint16_t scanrows[][2] = {
     { KEYROW1, KEYROW2|KEYROW3 },
     { KEYROW2, KEYROW3 }
 };
 
-byte keyoff[] = {
+static const uint8_t keyoff[] = {
     0, 25
 };
 
-byte keyrows[] = {
+static const uint8_t keyrows[] = {
     7,6,5,
     4,3,2,1,0,
     0,1,2,3,4,
@@ -112,7 +113,7 @@ void keys_init()
     /*
     debugI("Scanning I2C bus...");
     Wire.begin();
-    for (byte i = 8; i < 120; i++) {
+    for (uint8_t i = 8; i < 120; i++) {
         Wire.beginTransmission(i);
         if (Wire.endTransmission() == 0) {
             debugI("Found I2C device at 0x%02x", i);

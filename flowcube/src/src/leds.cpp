@@ -13,15 +13,7 @@
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-void leds_init()
-{
-    pixels.begin();
-
-    pixels.clear();
-    pixels.show();
-}
-
-uint32_t colors[] = {
+const uint32_t colors[] = {
     pixels.Color(127,0,0),
     pixels.Color(0,101,0),
     pixels.Color(0,0,121),
@@ -29,6 +21,14 @@ uint32_t colors[] = {
     pixels.Color(99,0,87),
     pixels.Color(0,75,85)
 };
+
+void leds_init()
+{
+    pixels.begin();
+
+    pixels.clear();
+    pixels.show();
+}
 
 void leds_test()
 {
@@ -63,7 +63,7 @@ ledset_t leds_keyidx(int keyidx)
     return cell;
 }
 
-void leds_setkey(int keyidx, int colorindex, int direction=0xF)
+static void leds_setkey(int keyidx, int colorindex, int direction=0xF)
 {
     uint32_t color = colors[colorindex];
     // int side = keyidx/SIDEKEYS;

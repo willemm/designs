@@ -2,23 +2,9 @@
 #include <stdarg.h>
 #include "settings.h"
 
-// #define SERIALOUT
-// #define WEBOUT
-#define TELNETOUT
-
 #ifdef TELNETOUT
-#include <RemoteDebug.h>
 RemoteDebug Debug;
-#else
-#ifdef SERIALOUT
-#define debugD(fmt,...) serprintf('D',fmt,...)
-#define debugV(fmt,...) serprintf('W',fmt,...)
-#define debugI(fmt,...) serprintf('I',fmt,...)
-#define debugW(fmt,...) serprintf('W',fmt,...)
-#define debugE(fmt,...) serprintf('E',fmt,...)
-#else
 #endif
-#endif // TELNETOUT
 
 void serprintf(const char lvl, const char *fmt, ...)
 {
@@ -65,7 +51,7 @@ void loop()
 #ifdef TELNETOUT
 #endif // TELNETOUT
 #ifdef WEBOUT
-    webserver_check();
+    webserver_update();
 #endif // WEBOUT
     field_update();
     ota_check();

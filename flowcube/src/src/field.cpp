@@ -7,13 +7,6 @@ unsigned long lastpress = 0;
 int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
-#define DP_INIT 1
-#define DP_DRAW 2
-#define DP_KEY 4
-#define DP_TEST 8
-
-#define DEBUGPRINT DP_KEY
-
 struct fieldcell_t {
     union {
         struct { int8_t up, left, down, right, none; };
@@ -179,12 +172,10 @@ void field_init()
         if (down >= 0) {
             field[down].up = idx;
         }
-#if (DEBUGPRINT & DP_INIT)
         debugV("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
             idx, field[idx].right, field[idx].down,
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3]);
-#endif
     }
 }
 
@@ -197,30 +188,7 @@ int8_t field_endpoints[] = {
     -1
 };
 
-void field_clear()
-{
-    debugI("Clearing game field");
-    for (int idx = 0; idx < NUMKEYS; idx++) {
-        field[idx].color = -1;
-        field[idx].is_endpoint = 0;
-    }
-    /*
-    int8_t endpoints[] = {
-        3,1, 5,5,
-        1,2, 7,2,
-        6,5, 5,6,
-        5,9, 9,9,
-        1,1, 6,6,
-        -1
-    };
-    */
-    set_endpoints(field_endpoints);
-    selected = -1;
-    draw_field();
-    debugI("Inited game field");
-}
-
-void set_endpoints(int8_t endpoints[])
+static void set_endpoints(int8_t endpoints[])
 {
     for (int c = 0; endpoints[c*2] >= 0; c++) {
         debugV("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
@@ -252,9 +220,7 @@ static void draw_field()
         int color = field[idx].color;
         if (color >= 0) {
             uint32_t colorval = colors[color/2];
-#if (DEBUGPRINT & DP_DRAW)
             debugV("color = %d, idx=%d, colorval = 0x%06x", color, color/2, colorval);
-#endif
             // if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
             if (field[idx].is_endpoint) {
                 for (int i = 0; i < 4; i++) {
@@ -267,12 +233,10 @@ static void draw_field()
                 if ((dir >= 0) && (field[dir].color == color)) {
                     pixels.setPixelColor(pixel_dir(field[idx], i), colorval);
                     pixels.setPixelColor(pixel_dir(field[dir], i+3), colorval);
-#if (DEBUGPRINT & DP_DRAW)
                     debugV("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
                         idx, dir,
                         pixel_dir(field[idx], i), pixel_dir(field[dir], i+3),
                         colorval);
-#endif
                     }
             }
 
@@ -283,24 +247,20 @@ static void draw_field()
                 int rside = (int)field[right].side * LEDSZ;
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_RIGHT], colorval);
                 pixels.setPixelColor(rside+field[right].pixel[left], colorval);
-#if (DEBUGPRINT & DP_DRAW)
                 debugV("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, right,
                     side+field[idx].pixel[FIELD_RIGHT], rside+field[right].pixel[left],
                     colorval);
-#endif
             }
             int down = field[idx].down;
             if ((down >= 0) && (field[down].color == color)) {
                 int dside = (int)field[down].side * LEDSZ;
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_DOWN], colorval);
                 pixels.setPixelColor(dside+field[down].pixel[FIELD_UP], colorval);
-#if (DEBUGPRINT & DP_DRAW)
                 debugV("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, down,
                     side+field[idx].pixel[FIELD_DOWN], dside+field[down].pixel[FIELD_UP],
                     colorval);
-#endif
             }
 #endif
         }
@@ -347,7 +307,30 @@ static void draw_field()
     pixels.show();
 }
 
-int field_test_lines[5][8] = {
+void field_clear()
+{
+    debugI("Clearing game field");
+    for (int idx = 0; idx < NUMKEYS; idx++) {
+        field[idx].color = -1;
+        field[idx].is_endpoint = 0;
+    }
+    /*
+    int8_t endpoints[] = {
+        3,1, 5,5,
+        1,2, 7,2,
+        6,5, 5,6,
+        5,9, 9,9,
+        1,1, 6,6,
+        -1
+    };
+    */
+    set_endpoints(field_endpoints);
+    selected = -1;
+    draw_field();
+    debugI("Inited game field");
+}
+
+static const int field_test_lines[5][8] = {
     { 1,2,3,8,9,28,33,32 },
     { 0,5,6,7,12,13,14,27 },
     { 15,20,21,22,23,24,25,30 },
@@ -369,17 +352,13 @@ void field_test()
         field[idx].color = -1;
         field[idx].is_endpoint = 0;
     }
-#if (DEBUGPRINT & DP_TEST)
     debugI("Init field test (field size = %d)", sizeof(fieldcell_t));
-#endif
     draw_field();
     for (int ln = 0; ln < 5; ln++) {
         testdelay(500);
-#if (DEBUGPRINT & DP_TEST)
         debugV("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
             ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7],
             (ln+1)*2, (ln+1)*2+1);
-#endif
         selected = ln*2;
         field[field_test_lines[ln][0]].color = ln*2;
         field[field_test_lines[ln][0]].is_endpoint = 1;
@@ -408,50 +387,34 @@ static void press_key(int key)
         int color = field[key].color;
         if (color == selected) {
             // Nothing
-#if (DEBUGPRINT & DP_KEY)
             debugI("Press key %d, same colour %d, do nothing", key, color);
-#endif
         } else if (color == (selected ^ 1)) {
-#if (DEBUGPRINT & DP_KEY)
             debugI("Press key %d, matching colour %d, todo", key, color);
-#endif
             // TODO: Connect chains
         } else if (color >= 0) {
-#if (DEBUGPRINT & DP_KEY)
             debugI("Press key %d, different colour %d, todo", key, color);
-#endif
             // TODO: Overwrite chain
         } else {
             // Extend chain
-#if (DEBUGPRINT & DP_KEY)
             debugI("Press key %d, no colour %d, check neighbours", key, color);
-#endif
             int fnd = -1;
             int mindist = 1000;
             for (int n = 0; n < 6; n++) {
                 int nb = step_dir(field[key], n);
-#if (DEBUGPRINT & DP_KEY)
                 if (nb >= 0) {
                     debugV("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
                 }
-#endif
                 if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
-#if (DEBUGPRINT & DP_KEY)
                     debugV("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
-#endif
                     fnd = n;
                     mindist = field[nb].dist;
                 }
             }
             if (fnd >= 0) {
-#if (DEBUGPRINT & DP_KEY)
                 debugV("Found neighbour %d at dist %d", fnd, mindist);
-#endif
                 int idx = step_dir(field[key], fnd);
                 int nxt = field[idx].neighbour[field[idx].next];
-#if (DEBUGPRINT & DP_KEY)
                 debugV("Connect to chain at %d, disconnect %d", idx, nxt);
-#endif
                 // Disconnect other chain
                 while (nxt >= 0) {
                     int nn = field[nxt].next;
@@ -472,9 +435,7 @@ static void press_key(int key)
         if (field[key].color >= 0) {
             // Select this color
             selected = field[key].color;
-#if (DEBUGPRINT & DP_KEY)
             debugI("Press %d selects %d", key, selected);
-#endif
         } else {
             /*
             int color = 0;
@@ -510,9 +471,7 @@ void field_update()
     }
     unsigned long tick = millis();
     if (key != curkey) {
-#if (DEBUGPRINT & DP_KEY)
         debugV("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%ld", key, curkey, lastkey, tick);
-#endif
         curkey = key;
         if (key > 0) {
             if ((key != lastkey) || (lastpress+50 < tick)) {
