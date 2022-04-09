@@ -55,7 +55,6 @@ void loop()
 #endif // WEBOUT
     field_update();
     ota_check();
-    delay(20);
 #ifdef TELNETOUT
     Debug.handle();
 #endif // TELNETOUT

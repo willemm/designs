@@ -172,7 +172,7 @@ void field_init()
         if (down >= 0) {
             field[down].up = idx;
         }
-        debugV("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
+        debugD("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
             idx, field[idx].right, field[idx].down,
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3]);
@@ -191,7 +191,7 @@ int8_t field_endpoints[] = {
 static void set_endpoints(int8_t endpoints[])
 {
     for (int c = 0; endpoints[c*2] >= 0; c++) {
-        debugV("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
+        debugD("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
         int idx = field_idx(endpoints[c*2], endpoints[c*2+1]);
         field[idx].color = c;
         field[idx].is_endpoint = 1;
@@ -212,7 +212,7 @@ static inline uint32_t colorscale(uint32_t color, uint32_t brightness)
     return (uint32_t)((r << 16) | (g << 8) | (b << 0));
 }
 
-static void draw_field()
+static void draw_field(bool debug=false)
 {
     pixels.clear();
     for (int idx = 0; idx < NUMKEYS; idx++) {
@@ -220,7 +220,7 @@ static void draw_field()
         int color = field[idx].color;
         if (color >= 0) {
             uint32_t colorval = colors[color/2];
-            debugV("color = %d, idx=%d, colorval = 0x%06x", color, color/2, colorval);
+            if (debug) debugV("color = %d, idx=%d, colorval = 0x%06x", color, color/2, colorval);
             // if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
             if (field[idx].is_endpoint) {
                 for (int i = 0; i < 4; i++) {
@@ -233,7 +233,7 @@ static void draw_field()
                 if ((dir >= 0) && (field[dir].color == color)) {
                     pixels.setPixelColor(pixel_dir(field[idx], i), colorval);
                     pixels.setPixelColor(pixel_dir(field[dir], i+3), colorval);
-                    debugV("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
+                    if (debug) debugV("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
                         idx, dir,
                         pixel_dir(field[idx], i), pixel_dir(field[dir], i+3),
                         colorval);
@@ -247,7 +247,7 @@ static void draw_field()
                 int rside = (int)field[right].side * LEDSZ;
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_RIGHT], colorval);
                 pixels.setPixelColor(rside+field[right].pixel[left], colorval);
-                debugV("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
+                if (debug) debugV("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, right,
                     side+field[idx].pixel[FIELD_RIGHT], rside+field[right].pixel[left],
                     colorval);
@@ -257,7 +257,7 @@ static void draw_field()
                 int dside = (int)field[down].side * LEDSZ;
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_DOWN], colorval);
                 pixels.setPixelColor(dside+field[down].pixel[FIELD_UP], colorval);
-                debugV("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
+                if (debug) debugV("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, down,
                     side+field[idx].pixel[FIELD_DOWN], dside+field[down].pixel[FIELD_UP],
                     colorval);
@@ -276,32 +276,44 @@ static void draw_field()
         int idx = field_idx(field_endpoints[selected*2], field_endpoints[selected*2+1]);
         int len = 0;
         int nxt = idx;
-        while (idx >= 0) {
+        while (nxt >= 0) {
             len++;
             nxt = field[nxt].neighbour[field[nxt].next];
         }
-        int anpos = (now % 2000);
-        anpos = anpos * (len+1) / 2000;
+        int32_t anpos = (now % 2000);
+        anpos = anpos * (len+3) / 2 - 2000;
         nxt = idx;
+        if (debug) debugV("position %d", anpos);
         while (nxt >= 0) {
             uint32_t colorval = colors[selected/2];
-            int8_t nd = field[nxt].next;
-            if (anpos <= 1 && anpos >= -1) {
-                if (anpos == 0) {
-                    colorval = colorscale(colorval, 2000);
+            int32_t aps = anpos;
+            if (aps < 0) aps = -aps;
+            if (aps <= 2000) {
+                if (aps <= 1000) {
+                    if (debug) debugV("key %d, brighten", nxt);
+                    colorval = colorscale(colorval, 500+(3*(1000-aps)/2));
                 } else {
-                    colorval = colorscale(colorval, 500);
+                    if (debug) debugV("key %d, dim", nxt);
+                    colorval = colorscale(colorval, aps/2);
                 }
             }
             int8_t pd = field[nxt].prev;
             if (pd < 4) {
+                if (debug) debugV("Set key %d prev color to 0x%06x", nxt, colorval);
                 pixels.setPixelColor(((int)field[nxt].side)*LEDSZ+field[nxt].pixel[pd], colorval);
+            } else {
+                if (debug) debugV("Set key %d start color to 0x%06x", nxt, colorval);
+                for (int pi = 0; pi < 4; pi++) {
+                    pixels.setPixelColor(((int)field[nxt].side)*LEDSZ+field[nxt].pixel[pi], colorval);
+                }
             }
+            int8_t nd = field[nxt].next;
             if (nd < 4) {
+                if (debug) debugV("Set key %d next color to 0x%06x", nxt, colorval);
                 pixels.setPixelColor(((int)field[nxt].side)*LEDSZ+field[nxt].pixel[nd], colorval);
             }
             nxt = field[nxt].neighbour[nd];
-            anpos--;
+            anpos -= 1000;
         }
     }
     pixels.show();
@@ -326,7 +338,7 @@ void field_clear()
     */
     set_endpoints(field_endpoints);
     selected = -1;
-    draw_field();
+    draw_field(true);
     debugI("Inited game field");
 }
 
@@ -356,7 +368,7 @@ void field_test()
     draw_field();
     for (int ln = 0; ln < 5; ln++) {
         testdelay(500);
-        debugV("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
+        debugD("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
             ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7],
             (ln+1)*2, (ln+1)*2+1);
         selected = ln*2;
@@ -376,7 +388,7 @@ void field_test()
     }
     selected = -1;
     testdelay(500);
-    draw_field();
+    draw_field(true);
 
     testdelay(2000);
 }
@@ -402,19 +414,19 @@ static void press_key(int key)
             for (int n = 0; n < 6; n++) {
                 int nb = step_dir(field[key], n);
                 if (nb >= 0) {
-                    debugV("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
+                    debugD("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
                 }
                 if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
-                    debugV("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
+                    debugD("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
                     fnd = n;
                     mindist = field[nb].dist;
                 }
             }
             if (fnd >= 0) {
-                debugV("Found neighbour %d at dist %d", fnd, mindist);
+                debugD("Found neighbour %d at dist %d", fnd, mindist);
                 int idx = step_dir(field[key], fnd);
                 int nxt = field[idx].neighbour[field[idx].next];
-                debugV("Connect to chain at %d, disconnect %d", idx, nxt);
+                debugD("Connect to chain at %d, disconnect %d", idx, nxt);
                 // Disconnect other chain
                 while (nxt >= 0) {
                     int nn = field[nxt].next;
@@ -437,6 +449,7 @@ static void press_key(int key)
             selected = field[key].color;
             debugI("Press %d selects %d", key, selected);
         } else {
+            debugI("Press %d does nothing (todo)", key);
             /*
             int color = 0;
             int cnt = 0;
@@ -456,7 +469,7 @@ static void press_key(int key)
             // TODO: Connect two lines ?
         }
     }
-    // draw_field();
+    draw_field(true);
 }
 
 unsigned long lasttick = 0;
@@ -471,7 +484,7 @@ void field_update()
     }
     unsigned long tick = millis();
     if (key != curkey) {
-        debugV("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%ld", key, curkey, lastkey, tick);
+        debugD("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%ld", key, curkey, lastkey, tick);
         curkey = key;
         if (key > 0) {
             if ((key != lastkey) || (lastpress+50 < tick)) {
@@ -482,7 +495,7 @@ void field_update()
         lasttick = 0;
     }
     if (lasttick < tick) {
-        lasttick = tick + 50; // Draw 20 times per second
+        lasttick = tick + 20; // Draw 50 times per second
         draw_field();
     }
 }
