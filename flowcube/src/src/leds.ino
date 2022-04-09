@@ -75,9 +75,9 @@ void leds_setkey(int keyidx, int colorindex, int direction=0xF)
     int c2 = (SIDEKEYS*4-2) - (x*(EDGESIZE*2) + (EDGESIZE-1) + s2*((y*2)-(EDGESIZE-1)));
 
     /*
-    serprintf("Set key(%d,%d,%d)", side, x, y);
-    serprintf("  c1 = %d*%d + %d + %d*(%d-%d) = %d", y, EDGESIZE*2, EDGESIZE-1, s1, x, EDGESIZE-1, c1);
-    serprintf("    s1=%d, c1=%d, s2=%d, c2=%d", s1, c1, s2, c2);
+    debugV("Set key(%d,%d,%d)", side, x, y);
+    debugV("  c1 = %d*%d + %d + %d*(%d-%d) = %d", y, EDGESIZE*2, EDGESIZE-1, s1, x, EDGESIZE-1, c1);
+    debugV("    s1=%d, c1=%d, s2=%d, c2=%d", s1, c1, s2, c2);
     */
 
     if (direction | LEDS_LEFT)  pixels.setPixelColor(c1, color);

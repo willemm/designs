@@ -20,7 +20,7 @@ static inline int mcpwrite(byte reg, uint16_t val)
     Wire.write(val & 0xff);
     Wire.write((val >> 8) & 0xff);
     if (Wire.endTransmission()) {
-        serprintf("mcp write error");
+        debugE("mcp write error");
         return -1;
     }
     return 0;
@@ -31,7 +31,7 @@ static inline int32_t mcpread(byte reg)
     Wire.beginTransmission(MCP23017);
     Wire.write(reg);
     if (Wire.endTransmission()) {
-        serprintf("mcp read error");
+        debugE("mcp read error");
         return -1;
     }
     Wire.requestFrom(MCP23017, 2);
@@ -71,7 +71,7 @@ int keys_scan()
         for (int ob = 0; ob < 16; ob++) {
             if (scanrows[r][0] & (1 << ob)) {
                 // Set one pin to output, output a zero
-                // serprintf("Bit %d, write 0x%04x", ob, ~(1<<ob));
+                // debugV("Bit %d, write 0x%04x", ob, ~(1<<ob));
                 if (mcpwrite(MCP_IODIR, ~(1<<ob)) < 0) return -1;
                 if (mcpwrite(MCP_GPIO, ~(1<<ob)) < 0) return -1;
 
@@ -80,18 +80,18 @@ int keys_scan()
                     mcpwrite(MCP_IODIR, 0xFFFF);
                     return -1;
                 }
-                // serprintf("Got result 0x%04x, scanning 0x%04x", res, scanrows[r][1]);
+                // debugV("Got result 0x%04x, scanning 0x%04x", res, scanrows[r][1]);
                 for (int ib = 0; ib < 16; ib++) {
                     if (scanrows[r][1] & (1 << ib)) {
                         if ((res & (1 << ib)) == 0) {
                             if (key > 0) {
-                                // serprintf("Double (%d) Pressed: %d,%d = %d", key, ob, ib, keyoff[r]+keyrows[ib]*5+keyrows[ob]+1);
+                                // debugV("Double (%d) Pressed: %d,%d = %d", key, ob, ib, keyoff[r]+keyrows[ib]*5+keyrows[ob]+1);
                                 // Double press
                                 mcpwrite(MCP_IODIR, 0xFFFF);
                                 return 0;
                             }
                             key = keyoff[r]+keyrows[ib]*5+keyrows[ob]+1;
-                            // serprintf("Pressed: %d,%d = %d", ob, ib, key);
+                            // debugV("Pressed: %d,%d = %d", ob, ib, key);
                         }
                     }
                 }
@@ -110,15 +110,15 @@ void keys_init()
     digitalWrite(0, HIGH);
     Wire.begin();
     /*
-    serprintf("Scanning I2C bus...");
+    debugI("Scanning I2C bus...");
     Wire.begin();
     for (byte i = 8; i < 120; i++) {
         Wire.beginTransmission(i);
         if (Wire.endTransmission() == 0) {
-            serprintf("Found I2C device at 0x%02x", i);
+            debugI("Found I2C device at 0x%02x", i);
             delay(1);
         }
     }
-    serprintf("Scanning I2C bus finished");
+    debugI("Scanning I2C bus finished");
     */
 }

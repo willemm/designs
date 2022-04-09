@@ -3,24 +3,38 @@
 #include "settings.h"
 
 // #define SERIALOUT
-#define WEBOUT
-// #define TELNETOUT
+// #define WEBOUT
+#define TELNETOUT
 
-void serprintf(const char *fmt, ...)
+#ifdef TELNETOUT
+#include <RemoteDebug.h>
+RemoteDebug Debug;
+#else
+#ifdef SERIALOUT
+#define debugD(fmt,...) serprintf('D',fmt,...)
+#define debugV(fmt,...) serprintf('W',fmt,...)
+#define debugI(fmt,...) serprintf('I',fmt,...)
+#define debugW(fmt,...) serprintf('W',fmt,...)
+#define debugE(fmt,...) serprintf('E',fmt,...)
+#else
+#endif
+#endif // TELNETOUT
+
+void serprintf(const char lvl, const char *fmt, ...)
 {
+#ifdef SERIALOUT
     va_list args;
     va_start(args, fmt);
-#ifdef SERIALOUT
     char s[256];
-    vsnprintf(s, sizeof(s), fmt, args);
+    s[0] = '(';
+    s[1] = lvl;
+    s[2] = ')';
+    s[3] = ' ';
+
+    vsnprintf(s+4, sizeof(s)-4, fmt, args);
     Serial.println(s);
-#endif // SERIALOUT
-#ifdef WEBOUT
-    webserver_log(fmt, args);
-#endif // WEBOUT
-#ifdef TELNETOUT
-#endif // TELNETOUT
     va_end(args);
+#endif // SERIALOUT
 }
 
 void setup() {
@@ -40,6 +54,10 @@ void setup() {
 #ifdef WEBOUT
     webserver_init();
 #endif // WEBOUT
+#ifdef TELNETOUT
+    Debug.begin("eos-flowcube-1");
+    Debug.showColors(true);
+#endif // TELNETOUT
 }
 
 void loop()
@@ -52,4 +70,7 @@ void loop()
     field_update();
     ota_check();
     delay(20);
+#ifdef TELNETOUT
+    Debug.handle();
+#endif // TELNETOUT
 }

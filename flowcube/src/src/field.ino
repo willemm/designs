@@ -74,7 +74,7 @@ static inline int pixel_dir(fieldcell_t field, int dir)
 {
     uint8_t sdir = step_dirs[field.side][dir];
     if (sdir >= 4) {
-        serprintf("ERROR CANTHAPPEN: Wants to get direction %d on side %d", dir, field.side);
+        debugE("ERROR CANTHAPPEN: Wants to get direction %d on side %d", dir, field.side);
     }
     return ((int)field.side)*LEDSZ + (int)field.pixel[sdir%4];
 }
@@ -180,7 +180,7 @@ void field_init()
             field[down].up = idx;
         }
 #if (DEBUGPRINT & DP_INIT)
-        serprintf("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
+        debugV("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
             idx, field[idx].right, field[idx].down,
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3]);
@@ -199,7 +199,7 @@ int8_t field_endpoints[] = {
 
 void field_clear()
 {
-    serprintf("Clearing game field");
+    debugI("Clearing game field");
     for (int idx = 0; idx < NUMKEYS; idx++) {
         field[idx].color = -1;
         field[idx].is_endpoint = 0;
@@ -217,13 +217,13 @@ void field_clear()
     set_endpoints(field_endpoints);
     selected = -1;
     draw_field();
-    serprintf("Inited game field");
+    debugI("Inited game field");
 }
 
 void set_endpoints(int8_t endpoints[])
 {
     for (int c = 0; endpoints[c*2] >= 0; c++) {
-        serprintf("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
+        debugV("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
         int idx = field_idx(endpoints[c*2], endpoints[c*2+1]);
         field[idx].color = c;
         field[idx].is_endpoint = 1;
@@ -253,7 +253,7 @@ static void draw_field()
         if (color >= 0) {
             uint32_t colorval = colors[color/2];
 #if (DEBUGPRINT & DP_DRAW)
-            serprintf("color = %d, idx=%d, colorval = 0x%06x", color, color/2, colorval);
+            debugV("color = %d, idx=%d, colorval = 0x%06x", color, color/2, colorval);
 #endif
             // if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
             if (field[idx].is_endpoint) {
@@ -268,7 +268,7 @@ static void draw_field()
                     pixels.setPixelColor(pixel_dir(field[idx], i), colorval);
                     pixels.setPixelColor(pixel_dir(field[dir], i+3), colorval);
 #if (DEBUGPRINT & DP_DRAW)
-                    serprintf("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
+                    debugV("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
                         idx, dir,
                         pixel_dir(field[idx], i), pixel_dir(field[dir], i+3),
                         colorval);
@@ -284,7 +284,7 @@ static void draw_field()
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_RIGHT], colorval);
                 pixels.setPixelColor(rside+field[right].pixel[left], colorval);
 #if (DEBUGPRINT & DP_DRAW)
-                serprintf("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
+                debugV("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, right,
                     side+field[idx].pixel[FIELD_RIGHT], rside+field[right].pixel[left],
                     colorval);
@@ -296,7 +296,7 @@ static void draw_field()
                 pixels.setPixelColor(side+field[idx].pixel[FIELD_DOWN], colorval);
                 pixels.setPixelColor(dside+field[down].pixel[FIELD_UP], colorval);
 #if (DEBUGPRINT & DP_DRAW)
-                serprintf("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
+                debugV("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
                     idx, down,
                     side+field[idx].pixel[FIELD_DOWN], dside+field[down].pixel[FIELD_UP],
                     colorval);
@@ -370,13 +370,13 @@ void field_test()
         field[idx].is_endpoint = 0;
     }
 #if (DEBUGPRINT & DP_TEST)
-    serprintf("Init field test (field size = %d)", sizeof(fieldcell_t));
+    debugI("Init field test (field size = %d)", sizeof(fieldcell_t));
 #endif
     draw_field();
     for (int ln = 0; ln < 5; ln++) {
         testdelay(500);
 #if (DEBUGPRINT & DP_TEST)
-        serprintf("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
+        debugV("Field test line %d, color 0x%06x, from %2d to %2d (%d,%d)",
             ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7],
             (ln+1)*2, (ln+1)*2+1);
 #endif
@@ -409,22 +409,22 @@ static void press_key(int key)
         if (color == selected) {
             // Nothing
 #if (DEBUGPRINT & DP_KEY)
-            serprintf("Press key %d, same colour %d, do nothing", key, color);
+            debugI("Press key %d, same colour %d, do nothing", key, color);
 #endif
         } else if (color == (selected ^ 1)) {
 #if (DEBUGPRINT & DP_KEY)
-            serprintf("Press key %d, matching colour %d, todo", key, color);
+            debugI("Press key %d, matching colour %d, todo", key, color);
 #endif
             // TODO: Connect chains
         } else if (color >= 0) {
 #if (DEBUGPRINT & DP_KEY)
-            serprintf("Press key %d, different colour %d, todo", key, color);
+            debugI("Press key %d, different colour %d, todo", key, color);
 #endif
             // TODO: Overwrite chain
         } else {
             // Extend chain
 #if (DEBUGPRINT & DP_KEY)
-            serprintf("Press key %d, no colour %d, check neighbours", key, color);
+            debugI("Press key %d, no colour %d, check neighbours", key, color);
 #endif
             int fnd = -1;
             int mindist = 1000;
@@ -432,12 +432,12 @@ static void press_key(int key)
                 int nb = step_dir(field[key], n);
 #if (DEBUGPRINT & DP_KEY)
                 if (nb >= 0) {
-                    serprintf("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
+                    debugV("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
                 }
 #endif
                 if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
 #if (DEBUGPRINT & DP_KEY)
-                    serprintf("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
+                    debugV("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
 #endif
                     fnd = n;
                     mindist = field[nb].dist;
@@ -445,12 +445,12 @@ static void press_key(int key)
             }
             if (fnd >= 0) {
 #if (DEBUGPRINT & DP_KEY)
-                serprintf("Found neighbour %d at dist %d", fnd, mindist);
+                debugV("Found neighbour %d at dist %d", fnd, mindist);
 #endif
                 int idx = step_dir(field[key], fnd);
                 int nxt = field[idx].neighbour[field[idx].next];
 #if (DEBUGPRINT & DP_KEY)
-                serprintf("Connect to chain at %d, disconnect %d", idx, nxt);
+                debugV("Connect to chain at %d, disconnect %d", idx, nxt);
 #endif
                 // Disconnect other chain
                 while (nxt >= 0) {
@@ -473,7 +473,7 @@ static void press_key(int key)
             // Select this color
             selected = field[key].color;
 #if (DEBUGPRINT & DP_KEY)
-            serprintf("Press %d selects %d", key, selected);
+            debugI("Press %d selects %d", key, selected);
 #endif
         } else {
             /*
@@ -489,7 +489,7 @@ static void press_key(int key)
             if (cnt == 1) {
                 field[key].color = color;
                 selected = color;
-                serprintf("Press %d selects neighbouring %d", key, selected);
+                debugI("Press %d selects neighbouring %d", key, selected);
             }
             */
             // TODO: Connect two lines ?
@@ -504,14 +504,14 @@ void field_update()
 {
     int key = keys_scan();
     if (key < 0) {
-        serprintf("ERROR: Key scan error");
+        debugE("ERROR: Key scan error");
         delay(100);
         return;
     }
     unsigned long tick = millis();
     if (key != curkey) {
 #if (DEBUGPRINT & DP_KEY)
-        serprintf("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%d", key, curkey, lastkey, tick);
+        debugV("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%ld", key, curkey, lastkey, tick);
 #endif
         curkey = key;
         if (key > 0) {

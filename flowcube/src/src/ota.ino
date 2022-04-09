@@ -9,7 +9,7 @@ void ota_setup()
 {
   ArduinoOTA.setHostname(OTA_NAME);
   ArduinoOTA.setPassword(OTA_PASS);
-  serprintf("Setting op ota");
+  debugI("Setting op ota");
   ArduinoOTA
     .onStart([]() {
       String type;
@@ -43,7 +43,7 @@ void ota_check()
 {
     int sts = WiFi.status();
     if (wifistatus != sts) {
-        serprintf("WiFi status changed from %x to %x", wifistatus, sts);
+        debugI("WiFi status changed from %x to %x", wifistatus, sts);
         wifistatus = sts;
         if (sts == WL_DISCONNECTED) {
             WiFi.mode(WIFI_STA);

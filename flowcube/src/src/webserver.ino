@@ -5,7 +5,7 @@
 
 ESP8266WebServer server(80);
 
-static int pptr = 0;
+static unsigned int pptr = 0;
 static char printbuffer[4096];
 
 void webserver_log(const char *fmt, va_list args)

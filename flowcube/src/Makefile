@@ -17,4 +17,4 @@ update:
 	pio -f -c vim update
 
 monitor:
-	pio -f -c vim device monitor
+	telnet eos-flowcube-1
