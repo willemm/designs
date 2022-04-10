@@ -11,14 +11,14 @@
 extern RemoteDebug Debug;
 #else
 #ifdef SERIALOUT
-#define debugD(fmt,...) serprintf('D',fmt,...)
 #define debugV(fmt,...) serprintf('W',fmt,...)
+#define debugD(fmt,...) serprintf('D',fmt,...)
 #define debugI(fmt,...) serprintf('I',fmt,...)
 #define debugW(fmt,...) serprintf('W',fmt,...)
 #define debugE(fmt,...) serprintf('E',fmt,...)
 #else
-#define debugD(...)
 #define debugV(...)
+#define debugD(...)
 #define debugI(...)
 #define debugW(...)
 #define debugE(...)
@@ -33,12 +33,26 @@ extern RemoteDebug Debug;
 
 #define OTA_NAME "eos-flowcube-1"
 
+struct fieldcell_t {
+    union {
+        struct { int8_t up, left, down, right, none; };
+        int8_t neighbour[5];
+    };
+    uint8_t pixel[4];
+    uint8_t side;
+    int8_t next, prev;
+    uint8_t dist;
+    int8_t color;
+    unsigned is_endpoint:1;
+};
+
 struct ledset_t {
     uint8_t side;
     uint8_t left;
     uint8_t down;
 };
 
+extern fieldcell_t field[];
 extern const uint32_t colors[];
 extern Adafruit_NeoPixel pixels;
 
@@ -63,5 +77,8 @@ void field_update();
 void webserver_log(const char *fmt, va_list args);
 void webserver_init();
 void webserver_update();
+
+void debug_init();
+void debug_update();
 
 #endif // _SETTINGS_H_

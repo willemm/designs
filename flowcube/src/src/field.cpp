@@ -7,21 +7,6 @@ unsigned long lastpress = 0;
 int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
-struct fieldcell_t {
-    union {
-        struct { int8_t up, left, down, right, none; };
-        int8_t neighbour[5];
-    };
-    uint8_t pixel[4];
-    uint8_t side;
-    int8_t next, prev;
-    uint8_t dist;
-    int8_t color;
-    unsigned is_endpoint:1;
-    unsigned is_fold:1;
-    unsigned is_upfold:1;
-};
-
 static_assert(sizeof(fieldcell_t) <= 16, "Size of fieldcell_t is bigger than 16");
 static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
 static_assert(offsetof(fieldcell_t, left ) == offsetof(fieldcell_t, neighbour)+1, "Neighbour doesn't match left");
@@ -138,12 +123,10 @@ void field_init()
             field[idx].left = -1;
             field[idx].prev = 4;
             field[idx].next = 4;
-            field[idx].is_fold = 0;
             field[idx].is_endpoint = 0;
             if ((x == FSZ-1) && (y < FSZ)) {
                 // Right edge of upper left folds to top of lower right
                 field[idx].right = field_idx(DSZ-1-x, DSZ-1-y);
-                field[idx].is_fold = 1;
             } else if (x == DSZ-1) {
                 // Sentinel value for no right neighbour
                 field[idx].right = -1;
@@ -159,24 +142,12 @@ void field_init()
         }
     }
     for (int idx = 0; idx < NUMKEYS; idx++) {
-        // Back connections
-        int right = field[idx].right;
-        if (right >= 0) {
-            if (field[idx].is_fold) {
-                field[right].is_upfold = 1;
-                field[right].up = idx;
-            } else {
-                field[right].left = idx;
+        for (int n = 0; n < 3; n++) {
+            int nb = step_dir(field[idx], n);
+            if (nb >= 0) {
+                field[nb].neighbour[step_nb(field[nb], n+3)] = idx;
             }
         }
-        int down = field[idx].down;
-        if (down >= 0) {
-            field[down].up = idx;
-        }
-        debugD("Key %2d: right=%2d down=%2d pixels=[%3d,%3d,%3d,%3d]",
-            idx, field[idx].right, field[idx].down,
-            field[idx].pixel[0], field[idx].pixel[1],
-            field[idx].pixel[2], field[idx].pixel[3]);
     }
 }
 
@@ -240,30 +211,6 @@ static void draw_field(bool debug=false)
                         colorval);
                     }
             }
-
-#if 0
-            int right = field[idx].right;
-            if ((right >= 0) && (field[right].color == color)) {
-                int left = (field[idx].is_fold) ? FIELD_UP : FIELD_LEFT;
-                int rside = (int)field[right].side * LEDSZ;
-                pixels.setPixelColor(side+field[idx].pixel[FIELD_RIGHT], colorval);
-                pixels.setPixelColor(rside+field[right].pixel[left], colorval);
-                if (debug) debugV("Set right between %2d and %2d: (%3d,%3d) = 0x%06x",
-                    idx, right,
-                    side+field[idx].pixel[FIELD_RIGHT], rside+field[right].pixel[left],
-                    colorval);
-            }
-            int down = field[idx].down;
-            if ((down >= 0) && (field[down].color == color)) {
-                int dside = (int)field[down].side * LEDSZ;
-                pixels.setPixelColor(side+field[idx].pixel[FIELD_DOWN], colorval);
-                pixels.setPixelColor(dside+field[down].pixel[FIELD_UP], colorval);
-                if (debug) debugV("Set down  between %2d and %2d: (%3d,%3d) = 0x%06x",
-                    idx, down,
-                    side+field[idx].pixel[FIELD_DOWN], dside+field[down].pixel[FIELD_UP],
-                    colorval);
-            }
-#endif
         }
         if (idx == (curkey-1)) {
             uint32_t colorval = pixels.Color(255,255,255);
@@ -323,24 +270,18 @@ static void draw_field(bool debug=false)
 void field_clear()
 {
     debugI("Clearing game field");
+    selected = -1;
     for (int idx = 0; idx < NUMKEYS; idx++) {
         field[idx].color = -1;
+        field[idx].prev = 4;
+        field[idx].next = 4;
         field[idx].is_endpoint = 0;
+        field[idx].dist = 0;
     }
-    /*
-    int8_t endpoints[] = {
-        3,1, 5,5,
-        1,2, 7,2,
-        6,5, 5,6,
-        5,9, 9,9,
-        1,1, 6,6,
-        -1
-    };
-    */
     set_endpoints(field_endpoints);
-    selected = -1;
-    draw_field(true);
+    // draw_field(true);
     debugI("Inited game field");
+    debug_update();
 }
 
 static const int field_test_lines[5][8] = {
@@ -394,6 +335,14 @@ void field_test()
     testdelay(2000);
 }
 
+static void set_chain_dist(int idx, int dist)
+{
+    while (idx >= 0) {
+        field[idx].dist = dist++;
+        idx = field[idx].neighbour[field[idx].next];
+    }
+}
+
 static void disconnect_chain(int idx)
 {
     int nxt = idx;
@@ -408,7 +357,7 @@ static void disconnect_chain(int idx)
         field[nxt].color = field[nxt].color ^ 1;
         if (field[nxt].is_endpoint) {
             // Found an endpoint, so don't turn off
-            return;
+            return set_chain_dist(nxt, 0);
         }
         nxt = field[nxt].neighbour[nn];
     }
@@ -478,8 +427,13 @@ static void press_key(int key)
                     nxt = field[nxt].neighbour[nn];
                 }
             } else if (color >= 0) {
-                debugI("Press key %d, different colour %d, todo", key, color);
-                // TODO: Overwrite chain
+                if (field[key].is_endpoint) {
+                    // Endpoints cannot be pushed through
+                    selected = -1;
+                } else {
+                    debugI("Press key %d, different colour %d, push through, todo", key, color);
+                    // TODO: Overwrite chain
+                }
             } else {
                 // Extend chain
                 debugI("Press key %d, no colour %d, extend chain", key, color);

@@ -2,10 +2,6 @@
 #include <stdarg.h>
 #include "settings.h"
 
-#ifdef TELNETOUT
-RemoteDebug Debug;
-#endif
-
 void serprintf(const char lvl, const char *fmt, ...)
 {
 #ifdef SERIALOUT
@@ -31,6 +27,7 @@ void setup() {
     Serial.println("Initializing...");
 #endif // SERIALOUT
     ota_check();
+    debug_init();
     leds_init();
     leds_test();
     keys_init();
@@ -40,22 +37,14 @@ void setup() {
 #ifdef WEBOUT
     webserver_init();
 #endif // WEBOUT
-#ifdef TELNETOUT
-    Debug.begin("eos-flowcube-1");
-    Debug.showColors(true);
-#endif // TELNETOUT
 }
 
 void loop()
 {
-#ifdef TELNETOUT
-#endif // TELNETOUT
 #ifdef WEBOUT
     webserver_update();
 #endif // WEBOUT
     field_update();
     ota_check();
-#ifdef TELNETOUT
-    Debug.handle();
-#endif // TELNETOUT
+    debug_update();
 }
