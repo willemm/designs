@@ -21,6 +21,7 @@ struct fieldcell_t {
     unsigned is_fold:1;
     unsigned is_upfold:1;
 };
+
 static_assert(sizeof(fieldcell_t) <= 16, "Size of fieldcell_t is bigger than 16");
 static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
 static_assert(offsetof(fieldcell_t, left ) == offsetof(fieldcell_t, neighbour)+1, "Neighbour doesn't match left");
@@ -53,7 +54,7 @@ static const uint8_t step_dirs[3][6] = {
 
 static inline uint8_t step_nb(fieldcell_t field, int dir)
 {
-    return step_dirs[field.side][dir];
+    return step_dirs[field.side][dir%6];
 }
 
 // Find the field index in the given (one of six) direction
@@ -393,60 +394,112 @@ void field_test()
     testdelay(2000);
 }
 
+static void disconnect_chain(int idx)
+{
+    int nxt = idx;
+    // Disconnect last link
+    field[idx].prev = 4;
+    // First reverse, see if his leads to an endpoint
+    while (nxt >= 0) {
+        debugD("Reverse %d->%d->%d", field[nxt].prev, nxt, field[nxt].next);
+        int nn = field[nxt].next;
+        field[nxt].next = field[nxt].prev;
+        field[nxt].prev = nn;
+        field[nxt].color = field[nxt].color ^ 1;
+        if (field[nxt].is_endpoint) {
+            // Found an endpoint, so don't turn off
+            return;
+        }
+        nxt = field[nxt].neighbour[nn];
+    }
+    // There was no endpoint so turn the chain off
+    nxt = idx;
+    while (nxt >= 0) {
+        debugD("Disconnect %d->%d->%d", field[nxt].prev, nxt, field[nxt].next);
+        int nn = field[nxt].prev;
+        field[nxt].next = 4;
+        field[nxt].prev = 4;
+        field[nxt].color = -1;
+        nxt = field[nxt].neighbour[nn];
+    }
+}
+
 static void press_key(int key)
 {
+    int color = field[key].color;
     if (selected >= 0) {
-        int color = field[key].color;
-        if (color == selected) {
-            // Nothing
-            debugI("Press key %d, same colour %d, do nothing", key, color);
-        } else if (color == (selected ^ 1)) {
-            debugI("Press key %d, matching colour %d, todo", key, color);
-            // TODO: Connect chains
-        } else if (color >= 0) {
-            debugI("Press key %d, different colour %d, todo", key, color);
-            // TODO: Overwrite chain
-        } else {
-            // Extend chain
-            debugI("Press key %d, no colour %d, check neighbours", key, color);
-            int fnd = -1;
-            int mindist = 1000;
-            for (int n = 0; n < 6; n++) {
-                int nb = step_dir(field[key], n);
-                if (nb >= 0) {
-                    debugD("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
-                }
-                if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
-                    debugD("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
-                    fnd = n;
-                    mindist = field[nb].dist;
-                }
+        debugI("Press key %d, check for neighbour with selected color %d", key, selected);
+        int fnd = -1;
+        int mindist = 1000;
+        for (int n = 0; n < 6; n++) {
+            int nb = step_dir(field[key], n);
+            if (nb >= 0) {
+                debugD("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
             }
-            if (fnd >= 0) {
-                debugD("Found neighbour %d at dist %d", fnd, mindist);
+            if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
+                debugD("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
+                fnd = n;
+                mindist = field[nb].dist;
+            }
+        }
+        if (fnd < 0) {
+            // Pressed key was not next to selected chain, so deselect
+            // TODO: Some kind of distance/straight line stuff maybe?
+            debugI("Press key %d, different chain, deselect", key);
+            selected = -1;
+            // Fall through to no color selected code
+        } else {
+            if (color == selected) {
+                debugI("Press key %d, same colour %d, do nothing", key, color);
+                // Nothing, maybe deselect further bit of chain?
+            } else if (color == (selected ^ 1)) {
+                debugI("Press key %d, matching colour %d, connect", key, color);
+                // TODO: Connect chains
+                // Disconnect pressed chain end
+                int nxt = field[key].neighbour[field[key].next];
+                debugD("Connect to chain at %d, disconnect %d", key, nxt);
+                disconnect_chain(nxt);
+                int idx = step_dir(field[key], fnd);
+                // Connect pressed chain
+                field[key].next = step_nb(field[key], fnd);
+                field[idx].next = step_nb(field[idx], fnd+3);
+                debugD("Connect %d to %d and %d to %d", key, field[key].next, idx, field[idx].next);
+                // Reverse other chain to beginning
+                nxt = key;
+                int dist = field[idx].dist;
+                while (nxt >= 0) {
+                    debugD("Reverse %d<-%d<-%d", field[nxt].prev, nxt, field[nxt].next);
+                    field[nxt].color = selected;
+                    field[nxt].dist = ++dist;
+
+                    int nn = field[nxt].prev;
+                    field[nxt].prev = field[nxt].next;
+                    field[nxt].next = nn;
+                    nxt = field[nxt].neighbour[nn];
+                }
+            } else if (color >= 0) {
+                debugI("Press key %d, different colour %d, todo", key, color);
+                // TODO: Overwrite chain
+            } else {
+                // Extend chain
+                debugI("Press key %d, no colour %d, extend chain", key, color);
                 int idx = step_dir(field[key], fnd);
                 int nxt = field[idx].neighbour[field[idx].next];
                 debugD("Connect to chain at %d, disconnect %d", idx, nxt);
                 // Disconnect other chain
-                while (nxt >= 0) {
-                    int nn = field[nxt].next;
-                    field[nxt].next = 4;
-                    field[nxt].prev = 4;
-                    field[nxt].color = -1;
-                    nxt = field[nxt].neighbour[nn];
-                }
+                disconnect_chain(nxt);
                 field[key].color = field[idx].color;
                 field[key].dist = field[idx].dist + 1;
                 field[key].prev = step_nb(field[key], fnd);
-                field[idx].next = step_nb(field[idx], (fnd+3)%6);
-            } else {
-                // TODO: Something ??
+                field[idx].next = step_nb(field[idx], fnd+3);
             }
         }
-    } else {
-        if (field[key].color >= 0) {
+    }
+    // Don't use else to enable above block to deselect and then fall into this block
+    if (selected < 0) {
+        if (color >= 0) {
             // Select this color
-            selected = field[key].color;
+            selected = color;
             debugI("Press %d selects %d", key, selected);
         } else {
             debugI("Press %d does nothing (todo)", key);
