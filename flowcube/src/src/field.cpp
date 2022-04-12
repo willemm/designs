@@ -335,14 +335,6 @@ void field_test()
     testdelay(2000);
 }
 
-static void set_chain_dist(int idx, int dist)
-{
-    while (idx >= 0) {
-        field[idx].dist = dist++;
-        idx = field[idx].neighbour[field[idx].next];
-    }
-}
-
 static void disconnect_chain(int idx)
 {
     int nxt = idx;
@@ -357,7 +349,13 @@ static void disconnect_chain(int idx)
         field[nxt].color = field[nxt].color ^ 1;
         if (field[nxt].is_endpoint) {
             // Found an endpoint, so don't turn off
-            return set_chain_dist(nxt, 0);
+            // Only turn off the first one
+            // Fix the distances
+            int dist = 0;
+            while (nxt >= 0) {
+                field[nxt].dist = dist++;
+                nxt = field[nxt].neighbour[field[nxt].next];
+            }
         }
         nxt = field[nxt].neighbour[nn];
     }
@@ -403,7 +401,6 @@ static void press_key(int key)
                 // Nothing, maybe deselect further bit of chain?
             } else if (color == (selected ^ 1)) {
                 debugI("Press key %d, matching colour %d, connect", key, color);
-                // TODO: Connect chains
                 // Disconnect pressed chain end
                 int nxt = field[key].neighbour[field[key].next];
                 debugD("Connect to chain at %d, disconnect %d", key, nxt);

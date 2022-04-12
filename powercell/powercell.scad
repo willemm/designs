@@ -599,7 +599,7 @@ module hexbase_top()
     color("#b83") rotate([0,0,digipos[2]]) translate([digipos.x-23/2-2.5, digipos.y+2.5, 1+3/2])
         cube([19, 14, 3], true);
 
-    for (an=[0:60:240]) rotate([0,0,an]) {
+    for (an=[0:60:300]) rotate([0,0,an]) {
         translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
             [0, -cy+7], [12, -cy+19], [12, cy-19], [0, cy-7],
         ]);
@@ -622,13 +622,13 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
 
     hw1 = 10;
     hw2 = 7;
-    ht = 1;
+    ht = 1.2;
 
     // color("#333")
     translate([battof,0,0]) difference() {
         union() {
-            translate([x1+1, -num/2*bo-thi, bof]) cube([x2-x1-2, thi, 17-bof]);
-            translate([x1+1,  num/2*bo    , bof]) cube([x2-x1-2, thi, 17-bof]);
+            translate([x1+ht, -num/2*bo-thi, bof]) cube([x2-x1-ht*2, thi, 17-bof]);
+            translate([x1+ht,  num/2*bo    , bof]) cube([x2-x1-ht*2, thi, 17-bof]);
 
             translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 13-bof]);
             translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 13-bof]);
@@ -644,11 +644,11 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
             for (x=[0,1]) {
                 mirror([x,0,0]) {
                     for (y=[(-num+1)/2:(num-1)/2]) {
-                        translate([x1, (y-0.5)*bo-thi, bof]) cube([1,(bo-hw1)/2+thi,13-bof]);
-                        translate([x1, y*bo+hw1/2, bof]) cube([1,(bo-hw1)/2+thi,13-bof]);
+                        translate([x1, (y-0.5)*bo-thi, bof]) cube([ht,(bo-hw1)/2+thi,13-bof]);
+                        translate([x1, y*bo+hw1/2, bof]) cube([ht,(bo-hw1)/2+thi,13-bof]);
 
-                        translate([x1+ht, (y-0.5)*bo, bof]) cube([0.8,(bo-hw2)/2,17-bof]);
-                        translate([x1+ht, y*bo+hw2/2, bof]) cube([0.8,(bo-hw2)/2,17-bof]);
+                        translate([x1+ht, (y-0.5)*bo, bof]) cube([1.2,(bo-hw2)/2,17-bof]);
+                        translate([x1+ht, y*bo+hw2/2, bof]) cube([1.2,(bo-hw2)/2,17-bof]);
                     }
                     translate([x1, -num/2*bo-thi, bof]) cube([1.8, num*bo+thi*2, 3.4]);
                 }
