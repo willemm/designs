@@ -10,16 +10,16 @@ offset2 = -8;
 
 slideth = 3;
 
-numbatteries = 2;
+numbatteries = 3;
 batteryoffset = 15;
-batteryan = 240;
+batteryan = 30;
+battof = [+0, +7.75, 0];
 
 batth = 1.2;
 batty = 57;
 battx = batteryoffset * numbatteries;
-battof = -1;
 
-digipos = [27.5, 25.4, 240];
+digipos = [27.5, 25.4, 240, 15];
 wspos = [42, 23.9, 240];
 
 s3 = sqrt(3);
@@ -37,7 +37,7 @@ if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "") {
     if (1) {
         hexbase_top();
-        *translate([0,0,13.1]) cover_top();
+        *translate([0,0,13.5]) cover_top();
         translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
@@ -47,9 +47,9 @@ if (doitem == "") {
         *receiver();
     } else {
         hexbase_bot();
-        translate([0,0,14]) cover_bot();
-        translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
-        translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
+        *translate([0,0,14]) cover_bot();
+        *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
+        *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
     }
 
 
@@ -151,9 +151,9 @@ module cover_top()
     color("#7a2") translate([0,0,0]) linear_extrude(height = rti, convexity=6) {
         difference() {
             polygon( [for (an=[0:60:300]) [di2/2 * sin(an), di2/2 * cos(an)]] );
-            rotate([0,0,batteryan]) polygon([
-                [-by+battof+2.3,-bx], [-by+battof+2.3, bx],
-                [ by+battof-2.3, bx], [ by+battof-2.3,-bx]
+            rotate([0,0,batteryan]) translate(battof) polygon([
+                [-by+2.3,-bx], [-by+2.3, bx],
+                [ by-2.3, bx], [ by-2.3,-bx]
             ]);
             for (an=[0:60:300]) rotate([0, 0, an]) {
                 polygon([
@@ -180,14 +180,14 @@ module cover_top()
             rotate([0,0,60]) {
                 polygon([
                     [cx-24, cy-39/s3], [cx-32, cy-35/s3],
-                    [cx-37-battof, cy-41/s3], [cx-37-battof, -cy+41/s3],
+                    [cx-37-battof.x, cy-41/s3], [cx-37-battof.x, -cy+41/s3],
                     [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
                 ]);
             }
             rotate([0,0,240]) {
                 polygon([
                     [cx-24, cy-39/s3], [cx-32, cy-35/s3],
-                    [cx-37+battof, cy-41/s3], [cx-37+battof, -cy+41/s3],
+                    [cx-37+battof.x, cy-41/s3], [cx-37+battof.x, -cy+41/s3],
                     [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
                 ]);
             }
@@ -203,9 +203,9 @@ module cover_top()
     color("#8c3") translate([0,0,rti]) linear_extrude(height = thi, convexity=6) {
         difference() {
             polygon( [for (an=[0:60:300]) [di2/2 * sin(an), di2/2 * cos(an)]] );
-            rotate([0,0,batteryan]) polygon([
-                [-by+battof+2.3,-bx], [-by+battof+2.3, bx],
-                [ by+battof-2.3, bx], [ by+battof-2.3,-bx]
+            rotate([0,0,batteryan]) translate(battof) polygon([
+                [-by+2.3,-bx], [-by+2.3, bx],
+                [ by-2.3, bx], [ by-2.3,-bx]
             ]);
             for (an=[0:60:300]) rotate([0, 0, an]) {
                 polygon([
@@ -314,7 +314,7 @@ module cover_pin()
 
 function mirrorx(ar) = concat(ar, [for (i=[len(ar)-1:-1:0]) [-ar[i][0], ar[i][1]]]);
 
-module hexbase_bot()
+module hexbase_bot(battery = true)
 {
     dia = 109.6;
     can = 0.6;
@@ -431,6 +431,13 @@ module hexbase_bot()
                     [+2.5, cy*2-3.8], [-2.5, cy*2-3.8],
                 ]);
             }
+            if (battery) {
+                rotate([0,0,batteryan]) translate(battof) polygon([
+                        [-batty/2-0.1,-battx/2-0.1], [-batty/2-1.1,-battx/2+0.9],
+                        [-batty/2-1.1, battx/2-0.9], [-batty/2-0.1, battx/2+0.1],
+                        [ batty/2+2.1, battx/2+0.1], [ batty/2+2.1,-battx/2-0.1],
+                ]);
+            }
         }
     }
 
@@ -443,9 +450,12 @@ module hexbase_bot()
     for (an=[0:120:240]) rotate([0,0,an]) {
         translate([cx-6/2 -shox, cy-9.6/2 -shoy, 4]) rotate([0,90,0]) house();
     }
+    if (battery) {
+        rotate([0,0,batteryan]) batterybox();
+    }
 }
 
-module hexbase_top()
+module hexbase_top(battery = true)
 {
     dia = 109.6;
     can = 0.6;
@@ -468,150 +478,199 @@ module hexbase_top()
 
     h4 = 4;
 
-    // Channel bit
-    color("#ba3") linear_extrude(height = can, convexity=6) {
-        difference() {
-            polygon( [for (an=[0:60:300]) [dia/2 * sin(an), dia/2 * cos(an)]] );
-            for (an=[0:120:240]) rotate([0,0,an]) {
-                polygon([
-                    [cx-4,  -cy+9], [cx-6, -cy+7], [cx-16, -cy+7],
-                    [cx-18, -cy+9], [cx-18,  5],
-                    [cx-16,  cy-shoy-9.6], [cx-4,   cy-shoy-9.6]
-                ]);
-                polygon([
-                    [cx-2, cy-shoy-2.8],
-                    [cx-2, cy-shoy-6.8],
-                    [cx-16, cy-shoy-6.8],
-                    [cx-16, cy-shoy-2.8]
+    difference() {
+        union() {
+            // Channel bit
+            color("#ba3") linear_extrude(height = can, convexity=6) {
+                difference() {
+                    polygon( [for (an=[0:60:300]) [dia/2 * sin(an), dia/2 * cos(an)]] );
+                    for (an=[0:120:240]) rotate([0,0,an]) {
+                        polygon([
+                                [cx-4,  -cy+9], [cx-6, -cy+7], [cx-16, -cy+7],
+                                [cx-18, -cy+9], [cx-18,  5],
+                                [cx-16,  cy-shoy-9.6], [cx-4,   cy-shoy-9.6]
+                        ]);
+                        polygon([
+                                [cx-2, cy-shoy-2.8],
+                                [cx-2, cy-shoy-6.8],
+                                [cx-16, cy-shoy-6.8],
+                                [cx-16, cy-shoy-2.8]
+                        ]);
+                    }
+                    rotate([0,0,240]) polygon([
+                            [ hx, cy-shoy-3],  [ hx+1, cy-shoy-3],
+                            [ hx+1, cy-h3], [ hx, cy-h3]
+                    ]);
+                    rotate([0,0,120]) polygon([
+                            [ cx-15.9, cy-shoy-2.8], [ cx-15.9, cy-shoy-3.8],
+                            [ cos(120)*(hx2) - sin(120)*(cy-h22),
+                            sin(120)*(hx2) + cos(120)*(cy-h22) ],
+                            [ cos(120)*(hx) - sin(120)*(cy-h2),
+                            sin(120)*(hx) + cos(120)*(cy-h2) ],
+                            [ cos(120)*(hx) - sin(120)*(cy-h2-1),
+                            sin(120)*(hx) + cos(120)*(cy-h2-1) ],
+                            [ cos(120)*(hx2+1) - sin(120)*(cy-h22-1),
+                            sin(120)*(hx2+1) + cos(120)*(cy-h22-1) ],
+                    ]);
+                    polygon([
+                            [ cx-15.9, cy-shoy-4.6], [ cx-15.9, cy-shoy-6.6],
+                            [ cos(240)*(hx) - sin(240)*(cy-h1),
+                            sin(240)*(hx) + cos(240)*(cy-h1) ],
+                            [ cos(240)*(hx+1) - sin(240)*(cy-h1-1),
+                            sin(240)*(hx+1) + cos(240)*(cy-h1-1) ],
+                    ]);
+                    rotate([0,0,240]) {
+                        polygon([ [hx, cy-h3], [hx, cy-h3-1], [hx+1,cy-h3-1], [hx+1, cy-h3]]);
+                        polygon([ [hx, cy-h2], [hx, cy-h2-1], [hx+1,cy-h2-1], [hx+1, cy-h2]]);
+                        polygon([ [hx, cy-h1], [hx, cy-h1-1], [hx+1,cy-h1-1], [hx+1, cy-h1]]);
+                        polygon([ [hx, cy-h4], [hx, cy-h4-1], [hx+4,cy-h4-1], [hx+4, cy-h4]]);
+                    }
+                }
+            }
+            // Middle bit
+            translate([0,0,can]) linear_extrude(height = hi-can, convexity=6) {
+                difference() {
+                    polygon( [for (an=[0:60:300]) [dia/2 * sin(an), dia/2 * cos(an)]] );
+                    for (an=[0:120:240]) rotate([0,0,an]) {
+                        polygon([
+                                [cx-4,  -cy+9], [cx-6, -cy+7], [cx-16, -cy+7],
+                                [cx-18, -cy+9], [cx-18,  5],
+                                [cx-16,  cy-shoy-9.6], [cx-4,   cy-shoy-9.6]
+                        ]);
+                        polygon([
+                                [cx-2, cy-shoy-2.8],
+                                [cx-2, cy-shoy-6.8],
+                                [cx-16, cy-shoy-6.8],
+                                [cx-16, cy-shoy-2.8]
+                        ]);
+                    }
+                    rotate([0,0,240]) {
+                        polygon([ [hx, cy-h3], [hx, cy-h3-1], [hx+1,cy-h3-1], [hx+1, cy-h3]]);
+                        polygon([ [hx, cy-h2], [hx, cy-h2-1], [hx+1,cy-h2-1], [hx+1, cy-h2]]);
+                        polygon([ [hx, cy-h1], [hx, cy-h1-1], [hx+1,cy-h1-1], [hx+1, cy-h1]]);
+                        polygon([ [hx, cy-h4], [hx, cy-h4-1], [hx+1,cy-h4-1], [hx+1, cy-h4]]);
+                        polygon([ [hx+3, cy-h4], [hx+3, cy-h4-1], [hx+4,cy-h4-1], [hx+4, cy-h4]]);
+                    }
+                }
+            }
+            // Ridgy bit
+            color("#ba3") translate([0,0,hi]) linear_extrude(height = bhi-hi, convexity=6) {
+                difference() {
+                    polygon( [for (an=[0:60:300]) [dia/2 * sin(an), dia/2 * cos(an)]] );
+                    for (an=[0:120:240]) rotate([0,0,an]) {
+                        polygon([
+                                [cx-2, -cy+10/s3],
+                                [cx-6,  -cy-2/s3], [cx-18, -cy-14/s3],
+                                [cx-18,  cy-shoy], [cx-2,   cy-shoy]
+                        ]);
+                        polygon([
+                                [cx-18, cy-shoy+2], [cx-2,  cy-shoy+2],
+                                [cx-2,  cy-10/s3], [cx-6,  cy+2/s3],
+                                [cx-18, cy+14/s3]
+                        ]);
+                        polygon([
+                                [cx-20, cy-shoy+2], [cx-20, cy+16/s3],
+                                [cx-30,  cy+26/s3], [cx-45,  cy+11/s3]
+                        ]);
+                        polygon([
+                                [cx-20, cy-shoy], [cx-46, cy+9/s3],
+                                [cx-46, 4/s3]
+                        ]);
+                        polygon([
+                                [cx-20, cy-shoy-2], [cx-20, -cy+shoy+2],
+                                [cx-46, 0]
+                        ]);
+                    }
+                    for (an=[0:60:300]) rotate([0,0,an]) {
+                        polygon([
+                                [-2.5, cy*2-2.2], [+2.5, cy*2-2.2],
+                                [+2.5, cy*2-3.8], [-2.5, cy*2-3.8],
+                        ]);
+                    }
+                    if (battery) {
+                        rotate([0,0,batteryan]) translate(battof) polygon([
+                                [-batty/2-0.1,-battx/2-0.1], [-batty/2-1.1,-battx/2+0.9],
+                                [-batty/2-1.1, battx/2-0.9], [-batty/2-0.1, battx/2+0.1],
+                                [ batty/2+2.1, battx/2+0.1], [ batty/2+2.1,-battx/2-0.1],
+                        ]);
+                    }
+
+                    // digispark
+                    rotate([0,0,digipos[2]]) polygon([
+                            [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
+                            [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
+                    ]);
+                    // tilt sensor
+                    rotate([0,0,60]) polygon([
+                            [-2, battx/2+1], [2, battx/2+1], [2.1, battx/2+15.5], [-1.4, battx/2+17.5]
+                    ]);
+                }
+                rotate([0,0,digipos[2]]) polygon(points=[
+                        [digipos.x+1.4, digipos.y-10.4], [digipos.x-25.0, digipos.y-10.4],
+                        [digipos.x-25.0, digipos.y+10],
+                        [digipos.x-24.0, digipos.y+10.6], [digipos.x+1.4, digipos.y+10.6],
+                        [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.0, digipos.y-9.2],
+                        [digipos.x-23.0, digipos.y+9.4], [digipos.x+0.2, digipos.y+9.4],
+                ], paths=[
+                [0,1,2,3,4],[5,6,7,8],
                 ]);
             }
-            rotate([0,0,240]) polygon([
-                [ hx, cy-shoy-3],  [ hx+1, cy-shoy-3],
-                [ hx+1, cy-h3], [ hx, cy-h3]
-            ]);
-            rotate([0,0,120]) polygon([
-                [ cx-15.9, cy-shoy-2.8], [ cx-15.9, cy-shoy-3.8],
-                [ cos(120)*(hx2) - sin(120)*(cy-h22),
-                  sin(120)*(hx2) + cos(120)*(cy-h22) ],
-                [ cos(120)*(hx) - sin(120)*(cy-h2),
-                  sin(120)*(hx) + cos(120)*(cy-h2) ],
-                [ cos(120)*(hx) - sin(120)*(cy-h2-1),
-                  sin(120)*(hx) + cos(120)*(cy-h2-1) ],
-                [ cos(120)*(hx2+1) - sin(120)*(cy-h22-1),
-                  sin(120)*(hx2+1) + cos(120)*(cy-h22-1) ],
-            ]);
-            polygon([
-                [ cx-15.9, cy-shoy-4.6], [ cx-15.9, cy-shoy-6.6],
-                [ cos(240)*(hx) - sin(240)*(cy-h1),
-                  sin(240)*(hx) + cos(240)*(cy-h1) ],
-                [ cos(240)*(hx+1) - sin(240)*(cy-h1-1),
-                  sin(240)*(hx+1) + cos(240)*(cy-h1-1) ],
-            ]);
-            rotate([0,0,240]) {
-                polygon([ [hx, cy-h3], [hx, cy-h3-1], [hx+1,cy-h3-1], [hx+1, cy-h3]]);
-                polygon([ [hx, cy-h2], [hx, cy-h2-1], [hx+1,cy-h2-1], [hx+1, cy-h2]]);
-                polygon([ [hx, cy-h1], [hx, cy-h1-1], [hx+1,cy-h1-1], [hx+1, cy-h1]]);
-                polygon([ [hx, cy-h4], [hx, cy-h4-1], [hx+4,cy-h4-1], [hx+4, cy-h4]]);
+
+            // Digipark plateau
+            color("#b83") rotate([0,0,digipos[2]]) {
+                translate([digipos.x-23.2, digipos.y+10.2, 1])
+                    rotate([90,0,0]) linear_extrude(height=15) polygon([
+                            [-1,0], [19,0], [19, 3], [0,3+19*tan(digipos[3])]
+                    ]);
+                translate([digipos.x-23.2, digipos.y+10.6, 3])
+                    rotate([90,0,0]) linear_extrude(height=1.2) polygon([
+                            [-0.75,0], [25,0], [25, 2], [0.3,2+24.7*tan(digipos[3])]
+                    ]);
             }
-        }
-    }
-    // Middle bit
-    translate([0,0,can]) linear_extrude(height = hi-can, convexity=6) {
-        difference() {
-            polygon( [for (an=[0:60:300]) [dia/2 * sin(an), dia/2 * cos(an)]] );
-            for (an=[0:120:240]) rotate([0,0,an]) {
-                polygon([
-                    [cx-4,  -cy+9], [cx-6, -cy+7], [cx-16, -cy+7],
-                    [cx-18, -cy+9], [cx-18,  5],
-                    [cx-16,  cy-shoy-9.6], [cx-4,   cy-shoy-9.6]
-                ]);
-                polygon([
-                    [cx-2, cy-shoy-2.8],
-                    [cx-2, cy-shoy-6.8],
-                    [cx-16, cy-shoy-6.8],
-                    [cx-16, cy-shoy-2.8]
-                ]);
+
+            // 5V module
+            color("#b83") rotate([0,0,60]) translate([cx-2, 0, 1]) {
+                translate([-8/2, 0, 1.2/2]) cube([8,10.8,1.2], true);
+                translate([-9.2/2, -5.4-1.2/2, 8/2]) cube([9.2, 1.2, 8], true);
+                translate([-9.2/2, +5.4+1.2/2, 8/2]) cube([9.2, 1.2, 8], true);
+                translate([-8-1.2/2, 0, 8/2]) cube([1.2, 11, 8], true);
             }
-            rotate([0,0,240]) {
-                polygon([ [hx, cy-h3], [hx, cy-h3-1], [hx+1,cy-h3-1], [hx+1, cy-h3]]);
-                polygon([ [hx, cy-h2], [hx, cy-h2-1], [hx+1,cy-h2-1], [hx+1, cy-h2]]);
-                polygon([ [hx, cy-h1], [hx, cy-h1-1], [hx+1,cy-h1-1], [hx+1, cy-h1]]);
-                polygon([ [hx, cy-h4], [hx, cy-h4-1], [hx+1,cy-h4-1], [hx+1, cy-h4]]);
-                polygon([ [hx+3, cy-h4], [hx+3, cy-h4-1], [hx+4,cy-h4-1], [hx+4, cy-h4]]);
+
+            // Tilt module
+            color("#b83") rotate([0,0,60]) translate([0, battx/2+3.2, 0.6]) {
+                translate([0, 0.4+2/2, 0.4+12/2]) cube([24.6, 2, 12], true);
+                translate([10.3-4+6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
+                translate([-10.3+4-6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
+                translate([10.3+2/2, -2+8.2/2, 0.4+12/2]) cube([2, 8.2, 12], true);
+                translate([-10.3-2/2, -2+8.2/2, 0.4+12/2]) cube([2, 8.2, 12], true);
             }
-        }
-    }
-    // Ridgy bit
-    color("#ba3") translate([0,0,hi]) linear_extrude(height = bhi-hi, convexity=6) {
-        difference() {
-            polygon( [for (an=[0:60:300]) [dia/2 * sin(an), dia/2 * cos(an)]] );
-            for (an=[0:120:240]) rotate([0,0,an]) {
-                polygon([
-                    [cx-2, -cy+10/s3],
-                    [cx-6,  -cy-2/s3], [cx-18, -cy-14/s3],
-                    [cx-18,  cy-shoy], [cx-2,   cy-shoy]
-                ]);
-                polygon([
-                    [cx-18, cy-shoy+2], [cx-2,  cy-shoy+2],
-                    [cx-2,  cy-10/s3], [cx-6,  cy+2/s3],
-                    [cx-18, cy+14/s3]
-                ]);
-                polygon([
-                    [cx-20, cy-shoy+2], [cx-20, cy+16/s3],
-                    [cx-30,  cy+26/s3], [cx-45,  cy+11/s3]
-                ]);
-                polygon([
-                    [cx-20, cy-shoy], [cx-46, cy+9/s3],
-                    [cx-46, 4/s3]
-                ]);
-                polygon([
-                    [cx-20, cy-shoy-2], [cx-20, -cy+shoy+2],
-                    [cx-46, 0]
-                ]);
-            }
+
+            // Side tabs
             for (an=[0:60:300]) rotate([0,0,an]) {
-                polygon([
-                    [-2.5, cy*2-2.2], [+2.5, cy*2-2.2],
-                    [+2.5, cy*2-3.8], [-2.5, cy*2-3.8],
+                translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
+                        [0, -cy+7], [12.4, -cy+19], [12.4, cy-19], [0, cy-7],
                 ]);
             }
-            rotate([0,0,batteryan]) translate([battof,0,0]) polygon([
-                [-batty/2-0.1,-battx/2-0.1], [-batty/2-1.1,-battx/2+0.9],
-                [-batty/2-1.1, battx/2-0.9], [-batty/2-0.1, battx/2+0.1],
-                [ batty/2+2.1, battx/2+0.1], [ batty/2+2.1,-battx/2-0.1],
-            ]);
-            
-            // digispark
-            rotate([0,0,digipos[2]]) polygon([
-                [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
-                [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
-            ]);
+
+            for (an=[0:120:240]) rotate([0,0,an]) {
+                translate([cx-6/2 -shox, cy-9.6/2 -shoy, 4]) rotate([0,90,0]) house();
+            }
+            if (battery) {
+                rotate([0,0,batteryan]) batterybox();
+            }
         }
-        rotate([0,0,digipos[2]]) polygon(points=[
-            [digipos.x+1.4, digipos.y-10.4], [digipos.x-24.4, digipos.y-10.4],
-            [digipos.x-24.4, digipos.y+10.4], [digipos.x+1.4, digipos.y+10.4],
-            [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
-            [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
-        ], paths=[
-            [0,1,2,3],[4,5,6,7],
-        ]);
-    }
-    color("#b83") rotate([0,0,digipos[2]]) translate([digipos.x-23/2-2.5, digipos.y+2.5, 1+3/2])
-        cube([19, 14, 3], true);
+        // Hole for digispark screw
+        rotate([0,0,digipos[2]]) translate([digipos.x-23.2, digipos.y+10.2, 1])
+            rotate([0,digipos[3],0]) translate([21.6-23+2.4,-0.8-2.3,-1.2]) cylinder(9.2, 1.2, 1.2, $fn=24);
 
-    for (an=[0:60:300]) rotate([0,0,an]) {
-        translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
-            [0, -cy+7], [12, -cy+19], [12, cy-19], [0, cy-7],
-        ]);
+        // Hole for Tilt module
+        color("#b83") rotate([0,0,60]) translate([0, battx/2+3.2, 0.6]) {
+            translate([0, 2.4+1.8/2, 15.6/2]) cube([20.6,1.8,15.6], true);
+        }
     }
-
-    for (an=[0:120:240]) rotate([0,0,an]) {
-        translate([cx-6/2 -shox, cy-9.6/2 -shoy, 4]) rotate([0,90,0]) house();
-    }
-    rotate([0,0,batteryan]) batterybox();
 }
 
-module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
+module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.6)
 {
     x1 = -batty/2;
     x2 =  batty/2;
@@ -624,14 +683,16 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
     hw2 = 7;
     ht = 1.2;
 
-    // color("#333")
-    translate([battof,0,0]) difference() {
-        union() {
-            translate([x1+ht, -num/2*bo-thi, bof]) cube([x2-x1-ht*2, thi, 17-bof]);
-            translate([x1+ht,  num/2*bo    , bof]) cube([x2-x1-ht*2, thi, 17-bof]);
+    hi = 17.4;
 
-            translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 13-bof]);
-            translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, 13-bof]);
+    // color("#333")
+    translate(battof) difference() {
+        union() {
+            translate([x1+ht, -num/2*bo-thi, bof]) cube([x2-x1-ht*2, thi, hi-bof]);
+            translate([x1+ht,  num/2*bo    , bof]) cube([x2-x1-ht*2, thi, hi-bof]);
+
+            translate([x1-thi, -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, hi-4-bof]);
+            translate([x2    , -num/2*bo-thi, bof]) cube([thi, num*bo+thi*2, hi-4-bof]);
 
             translate([x2+0.1, 0, 0]) rotate([0,-90,0]) linear_extrude(height=x2-x1+0.2, convexity=6) {
                 polygon(concat(
@@ -644,11 +705,11 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
             for (x=[0,1]) {
                 mirror([x,0,0]) {
                     for (y=[(-num+1)/2:(num-1)/2]) {
-                        translate([x1, (y-0.5)*bo-thi, bof]) cube([ht,(bo-hw1)/2+thi,13-bof]);
-                        translate([x1, y*bo+hw1/2, bof]) cube([ht,(bo-hw1)/2+thi,13-bof]);
+                        translate([x1, (y-0.5)*bo-thi, bof]) cube([ht,(bo-hw1)/2+thi,hi-4-bof]);
+                        translate([x1, y*bo+hw1/2, bof]) cube([ht,(bo-hw1)/2+thi,hi-4-bof]);
 
-                        translate([x1+ht, (y-0.5)*bo, bof]) cube([1.2,(bo-hw2)/2,17-bof]);
-                        translate([x1+ht, y*bo+hw2/2, bof]) cube([1.2,(bo-hw2)/2,17-bof]);
+                        translate([x1+ht, (y-0.5)*bo, bof]) cube([1.2,(bo-hw2)/2,hi-bof]);
+                        translate([x1+ht, y*bo+hw2/2, bof]) cube([1.2,(bo-hw2)/2,hi-bof]);
                     }
                     translate([x1, -num/2*bo-thi, bof]) cube([1.8, num*bo+thi*2, 3.4]);
                 }
@@ -662,8 +723,15 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.4)
                 *#translate([x1-0.15, 0, 13+5.1/2]) cube([2.3, num*bo+2*thi+0.1, 5.1], true);
             }
         }
+        // Cut off bits of corners
+        translate([x1, -num/2*bo, 0]) rotate([0,0,30]) rotate([0,45,0]) cube([10,15,4.5], true);
+        translate([x1-1.5, -num/2*bo, 10]) rotate([0,0,30]) cube([3,7,20], true);
+
+        translate([x2, -num/2*bo, 0]) rotate([0,0,-30]) rotate([0,-45,0]) cube([10,8.2,4.5], true);
+        translate([x2+1, -num/2*bo+5, 0.00]) rotate([0,0,-65]) rotate([0,-51,0]) rotate([0,0,23.8]) cube([5,2.27,1.3], true);
+        translate([x2+1.5, -num/2*bo, 10]) rotate([0,0,-30]) cube([3,7,20], true);
     }
-    *#translate([x1+battof + 1/2, bo/2, bof+8]) cube([1,10,9], true);
+    *#translate([x1+battof.x + 1/2, bo/2+battof.y, bof+8]) cube([1,10,9], true);
 }
 
 module ws2811()
@@ -714,7 +782,7 @@ module batteries(num = numbatteries, bo = batteryoffset)
     bdia = 14.5;
     color("#585") rotate([0,0,0]) for (y=[-(num-1)/2:(num-1)/2]) {
         dr = ((y+(num-1)/2) % 2) ? 1 : -1;
-        translate([battof, y*bo, 15/2+2]) rotate([0,90,0]) {
+        translate([battof.x, battof.y+y*bo, 15/2+2]) rotate([0,90,0]) {
             translate([0,0,-50/2+dr*1]) cylinder(49, bdia/2, bdia/2, $fn=48);
             translate([0,0, dr*(50/2+1)-1]) cylinder(1.5, 3, 3, $fn=48);
         }
