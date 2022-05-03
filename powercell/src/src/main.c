@@ -1,6 +1,7 @@
 #include "neopixel.h"
 #include <util/delay.h>
 #include <avr/io.h>
+#include "i2c.h"
 
 #define PIXELCOLOR(r,g,b) ((color_t){ (r), (g), (b) })
 
@@ -36,12 +37,17 @@ static inline void delay(uint32_t dly)
 
 int main(void) {
     neopixel_setup();
+    i2c_setup();
+    i2c_send("Setting up\n");
     for(uint16_t bri = 0; bri < 256; bri += 1) {
+        i2c_send("Brightness increasing\n");
         neopixel_send(PIXELCOLOR(bri, bri, bri));
         delay(100);  
     }
     while (1) {
+        i2c_send("Colour cycle\n");
         for (uint32_t ang=0; ang<360; ang++) {
+            i2c_send("Angle step\n");
             neopixel_send(colori(ang, 255, 64));
             delay(100);
         }

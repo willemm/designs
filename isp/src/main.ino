@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266AVRISP.h>
+#include "TelnetI2C.h"
 #include "secret.h"
 
 #ifndef STASSID
@@ -15,7 +16,8 @@ const char* pass = STAPSK;
 const uint16_t port = 328;
 const uint8_t reset_pin = 5;
 
-ESP8266AVRISP avrprog(port, reset_pin, 4e6);
+ESP8266AVRISP avrprog(port, reset_pin);
+TelnetI2C ti2c;
 
 void setup() {
   Serial.begin(74880);
@@ -45,6 +47,7 @@ void setup() {
 
   // listen for avrdudes
   avrprog.begin();
+  ti2c.begin();
 }
 
 void loop() {
@@ -54,18 +57,21 @@ void loop() {
     switch (new_state) {
       case AVRISP_STATE_IDLE:
         {
+          ti2c.unpause();
           Serial.printf("[AVRISP] now idle\r\n");
           // Use the SPI bus for other purposes
           break;
         }
       case AVRISP_STATE_PENDING:
         {
+          ti2c.pause();
           Serial.printf("[AVRISP] connection pending\r\n");
           // Clean up your other purposes and prepare for programming mode
           break;
         }
       case AVRISP_STATE_ACTIVE:
         {
+          ti2c.pause();
           Serial.printf("[AVRISP] programming mode\r\n");
           // Stand by for completion
           break;
@@ -75,6 +81,7 @@ void loop() {
   }
   // Serve the client
   if (last_state != AVRISP_STATE_IDLE) { avrprog.serve(); }
+  else { ti2c.update(); }
 
   if (WiFi.status() == WL_CONNECTED) { MDNS.update(); }
 }
