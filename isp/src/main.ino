@@ -57,6 +57,9 @@ void loop() {
     switch (new_state) {
       case AVRISP_STATE_IDLE:
         {
+          pinMode(12, INPUT);
+          pinMode(13, INPUT);
+          pinMode(14, INPUT);
           ti2c.unpause();
           Serial.printf("[AVRISP] now idle\r\n");
           // Use the SPI bus for other purposes
@@ -71,7 +74,6 @@ void loop() {
         }
       case AVRISP_STATE_ACTIVE:
         {
-          ti2c.pause();
           Serial.printf("[AVRISP] programming mode\r\n");
           // Stand by for completion
           break;

@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include <c_types.h>
 
-const uint16_t I2C_ADDRESS = 0x08;
+const uint16_t I2C_ADDRESS = 0x10;
 #define SDA_PIN 13
 #define SCL_PIN 14
 
@@ -37,10 +37,9 @@ void TelnetI2C::update()
             _client.setNoDelay(true);
             _client.print("Connected to attiny\r\n");
             if (_busy < 0) {
-                /*
+                _client.print("Starting i2c listen\r\n");
                 Wire.begin(SDA_PIN, SCL_PIN, I2C_ADDRESS);
                 Wire.onReceive(_receive);
-                */
             }
             _busy = 1;
             // Reject other connections
@@ -53,8 +52,8 @@ void TelnetI2C::update()
 
 #define PIN0 SDA_PIN
 #define PIN1 SCL_PIN
-#define PIN2 4
-#define PIN3 12
+#define PIN2 12
+#define PIN3 3
 
 #define MASK ((1 << PIN0) | (1 << PIN1) | (1 << PIN2) | (1 << PIN3))
 
@@ -64,9 +63,9 @@ unsigned long times[N_SAMPLES]; // when did change happen
 uint32_t values[N_SAMPLES];     // GPI value at time
 
 extern int IRAM_ATTR logic_collect() {
-  pinMode(PIN0, INPUT);
-  pinMode(PIN1, INPUT);
-  pinMode(PIN2, INPUT);
+  pinMode(PIN0, INPUT_PULLUP);
+  pinMode(PIN1, INPUT_PULLUP);
+  pinMode(PIN2, INPUT_PULLUP);
   unsigned long etime = micros();
   times[0] = etime;
   values[0] = GPI & MASK;
@@ -97,12 +96,71 @@ void TelnetI2C::_printf(const char *fmt, ...)
 
 void TelnetI2C::_analyze()
 {
-    int n = logic_collect();
-    _printf("Got %d samples: ", n);
-    for (int i = 0; i < n; i++) {
+    int total = logic_collect();
+    _printf("Got %d samples\r\n", total);
+    int pos = 1;
+    char buf[256];
+    while (pos < total) {
+        int epos = pos;
+        while (epos < total) {
+            if (times[epos] >  (times[pos] + 100L)) break;
+            epos++;
+        }
+        _printf("Time %ld-%ld\r\n", times[pos]-times[0], times[epos-1]-times[0]);
+        for (int p = 0; p < 3; p++) {
+            // _printf("Pin %d\r\n", p);
+            int bi = 0;
+            for (int i = pos; i < epos; i++) {
+                char c = ' ';
+                char cb = ' ';
+                if (bitshift(values[i]) & (1 << p)) {
+                    c = '_';
+                    if (bitshift(values[i-1]) & (1 << p)) {
+                        cb = '_';
+                    }
+                }
+                buf[bi++] = cb;
+                for (unsigned long w = times[i]+1; w < times[i+1]; w++) {
+                    buf[bi++] = c;
+                    if (bi >= 120) break;
+                }
+                if (bi >= 120) {
+                    break;
+                }
+            }
+            buf[bi] = 0;
+            _printf("%s\r\n", buf);
+            bi = 0;
+            for (int i = pos; i < epos; i++) {
+                char c = '_';
+                if (bitshift(values[i]) & (1 << p)) {
+                    c = ' ';
+                }
+                char cb = c;
+                if ((bitshift(values[i]) & (1 << p)) != (bitshift(values[i-1]) & (1 << p))) {
+                    cb = '|';
+                }
+                buf[bi++] = cb;
+                for (unsigned long w = times[i]+1; w < times[i+1]; w++) {
+                    buf[bi++] = c;
+                    if (bi >= 120) break;
+                }
+                if (bi >= 120) {
+                    buf[bi++] = '*';
+                    break;
+                }
+            }
+            buf[bi]  = 0;
+            _printf("%s\r\n", buf);
+        }
+        pos = epos;
+    }
+    /*
+    for (int i = 0; i < total; i++) {
         _printf("%d:%x ", times[i]-times[0], bitshift(values[i]));
     }
     _printf("\r\n");
+    */
 }
 
 void TelnetI2C::_receive(int howmany)
@@ -116,6 +174,7 @@ void TelnetI2C::_receive(int howmany)
             char c = Wire.read();
             _client.print(c);
         }
+        _client.print("\r\n");
     }
 }
 
