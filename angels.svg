@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-400 -400 800 800">
+  <!-- Circle -->
+  <circle cx="0" cy="-150" r="360" stroke="black" fill="none"/>
   <!-- Body center -->
   <path id="center" fill-rule="evenodd" transform="scale(1 -1)" d="
     M 0 -100
