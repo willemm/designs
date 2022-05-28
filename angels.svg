@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="1000" height="1000" viewBox="-500 -500 1000 1000">
+  <!-- Body center -->
+  <path id="center" fill-rule="evenodd" transform="scale(1 -1)" d="
+    M 0 -100
+    l -20 12
+    q 0 150 -20 150
+    l 20 40
+    q 20 40 40 0
+    l 20 -40
+    q -20 0 -20 -150
+    Z
+    m -20 175
+    q 20 20 40 0
+    q -20 40 -40 0
+    Z
+  " />
+
+  <!-- Body left wing -->
+  <path id="leftWing" transform="scale(1 -1)" d="
+    M -25 -88
+    q 0 144 -18 144
+    l -30 -60
+    q 0 20 -10 20
+    q -10 0 -10 -20
+    l 0 -60
+    q 0 -20 10 -20
+    q 10 0 10 10
+    Z
+  " />
+
+  <g id="leftFeathers">
+    <!-- Feather left 1 -->
+    <path d="
+      M -90 -20
+      C -180 -70 -110 -140 -240 -380
+      C -20 -340 -150 -80 -90 -20
+      Z
+    " />
+
+    <!-- Feather left 2 -->
+    <path d="
+      M -100 0
+      C -200 -10 -160 -120 -320 -300
+      C -120 -300 -200 -30 -100 0
+      Z
+    " />
+
+    <!-- Feather left 3 -->
+    <path d="
+      M -100 25
+      C -200 30 -170 -20 -350 -200
+      C -200 -230 -200 30 -100 25
+      Z
+    " />
+
+    <!-- Feather left 4 -->
+    <path d="
+      M -100 48
+      C -220 70 -150 50 -345 -75
+      C -200 -120 -230 50 -100 48
+      Z
+    " />
+
+    <!-- Feather left 5 -->
+    <path d="
+      M -100 70
+      C -180 100 -200 120 -310 10
+      C -240 -30 -230 90 -100 70 
+      Z
+    " />
+  </g>
+  <use href="#leftWing" transform="scale(-1 1)" />
+  <use href="#leftFeathers" transform="scale(-1 1)" />
+
+</svg>
