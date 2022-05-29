@@ -1,5 +1,67 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-400 -400 800 800" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <circle cx="0" cy="0" r="375.087" stroke="#bcd" fill="black" style="stroke-width:15"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-450 -450 900 900" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <path id="circleCW" fill="black" stroke="#bcd" style="stroke-width:15" d="
+      M -370 0 
+      a 370 370 0 0 1  740 0
+      a 370 370 0 0 1 -740 0
+      Z
+    " />
+    <path id="circleCCW" fill="black" stroke="#bcd" style="stroke-width:15" d="
+      M -370 0 
+      a 370 370 0 0 0  740 0
+      a 370 370 0 0 0 -740 0
+      Z
+    " />
+    <path id="star" fill="#fff" d="
+      M -5 0
+      Q -1 -1 0 -5
+      Q  1 -1 5 0
+      Q  1  1 0 5
+      Q -1  1 -5 0
+      Z
+    " />
+  </defs>
+  <circle cx="0" cy="0" r="450" fill="black" />
+  <use x="-21" y="-82" href="#star" />
+  <use x="-13" y="-202" href="#star" />
+  <use x="-35" y="-171" href="#star" />
+  <use x="-45" y="-21" href="#star" />
+  <use x="-70" y="-93" href="#star" />
+  <use x="-50" y="-300" href="#star" />
+  <use x="-220" y="249" href="#star" />
+  <use x="-150" y="262" href="#star" />
+  <use x="240" y="256" href="#star" />
+  <use x="180" y="244" href="#star" />
+  <use x="110" y="283" href="#star" />
+  <use x="47" y="-316" href="#star" />
+  <use x="72" y="-94" href="#star" />
+  <use x="51" y="-25" href="#star" />
+  <use x="24" y="-72" href="#star" />
+  <use x="31" y="-153" href="#star" />
+  <use x="9" y="-251" href="#star" />
+  <path fill="#456" d="
+    M -370 0
+    a 370 370 0 0 1  740 0
+    a 370 370 0 0 1 -740 0
+    Z
+    M -440 0
+    a 440 440 0 0 0  880 0
+    a 440 440 0 0 0 -880 0
+    Z
+  " />
+
+  <text fill="#bcd" font-size="70" font-family="varino,black marker,chopsic,pasti,arial" font-weight="bold" y="-10" letter-spacing="5" word-spacing="30">
+    <textPath href="#circleCW" text-anchor="middle" startOffset="25%">
+      AUXILIO EX SUPRA
+    </textPath>
+  </text>
+
+  <text fill="#bcd" font-size="70" font-family="varino,black marker,chopsic,pasti,arial" font-weight="bold" y="+60" letter-spacing="5" word-spacing="30">
+    <textPath href="#circleCCW" text-anchor="middle" startOffset="25%">
+      EOS ANGELS
+    </textPath>
+  </text>
+
   <path id="center" style="fill:#fff" d="
     M 0 0
     Q -10 0 -20 20
@@ -52,8 +114,8 @@
     Z
   " />
 
-  <use href="#trailOuter" style="fill:#33e" transform="scale(-1 1)" />
-  <use href="#trailInner" style="fill:#3a3" transform="scale(-1 1)" />
+  <use href="#trailOuter" style="fill:#33c" transform="scale(-1 1)" />
+  <use href="#trailInner" style="fill:#383" transform="scale(-1 1)" />
 
   <g id="wings" style="fill:#bcd">
     <path id="root" d="

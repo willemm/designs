@@ -67,4 +67,14 @@
   <!-- Mirror to right -->
   <use href="#leftWing" transform="scale(-1 1)"/>
   <use href="#leftFeathers" transform="scale(-1 1)"/>
+
+  <!-- halo -->
+  <path d="
+    M -30 30
+    C -90 60 -90 80 0 80
+    C 90 80 90 60 30 30
+    L 25 20
+    C 80 60 80 70 0 70
+    C -80 70 -80 60 -25 20
+    Z" style="fill:gold" />
 </svg>
