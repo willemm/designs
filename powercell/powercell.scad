@@ -37,7 +37,7 @@ if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "") {
     if (1) {
         hexbase_top();
-        *translate([0,0,13.5]) cover_top();
+        translate([0,0,13.5]) cover_top();
         translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
@@ -169,35 +169,22 @@ module cover_top()
                     [cx-3, -1.5], [cx-20, -1.5],
                     [cx-20, -cy+38/s3], [cx-3, -cy+21/s3],
                 ]);
-            }
-            for (an=[0,120,180,300]) rotate([0,0,an]) {
                 polygon([
                     [cx-24, cy-39/s3], [cx-32, cy-35/s3],
                     [cx-38, cy-41/s3], [cx-38, -cy+41/s3],
                     [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
                 ]);
-            }
-            rotate([0,0,60]) {
                 polygon([
-                    [cx-24, cy-39/s3], [cx-32, cy-35/s3],
-                    [cx-37-battof.x, cy-41/s3], [cx-37-battof.x, -cy+41/s3],
-                    [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
-                ]);
-            }
-            rotate([0,0,240]) {
-                polygon([
-                    [cx-24, cy-39/s3], [cx-32, cy-35/s3],
-                    [cx-37+battof.x, cy-41/s3], [cx-37+battof.x, -cy+41/s3],
-                    [cx-32, -cy+35/s3], [cx-24, -cy+39/s3],
-                ]);
-            }
-            for (an=[60,240]) rotate([0,0,an]) {
-                polygon([
-                    [cx-43, cy-37/s3], [-cx+43, cy-37/s3],
-                    [0, cy-11/s3]
+                    [cx-40, cy-43/s3], [3, 0], [cx-40, -cy+43/s3],
                 ]);
             }
         }
+        rotate([0,0,batteryan]) translate(battof) polygon([
+            [-by+0.3,-bx-2], [-by+0.3, bx+2],
+            [ by-0.3, bx+2], [ by-0.3,-bx-2],
+            [-by+2.3,-bx], [-by+2.3, bx],
+            [ by-2.3, bx], [ by-2.3,-bx],
+        ], [[0,1,2,3], [4,5,6,7]]);
     }
     // Flat bit
     color("#8c3") translate([0,0,rti]) linear_extrude(height = thi, convexity=6) {
@@ -659,12 +646,12 @@ module hexbase_top(battery = true)
             */
 
             // Tilt module
-            color("#b83") rotate([0,0,210]) translate([0, battx/2+3.2-battof.y, 0.6]) {
+            color("#b83") rotate([0,0,210]) translate([0, battx/2+3.8-battof.y, 0.6]) {
                 translate([0, 0.4+2/2, 0.4+12/2]) cube([24.6, 2, 12], true);
                 translate([10.3-4+6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
                 translate([-10.3+4-6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
-                translate([10.3+2/2, -2+8.2/2, 0.4+12/2]) cube([2, 8.2, 12], true);
-                translate([-10.3-2/2, -2+8.2/2, 0.4+12/2]) cube([2, 8.2, 12], true);
+                translate([10.3+2/2, -2.7+8.9/2, 0.4+12/2]) cube([2, 8.9, 12], true);
+                translate([-10.3-2/2, -2.7+8.9/2, 0.4+12/2]) cube([2, 8.9, 12], true);
             }
 
             // Side tabs
@@ -688,7 +675,7 @@ module hexbase_top(battery = true)
             */
 
         // Hole for Tilt module
-        color("#b83") rotate([0,0,210]) translate([0, battx/2+3.2-battof.y, 0.6]) {
+        color("#b83") rotate([0,0,210]) translate([0, battx/2+3.8-battof.y, 0.6]) {
             translate([0, 2.4+1.8/2, 15.6/2]) cube([20.6,1.8,15.6], true);
         }
     }
