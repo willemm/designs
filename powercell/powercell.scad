@@ -589,14 +589,32 @@ module hexbase_top(battery = true)
                     }
                     if (battery) {
                         rotate([0,0,batteryan]) translate(battof) polygon([
-                                [-batty/2-0.1,-battx/2-0.1], [-batty/2-1.1,-battx/2+0.9],
-                                [-batty/2-1.1, battx/2-0.9], [-batty/2-0.1, battx/2+0.1],
-                                [ batty/2+2.1, battx/2+0.1], [ batty/2+2.1,-battx/2-0.1],
+
+                                [-batty/2-2.2,-battx/2-0.1],
+                                [-batty/2-5.4,-battx/2+14.4],
+                                [-batty/2-1.1,-battx/2+14.4],
+                                [-batty/2-1.1,-battx/2+16.1],
+                                [-batty/2-4.2,-battx/2+16.1],
+                                [-batty/2-5.3,-battx/2+17.3],
+                                [-batty/2-5.0, battx/2-4],
+                                [-batty/2-1.1, battx/2-3],
+                                [-batty/2-1.1, battx/2+0.1],
+
+                                [ batty/2+1.1, battx/2+0.1],
+                                [ batty/2+1.1, battx/2-3],
+                                [ batty/2+5.0, battx/2-4],
+                                [ batty/2+5.0,-battx/2+17.9],
+                                [ batty/2+4.0,-battx/2+16.1],
+                                [ batty/2+1.1,-battx/2+16.1],
+                                [ batty/2+1.1,-battx/2+14.4],
+                                [ batty/2+5.4,-battx/2+14.4],
+
+                                [ batty/2+2.2,-battx/2-0.1],
                         ]);
                     }
 
                     // digispark
-                    rotate([0,0,digipos[2]]) polygon([
+                    *rotate([0,0,digipos[2]]) polygon([
                             [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
                             [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
                     ]);
@@ -605,7 +623,7 @@ module hexbase_top(battery = true)
                             [-2, battx/2+1], [2, battx/2+1], [2.1, battx/2+15.5], [-1.4, battx/2+17.5]
                     ]);
                 }
-                rotate([0,0,digipos[2]]) polygon(points=[
+                *rotate([0,0,digipos[2]]) polygon(points=[
                         [digipos.x+1.4, digipos.y-10.4], [digipos.x-25.0, digipos.y-10.4],
                         [digipos.x-25.0, digipos.y+10],
                         [digipos.x-24.0, digipos.y+10.6], [digipos.x+1.4, digipos.y+10.6],
@@ -616,6 +634,7 @@ module hexbase_top(battery = true)
                 ]);
             }
 
+            /*
             // Digipark plateau
             color("#b83") rotate([0,0,digipos[2]]) {
                 translate([digipos.x-23.2, digipos.y+10.2, 1])
@@ -627,7 +646,9 @@ module hexbase_top(battery = true)
                             [-0.75,0], [25,0], [25, 2], [0.3,2+24.7*tan(digipos[3])]
                     ]);
             }
+            */
 
+            /*
             // 5V module
             color("#b83") rotate([0,0,60]) translate([cx-2, 0, 1]) {
                 translate([-8/2, 0, 1.2/2]) cube([8,10.8,1.2], true);
@@ -635,9 +656,10 @@ module hexbase_top(battery = true)
                 translate([-9.2/2, +5.4+1.2/2, 8/2]) cube([9.2, 1.2, 8], true);
                 translate([-8-1.2/2, 0, 8/2]) cube([1.2, 11, 8], true);
             }
+            */
 
             // Tilt module
-            color("#b83") rotate([0,0,60]) translate([0, battx/2+3.2, 0.6]) {
+            color("#b83") rotate([0,0,210]) translate([0, battx/2+3.2-battof.y, 0.6]) {
                 translate([0, 0.4+2/2, 0.4+12/2]) cube([24.6, 2, 12], true);
                 translate([10.3-4+6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
                 translate([-10.3+4-6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
@@ -659,12 +681,14 @@ module hexbase_top(battery = true)
                 rotate([0,0,batteryan]) batterybox();
             }
         }
+        /*
         // Hole for digispark screw
         rotate([0,0,digipos[2]]) translate([digipos.x-23.2, digipos.y+10.2, 1])
             rotate([0,digipos[3],0]) translate([21.6-23+2.4,-0.8-2.3,-1.2]) cylinder(9.2, 1.2, 1.2, $fn=24);
+            */
 
         // Hole for Tilt module
-        color("#b83") rotate([0,0,60]) translate([0, battx/2+3.2, 0.6]) {
+        color("#b83") rotate([0,0,210]) translate([0, battx/2+3.2-battof.y, 0.6]) {
             translate([0, 2.4+1.8/2, 15.6/2]) cube([20.6,1.8,15.6], true);
         }
     }
@@ -730,6 +754,15 @@ module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.6)
         translate([x2, -num/2*bo, 0]) rotate([0,0,-30]) rotate([0,-45,0]) cube([10,8.2,4.5], true);
         translate([x2+1, -num/2*bo+5, 0.00]) rotate([0,0,-65]) rotate([0,-51,0]) rotate([0,0,23.8]) cube([5,2.27,1.3], true);
         translate([x2+1.5, -num/2*bo, 10]) rotate([0,0,-30]) cube([3,7,20], true);
+        translate([0, num/2*bo+1.2, 0.6]) polyhedron(points = [
+                [-7.8, 0.01, -0.01], [-5, 0.01, 3], [-5,-2, -0.01],
+                [20.4, 0.01, -0.01], [18.4, 0.01, 3], [18.4,-2, -0.01],
+            ], faces = [
+                [0,1,2], [3,5,4],
+                [0,3,1], [1,3,4],
+                [1,4,2], [2,4,5],
+                [2,5,0], [0,5,3],
+            ]);
     }
     *#translate([x1+battof.x + 1/2, bo/2+battof.y, bof+8]) cube([1,10,9], true);
 }
