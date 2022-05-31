@@ -72,13 +72,13 @@
     Z
   " />
 
-  <text fill="#bcd" font-size="84" font-family="varino,black marker,chopsic,pasti,arial" font-weight="bold" y="-7" letter-spacing="5" word-spacing="30">
+  <text fill="#bcd" font-size="84" font-family="varino" font-weight="bold" y="-7" letter-spacing="5" word-spacing="30">
     <textPath href="#circleCW" text-anchor="middle" startOffset="25%">
        AUXILIO EX SUPRA 
     </textPath>
   </text>
 
-  <text fill="#bcd" font-size="84" font-family="varino,black marker,chopsic,pasti,arial" font-weight="bold" y="+68" letter-spacing="5" word-spacing="30">
+  <text fill="#bcd" font-size="84" font-family="varino" font-weight="bold" y="+68" letter-spacing="5" word-spacing="30">
     <textPath href="#circleCCW" text-anchor="middle" startOffset="25%">
       EOS ANGELS
     </textPath>
