@@ -26,26 +26,36 @@
   <use x="-13" y="-202" href="#star" />
   <use x="-35" y="-171" href="#star" />
   <use x="-45" y="-21" href="#star" />
-  <use x="-70" y="-93" href="#star" />
-  <use x="-50" y="-300" href="#star" />
+  <use x="-72" y="-93" href="#star" />
+  <use x="-57" y="-237" href="#star" />
+  <use x="-51" y="-300" href="#star" />
+  <use x="-62" y="-325" href="#star" />
   <use x="-220" y="249" href="#star" />
   <use x="-150" y="262" href="#star" />
   <use x="-334" y="82" href="#star" />
   <use x="-312" y="124" href="#star" />
   <use x="-347" y="-50" href="#star" />
+  <use x="-340" y="-72" href="#star" />
   <use x="-309" y="-133" href="#star" />
+  <use x="-312" y="-163" href="#star" />
   <use x="-204" y="-283" href="#star" />
+  <use x="-214" y="-271" href="#star" />
 
   <use x="302" y="124" href="#star" />
   <use x="304" y="152" href="#star" />
   <use x="347" y="-23" href="#star" />
   <use x="299" y="-173" href="#star" />
+  <use x="338" y="27" href="#star" />
   <use x="204" y="-283" href="#star" />
   <use x="184" y="-293" href="#star" />
   <use x="240" y="256" href="#star" />
+  <use x="210" y="268" href="#star" />
   <use x="180" y="244" href="#star" />
+  <use x="286" y="184" href="#star" />
   <use x="110" y="283" href="#star" />
   <use x="47" y="-316" href="#star" />
+  <use x="27" y="-339" href="#star" />
+  <use x="47" y="-209" href="#star" />
   <use x="72" y="-94" href="#star" />
   <use x="51" y="-25" href="#star" />
   <use x="24" y="-72" href="#star" />
@@ -88,6 +98,7 @@
   " />
   <use href="#asterisk" transform="rotate(-150)" />
 
+<!--
   <path id="center" fill="#fff" d="
     M 0 0
     Q -10 0 -20 20
@@ -110,33 +121,77 @@
     " />
 
   <use href="#center" transform="scale(-1 1)" />
+  -->
+  <path id="center" fill="#fff" d="
+    M 0 -30
+    L -10 -20
+    L -10 -50
+    L -20 -30
+    L -20 20
+    L -80 140
+    L -60 160
+    L -30 160
+    L -10 140
+
+    L 10 140
+    L 30 160
+    L 60 160
+    L 80 140
+    L 20 20
+    L 20 -30
+    L 10 -50
+    L 10 -20
+
+    Z
+  " />
+  <path id="window" fill="#000" d="
+    M 0 40
+    L 5 40
+    L 15 80
+    L 0 83
+    L -15 80
+    L -5 40
+    Z
+
+    M 4 90
+    L 4 105
+    L 10 105
+    L 20 87
+    Z
+
+    M -4 90
+    L -4 105
+    L -10 105
+    L -20 87
+    Z
+  " />
 
   <g fill="#a23">
   <path id="trailOuter" d="
-    M -60 195
+    M -60 175
     C -60 250 -80 300 -120 344.7
     A 365 365 0 0 0 -80 356.1
-    C -50 300 -40 250 -40 195
-    C -40 180 -60 180 -60 195
+    C -50 300 -40 250 -40 175
+    C -40 160 -60 160 -60 175
     Z
   " />
   </g>
   <g fill="#862">
   <path id="trailInner" d="
-    M -35 195
+    M -35 175
     C -35 280 -50 310 -70 358.2
     A 365 365 0 0 0 -30 363.8
-    C -20 320 -15 250 -15 195
-    C -15 180 -35 180 -35 195
+    C -20 320 -15 250 -15 175
+    C -15 160 -35 160 -35 175
     Z
   " />
   </g>
   <path id="trailCenter" fill="#738" d="
-    M -10 195
+    M -10 175
     C -10 300 -20 350 -20 364.5
     A 365 365 0 0 0 20 364.5
-    C 20 350 10 300 10 195
-    C 10 180 -10 180 -10 195
+    C 20 350 10 300 10 175
+    C 10 160 -10 160 -10 175
     Z
   " />
 
@@ -213,3 +268,4 @@
   <use href="#wings" transform="scale(-1 1)" />
 
 </svg>
+<div style="background-image: url(https://media.discordapp.net/attachments/902568340801851433/910272643389849610/unknown.png); background-position: center; float: right; width: 550px; height: 550px;"/>
