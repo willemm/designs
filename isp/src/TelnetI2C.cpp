@@ -53,7 +53,7 @@ void TelnetI2C::update()
 #define PIN0 SDA_PIN
 #define PIN1 SCL_PIN
 #define PIN2 12
-#define PIN3 3
+#define PIN3 2
 
 #define MASK ((1 << PIN0) | (1 << PIN1) | (1 << PIN2) | (1 << PIN3))
 
@@ -66,6 +66,7 @@ extern int IRAM_ATTR logic_collect() {
   pinMode(PIN0, INPUT_PULLUP);
   pinMode(PIN1, INPUT_PULLUP);
   pinMode(PIN2, INPUT_PULLUP);
+  pinMode(PIN3, INPUT_PULLUP);
   unsigned long etime = micros();
   times[0] = etime;
   values[0] = GPI & MASK;
@@ -107,7 +108,7 @@ void TelnetI2C::_analyze()
             epos++;
         }
         _printf("Time %ld-%ld\r\n", times[pos]-times[0], times[epos-1]-times[0]);
-        for (int p = 0; p < 3; p++) {
+        for (int p = 0; p < 4; p++) {
             // _printf("Pin %d\r\n", p);
             int bi = 0;
             for (int i = pos; i < epos; i++) {

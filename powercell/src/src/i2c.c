@@ -8,6 +8,8 @@ void i2c_setup()
 
 void i2c_send(char *txt)
 {
+    /*
     unsigned char ln = strlen(txt);
     I2C_Master_Write_Data(0x08, (unsigned char *)txt, ln);
+    */
 }
