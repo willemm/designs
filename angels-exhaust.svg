@@ -98,30 +98,6 @@
   " />
   <use href="#asterisk" transform="rotate(-150)" />
 
-<!--
-  <path id="center" fill="#fff" d="
-    M 0 0
-    Q -10 0 -20 20
-    L -80 140
-    L -60 180
-    L -30 180
-    L -30 160
-    L -20 170
-    L 0 170
-    L 0 80
-    L -5 80
-    L -15 65
-    L 0 65
-    L 0 60
-    L -18 60
-    L -5 20
-    L 0 20
-    Z
-
-    " />
-
-  <use href="#center" transform="scale(-1 1)" />
-  -->
   <path id="center" fill="#fff" d="
     M 0 -30
     L -10 -20
@@ -132,6 +108,8 @@
     L -60 160
     L -30 160
     L -10 140
+
+    L 0 153
 
     L 10 140
     L 30 160
