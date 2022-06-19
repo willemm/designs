@@ -53,7 +53,7 @@ void TelnetI2C::update()
 #define PIN0 SDA_PIN
 #define PIN1 SCL_PIN
 #define PIN2 12
-#define PIN3 2
+#define PIN3 4
 
 #define MASK ((1 << PIN0) | (1 << PIN1) | (1 << PIN2) | (1 << PIN3))
 
@@ -66,7 +66,7 @@ extern int IRAM_ATTR logic_collect() {
   pinMode(PIN0, INPUT_PULLUP);
   pinMode(PIN1, INPUT_PULLUP);
   pinMode(PIN2, INPUT_PULLUP);
-  pinMode(PIN3, INPUT_PULLUP);
+  pinMode(PIN3, INPUT);
   unsigned long etime = micros();
   times[0] = etime;
   values[0] = GPI & MASK;
@@ -104,7 +104,7 @@ void TelnetI2C::_analyze()
     while (pos < total) {
         int epos = pos;
         while (epos < total) {
-            if (times[epos] >  (times[pos] + 100L)) break;
+            if (times[epos] >  (times[pos] + 1000L)) break;
             epos++;
         }
         _printf("Time %ld-%ld\r\n", times[pos]-times[0], times[epos-1]-times[0]);
@@ -121,7 +121,7 @@ void TelnetI2C::_analyze()
                     }
                 }
                 buf[bi++] = cb;
-                for (unsigned long w = times[i]+1; w < times[i+1]; w++) {
+                for (unsigned long w = times[i]+1; w < times[i+1]; w += 10) {
                     buf[bi++] = c;
                     if (bi >= 120) break;
                 }
@@ -142,7 +142,7 @@ void TelnetI2C::_analyze()
                     cb = '|';
                 }
                 buf[bi++] = cb;
-                for (unsigned long w = times[i]+1; w < times[i+1]; w++) {
+                for (unsigned long w = times[i]+1; w < times[i+1]; w += 10) {
                     buf[bi++] = c;
                     if (bi >= 120) break;
                 }

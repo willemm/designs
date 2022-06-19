@@ -37,12 +37,12 @@ if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "") {
     if (1) {
         hexbase_top();
-        translate([0,0,13.5]) cover_top();
-        translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
+        *translate([0,0,13.5]) cover_top();
+        *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
         *rotate([0,0,batteryan]) batteries();
-        *ws2811();
+        ws2811();
         *digispark();
         *receiver();
     } else {
@@ -645,6 +645,39 @@ module hexbase_top(battery = true)
             }
             */
 
+            // ws2811 plateau
+            color("#b83") rotate([0,0,240]) translate([wspos.x, wspos.y, 0]) {
+                translate([-2,0,0]) rotate([0,-90,0]) linear_extrude(height=10.5, convexity=5)
+                    polygon([
+                        [0.9,-4.5],[0.9,4.5],[4,4.5],
+                        [4,4.1],[2.4,2.5],[2.4,-2.5], [4,-4.1],
+                        [4,-4.5]
+                    ]);
+                translate([-12.8+2.3/2,0,0.9+3.1/2]) cube([2.3,9,3.1], true);
+                translate([0, 4.5, 0.9]) linear_extrude(height=4.1) polygon([
+                    [0, 0], [0.8, 0], [0.8, -1], [2.2, -4], [0, -3]
+                ]);
+                translate([-12.8/2, 4.5+1.2/2, 0.9+4.1/2]) cube([12.8, 1.2, 4.1], true);
+
+            }
+            // WS2811 wire holders
+            color("#b83") rotate([0,0,240]) translate([cx-18, wspos.y, 5]) rotate([0,-90,0]) linear_extrude(height=2, convexity=4)
+            polygon(
+                points = [
+                    [0, -6], [0, 6], [2, 4], [2, -4],
+                    [0.4, 0], [1.0, 0.6], [1.6, 0], [1.0,-0.6],
+                    [0.4,-3], [1.0,-2.4], [1.6,-3], [1.0,-3.6],
+                    [0.4, 3], [1.0, 3.6], [1.6, 3], [1.0, 2.4],
+                ],
+                paths = [
+                    [0,1,2,3],
+                    [4,5,6,7],
+                    [8,9,10,11],
+                    [12,13,14,15],
+                ]
+            );
+
+
             // Tilt module
             color("#b83") rotate([0,0,210]) translate([0, battx/2+3.8-battof.y, 0.6]) {
                 translate([0, 0.4+2/2, 0.4+12/2]) cube([24.6, 2, 12], true);
@@ -677,6 +710,10 @@ module hexbase_top(battery = true)
         // Hole for Tilt module
         color("#b83") rotate([0,0,210]) translate([0, battx/2+3.8-battof.y, 0.6]) {
             translate([0, 2.4+1.8/2, 15.6/2]) cube([20.6,1.8,15.6], true);
+        }
+        // Bit of cutout for ws2811
+        color("#b83") rotate([0,0,240]) translate([wspos.x, wspos.y, 0]) {
+            translate([-1/2, 4.5-2/2, 4+1/2]) cube([1, 2, 1.1], true);
         }
     }
 }
@@ -760,7 +797,17 @@ module ws2811()
     cx = dia*s3/4;
     cy = dia/4;
 
-    color("#5c5") rotate([0,0,240]) translate([wspos.x -12.5/2, wspos.y, 5+1.5/2]) cube([12.5, 9, 1.5], true);
+    color("#5c5") rotate([0,0,240]) translate([wspos.x, wspos.y, 4])
+    difference() {
+        union() {
+            translate([-12.5/2, 0, 1.4/2]) cube([12.5, 9, 1.4], true);
+            translate([-2.2 - 4.0/2, 0, -1.6/2]) cube([5.0, 4.0, 1.6], true);
+            translate([-7.1 - 2.5/2, 0, -1.0/2]) cube([2.5, 7.5, 1.0], true);
+        }
+        for (y=[-3,-1,1,3]) {
+            translate([-1, y, -0.01]) cylinder(1.42, 0.5, 0.5, $fn=12);
+        }
+    }
 }
 
 module digispark()
