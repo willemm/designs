@@ -42,7 +42,7 @@ if (doitem == "") {
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
         *rotate([0,0,batteryan]) batteries();
-        ws2811();
+        *ws2811();
         *digispark();
         *receiver();
     } else {
@@ -605,9 +605,11 @@ module hexbase_top(battery = true)
                             [digipos.x+0.2, digipos.y-9.2], [digipos.x-23.2, digipos.y-9.2],
                             [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
                     ]);
-                    // tilt sensor
-                    rotate([0,0,60]) polygon([
-                            [-2, battx/2+1], [2, battx/2+1], [2.1, battx/2+15.5], [-1.4, battx/2+17.5]
+
+                    // Receiver
+                    rotate([0,0,0]) polygon([
+                            [-cx + 2.5,-15], [-cx + 2.5, 00],
+                            [-cx + 7.0, 00], [-cx + 7.0,-15],
                     ]);
                 }
                 *rotate([0,0,digipos[2]]) polygon(points=[
@@ -677,6 +679,58 @@ module hexbase_top(battery = true)
                 ]
             );
 
+            // Receiver
+            color("#b83") translate([0,0,0.9]) difference() {
+                union() {
+                    linear_extrude(height=3.8) polygon([
+                        [-cx + 1.9,-10.5], [-cx + 1.9,-0.3],
+                        [-cx + 7.7,-0.3], [-cx + 7.7,-10.5],
+                    ]);
+                    linear_extrude(height=12.5) polygon([
+                        [-cx + 6.5,-10.5], [-cx + 6.5,-0.3],
+                        [-cx + 7.7,-0.3], [-cx + 7.7,-10.5],
+                    ]);
+                    linear_extrude(height=10.1) polygon([
+                        [-cx + 1.9,-10.5], [-cx + 1.9,-0.3],
+                        [-cx + 4.0,-0.3], [-cx + 4.0,-10.5],
+                    ]);
+                    linear_extrude(height=6.1) polygon([
+                        [-cx + 1.9, 5.6], [-cx + 1.9, 7.6],
+                        [-cx + 5.7, 7.6], [-cx + 5.7, 5.6],
+                    ]);
+
+                    linear_extrude(height=3.8) polygon([
+                        [-cx + 4.3,-27], [-cx + 1.9, -22], [-cx + 1.9,-20],
+                        [-cx + 9.6,-20], [-cx + 9.6, -24.65], [-cx + 8.3,-27],
+                    ]);
+                    linear_extrude(height=5.6) polygon([
+                        [-cx + 3.1,-25.0], [-cx + 2.8,-23.5],
+                        [-cx + 4.0,-23.5], [-cx + 4.0,-25.0],
+                        [-cx + 4.9,-25.0], [-cx + 4.9,-26.2],
+                        [-cx + 3.8,-26.2]
+                    ]);
+                    linear_extrude(height=5.6) polygon([
+                        [-cx + 8.4,-24.65], [-cx + 8.4, -20],
+                        [-cx + 9.6,-20], [-cx + 9.6, -24.65],
+                    ]);
+                    linear_extrude(height=12.5, convexity=4) polygon([
+                        [-cx + 7.7, -0.3], [-cx + 9.5, -2+2/s3], [-cx + 12.7, -2+5.2/s3],
+                        [-cx + 14.7, -2-0.8/s3], [-cx + 7.5, -2-8.0/s3],
+                    ]);
+                    translate([-cx + 22.7, -2-25/s3, 12.5]) rotate([0,-90,-60]) 
+                        linear_extrude(height=4, convexity=4) polygon(concat([
+                            [-2.5,0], [-11.5,0], [-5.0,-6.5], [0,-6.5], [0,-5.1]],
+                            [for (an=[0:6:180]) [-2.5-sin(an)*2.55,-2.55-cos(an)*2.55]])
+                        );
+                }
+                translate([-cx+8.5, 3, 10.0]) rotate([0,0,-60]) {
+                    rotate([0,90,0]) cylinder(10, 5.077/2, 5.077/2, $fn=60);
+                    translate([10/2,0,2.5/2]) cube([10,5.077,2.5 + 0.1], true);
+                }
+                translate([-cx+11, 1.5, 2]) rotate([0,90,-60]) {
+                    cylinder(6, 1, 1, $fn=4);
+                }
+            }
 
             // Tilt module
             color("#b83") rotate([0,0,210]) translate([0, battx/2+3.8-battof.y, 0.6]) {
@@ -827,20 +881,25 @@ module receiver(small=0)
     cx = dia*s3/4;
     cy = dia/4;
 
+    color("#59a")
+    rotate([0,0,0]) translate([-cx+4, -25, 4.7])
     if (small) {
         h = 17;
         w = 11.6;
         th = 1.5;
 
-        color("#59a") rotate([0,0,240]) translate([-cx+2.2 + w/2, 16 - h/2, 5+th/2])
-            cube([w, h, th], true);
+        color("#59a") cube([w, h, th], true);
     } else {
-        h = 30;
-        w = 13.5;
-        th = 1.5;
+        h = 30.5;
+        w = 8.7;
+        th = 0.95;
 
-        color("#59a") rotate([0,0,0]) translate([-cx+2.2 + w/2, 16 - h/2, 5+th/2])
-            cube([w, h, th], true);
+        translate([th/2, h/2, w/2]) cube([th, h, w], true);
+        translate([th + 1.55/2, 14.6 + 10/2, w/2]) cube([1.55,10,3.9], true);
+        translate([th + 3.4/2, 10/2, 3.6/2]) cube([3.4,10,3.6], true);
+
+        // Antenna coil
+        translate([4.5,28,w-2.5]) rotate([0, 90, -60]) cylinder(25, 2.5, 2.5, $fn=32);
     }
 }
 
