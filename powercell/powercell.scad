@@ -36,8 +36,8 @@ if (doitem == "try") { cover_holder(159.6, 19); }
 if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "") {
     if (1) {
-        hexbase_top();
-        *translate([0,0,13.5]) cover_top();
+        *hexbase_top();
+        translate([0,0,13.5]) cover_top();
         *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
@@ -179,6 +179,9 @@ module cover_top()
                 ]);
             }
         }
+        rotate([0,0,0]) polygon([
+            [-cx+24, -1.5], [-cx+37, -1.5], [-cx+35, +1.5], [-cx+24, +1.5]
+        ]);
         rotate([0,0,batteryan]) translate(battof) polygon([
             [-by+0.3,-bx-2], [-by+0.3, bx+2],
             [ by-0.3, bx+2], [ by-0.3,-bx-2],
@@ -206,6 +209,19 @@ module cover_top()
     }
     for (an=[0:60:300]) rotate([0, 0, an]) {
         translate([0,0,rti]) cover_holder(di2, sidehi-rti);
+    }
+    // Battery cover hinges
+    *rotate([0,0,batteryan]) for (m=[0,1]) mirror([m,0,0])
+        translate([(batty/2-0.9), -battx/2+battof.y-1.4, thi+rti]) {
+        polyhedron(points = [
+            [ 0, 0, 0], [ 0, -8, 0], [ 0, -5, 3], [ 0, -3, 3],
+            [-5, 0, 0], [-5, -8, 0], [-5, -5, 3], [-5, -3, 3],
+            [-8,-4, 0]
+        ], faces = [
+            [0,1,2,3],
+            [4,5,1,0], [5,6,2,1], [6,7,3,2], [7,4,0,3],
+            [7,6,8], [6,5,8], [5,4,8], [4,7,8],
+        ]);
     }
 }
 
