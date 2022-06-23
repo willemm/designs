@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "receiver_jig";
 
 
 flmd = 2;
@@ -20,6 +20,7 @@ batty = 57;
 battx = batteryoffset * numbatteries;
 
 digipos = [27.5, 25.4, 240, 15];
+tinypos = [7, 109.6*sqrt(3)/4-2.1, 5, 210];
 wspos = [42, 23.9, 240];
 
 s3 = sqrt(3);
@@ -34,17 +35,20 @@ if (doitem == "cover_pin") { cover_pin(); }
 if (doitem == "wire_guide") { wire_guide(); }
 if (doitem == "try") { cover_holder(159.6, 19); }
 if (doitem == "batterybox") { batterybox(); *batteries(); }
+if (doitem == "receiver_jig") { receiver_jig(); }
 if (doitem == "") {
     if (1) {
         *hexbase_top();
-        translate([0,0,13.5]) cover_top();
+        receiver_jig();
+        *translate([0,0,13.5]) cover_top();
         *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
         *rotate([0,0,batteryan]) batteries();
         *ws2811();
         *digispark();
-        *receiver();
+        *attiny_board();
+        receiver();
     } else {
         hexbase_bot();
         *translate([0,0,14]) cover_bot();
@@ -622,6 +626,12 @@ module hexbase_top(battery = true)
                             [digipos.x-23.2, digipos.y+9.2], [digipos.x+0.2, digipos.y+9.2],
                     ]);
 
+                    // attiny board
+                    sz = [24, 15];
+                    rotate([0,0,tinypos[3]]) translate([tinypos.x - (sz.x/2), tinypos.y - (sz.y/2), 0])
+                        square(sz+[0,0.2], true);
+
+
                     // Receiver
                     rotate([0,0,0]) polygon([
                             [-cx + 2.5,-15], [-cx + 2.5, 00],
@@ -637,11 +647,18 @@ module hexbase_top(battery = true)
                 ], paths=[
                 [0,1,2,3,4],[5,6,7,8],
                 ]);
+
+                t = [2,2];
+                *rotate([0,0,tinypos[3]]) translate([tinypos.x,tinypos.y]) polygon([
+                    [-sz.x,-sz.y-t.y],[t.x,-sz.y-t.y],
+                    [t.x,t.y],[-sz.x-t.x,t.y],
+                    [-sz.x-t.x,-10],[-sz.x,-10],
+                    [-sz.x,0.1],[0,0.1],[0,-sz.y],[-sz.x,-sz.y]
+                ]);
             }
 
-            /*
             // Digipark plateau
-            color("#b83") rotate([0,0,digipos[2]]) {
+            *color("#b83") rotate([0,0,digipos[2]]) {
                 translate([digipos.x-23.2, digipos.y+10.2, 1])
                     rotate([90,0,0]) linear_extrude(height=15) polygon([
                             [-1,0], [19,0], [19, 3], [0,3+19*tan(digipos[3])]
@@ -651,17 +668,31 @@ module hexbase_top(battery = true)
                             [-0.75,0], [25,0], [25, 2], [0.3,2+24.7*tan(digipos[3])]
                     ]);
             }
-            */
 
-            /*
+            // attiny module plateau
+            color("#b83") rotate([0,0,tinypos[3]]) translate([tinypos.x,tinypos.y, 0]) {
+                translate([-2,-16, 0.9]) cube([2.2, 16.5, 2.5]);
+                translate([-23.2,-16, 0.9]) cube([2.2, 16.5, 2.5]);
+                rotate([0,90,0]) linear_extrude(height=2) polygon([
+                    [-5,-16], [-0.5,-16],[-0.5, 1],[-5, 1],
+                    [-5,-2],[-10,-2],[-10,-4],[-5,-9]
+                ]);
+                translate([-25.2,0,0]) rotate([0,90,0]) linear_extrude(height=2, convexity=4) polygon([
+                    [-0.5,-10],[-0.5, 1],[-5, 1],
+                    [-5,0],[-8,-3],[-8,-5.4],[-3.4,-10]
+                ]);
+                translate([0,-15.1,0]) rotate([90,0,0]) linear_extrude(height=2, convexity=4) polygon([
+                    [2,0],[2,5],[-3,5],[-7,9],[-10,9],[-14,5],[-23,5],[-23,0]
+                ]);
+            }
+
             // 5V module
-            color("#b83") rotate([0,0,60]) translate([cx-2, 0, 1]) {
+            *color("#b83") rotate([0,0,60]) translate([cx-2, 0, 1]) {
                 translate([-8/2, 0, 1.2/2]) cube([8,10.8,1.2], true);
                 translate([-9.2/2, -5.4-1.2/2, 8/2]) cube([9.2, 1.2, 8], true);
                 translate([-9.2/2, +5.4+1.2/2, 8/2]) cube([9.2, 1.2, 8], true);
                 translate([-8-1.2/2, 0, 8/2]) cube([1.2, 11, 8], true);
             }
-            */
 
             // ws2811 plateau
             color("#b83") rotate([0,0,240]) translate([wspos.x, wspos.y, 0]) {
@@ -680,20 +711,12 @@ module hexbase_top(battery = true)
             }
             // WS2811 wire holders
             color("#b83") rotate([0,0,240]) translate([cx-18, wspos.y, 5]) rotate([0,-90,0]) linear_extrude(height=2, convexity=4)
-            polygon(
-                points = [
-                    [0, -6], [0, 6], [2, 4], [2, -4],
-                    [0.4, 0], [1.0, 0.6], [1.6, 0], [1.0,-0.6],
-                    [0.4,-3], [1.0,-2.4], [1.6,-3], [1.0,-3.6],
-                    [0.4, 3], [1.0, 3.6], [1.6, 3], [1.0, 2.4],
-                ],
-                paths = [
-                    [0,1,2,3],
-                    [4,5,6,7],
-                    [8,9,10,11],
-                    [12,13,14,15],
-                ]
-            );
+            difference() {
+                polygon([ [0, -7.2], [0, 9.14], [3.2, 9.14], [3.2, -4] ] );
+                translate([1.6,-3]) rotate([0,0,180/8]) circle(1.2, $fn=8);
+                translate([1.6, 0]) rotate([0,0,180/8]) circle(1.2, $fn=8);
+                translate([1.6, 3]) rotate([0,0,180/8]) circle(1.2, $fn=8);
+            }
 
             // Receiver
             color("#b83") translate([0,0,0.9]) difference() {
@@ -755,6 +778,8 @@ module hexbase_top(battery = true)
                 translate([-10.3+4-6/2, 2.4+1.8+2/2, 0.4+4/2]) cube([6, 2, 4], true);
                 translate([10.3+2/2, -2.7+8.9/2, 0.4+12/2]) cube([2, 8.9, 12], true);
                 translate([-10.3-2/2, -2.7+8.9/2, 0.4+12/2]) cube([2, 8.9, 12], true);
+
+                translate([10.3-2+4/2, 2.4+1.8+2/2, 0.4+12/2]) cube([4, 2, 12], true);
             }
 
             // Side tabs
@@ -786,6 +811,71 @@ module hexbase_top(battery = true)
             translate([-1/2, 4.5-2/2, 4+1/2]) cube([1, 2, 1.1], true);
         }
     }
+}
+
+module receiver_jig()
+{
+    dia = 109.6;
+    cx = dia*s3/4;
+    cy = dia/4;
+    // Receiver
+    color("#b83") translate([0,0,0.9]) difference() {
+        union() {
+            linear_extrude(height=3.8) polygon([
+                    [-cx + 1.9,-10.5], [-cx + 1.9,-0.3],
+                    [-cx + 7.7,-0.3], [-cx + 7.7,-10.5],
+            ]);
+            linear_extrude(height=12.5) polygon([
+                    [-cx + 6.5,-10.5], [-cx + 6.5,-0.3],
+                    [-cx + 7.7,-0.3], [-cx + 7.7,-10.5],
+            ]);
+            linear_extrude(height=10.1) polygon([
+                    [-cx + 1.9,-10.5], [-cx + 1.9,-0.3],
+                    [-cx + 4.0,-0.3], [-cx + 4.0,-10.5],
+            ]);
+            linear_extrude(height=6.1) polygon([
+                    [-cx + 1.9, 5.6], [-cx + 1.9, 7.6],
+                    [-cx + 5.7, 7.6], [-cx + 5.7, 5.6],
+            ]);
+
+            linear_extrude(height=3.8) polygon([
+                    [-cx + 4.3,-27], [-cx + 1.9, -22], [-cx + 1.9,-20],
+                    [-cx + 9.6,-20], [-cx + 9.6, -24.65], [-cx + 8.3,-27],
+            ]);
+            linear_extrude(height=5.6) polygon([
+                    [-cx + 3.1,-25.0], [-cx + 2.8,-23.5],
+                    [-cx + 4.0,-23.5], [-cx + 4.0,-25.0],
+                    [-cx + 4.9,-25.0], [-cx + 4.9,-26.2],
+                    [-cx + 3.8,-26.2]
+            ]);
+            linear_extrude(height=5.6) polygon([
+                    [-cx + 8.4,-24.65], [-cx + 8.4, -20],
+                    [-cx + 9.6,-20], [-cx + 9.6, -24.65],
+            ]);
+            linear_extrude(height=12.5, convexity=4) polygon([
+                    [-cx + 7.7, -0.3], [-cx + 9.5, -2+2/s3], [-cx + 12.7, -2+5.2/s3],
+                    [-cx + 14.7, -2-0.8/s3], [-cx + 7.5, -2-8.0/s3],
+            ]);
+            translate([-cx + 22.7, -2-25/s3, 12.5]) rotate([0,-90,-60]) 
+                linear_extrude(height=4, convexity=4) polygon(concat([
+                            [-0.5, 0], [-0.5,1.6], [-11.5,1.6], [-11.5,-7.0], [0,-7.0], [0,-5.1]],
+                            [for (an=[0:6:180]) [-2.5-sin(an)*2.55,-2.55-cos(an)*2.55]])
+                        );
+            linear_extrude(height=3.0, convexity=4) polygon([
+                [-cx+8, -28], [-cx+5, -28], [-cx + 1, -23],[ -cx + 1, 8], [-cx+6, 8],
+                [-cx + 12.5, 4], [-cx + 16.4, -2.5], [-cx + 24.12, -15.63], [-cx + 16, -20.31],
+            ]);
+            linear_extrude(height=12.5) polygon([
+                [-cx + 12.5, 4], [-cx + 16.4, -2.5],
+                [-cx + 15, -3.18], [-cx + 11.3, 3.3],
+            ]);
+        }
+        translate([-cx+8.5, 3, 10.0]) rotate([0,0,-60]) {
+            rotate([0,90,0]) cylinder(10, 5.077/2, 5.077/2, $fn=60);
+            translate([10/2,0,2.5/2]) cube([10,5.077,2.5 + 0.1], true);
+        }
+    }
+
 }
 
 module batterybox(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=0.6)
@@ -889,6 +979,14 @@ module digispark()
     // color("#55c") rotate([0,0,240]) translate([cx-18 -18/2, cy-3.5, 5+1.5/2]) cube([18, 23, 1.5], true);
     color("#55c") rotate([0,0,240]) translate([digipos.x -23/2, digipos.y, 3.5+1.5/2])
         cube([23, 18, 1.5], true);
+}
+
+module attiny_board()
+{
+    sz = [23, 15, 1.6];
+
+    color("#55c") rotate([0,0,tinypos[3]]) translate([tinypos.x - (sz.x/2), tinypos.y - (sz.y/2), tinypos.z + (sz.z/2)])
+        cube(sz, true);
 }
 
 module receiver(small=0)
