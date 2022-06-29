@@ -1,4 +1,4 @@
-doitem = "receiver_jig";
+doitem = "";
 
 
 flmd = 2;

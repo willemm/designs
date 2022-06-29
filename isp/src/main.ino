@@ -14,7 +14,7 @@ const char* host = "esp8266-avrisp";
 const char* ssid = STASSID;
 const char* pass = STAPSK;
 const uint16_t port = 328;
-const uint8_t reset_pin = 5;
+const uint8_t reset_pin = 15;
 
 ESP8266AVRISP avrprog(port, reset_pin);
 TelnetI2C ti2c;
