@@ -61,6 +61,7 @@ static unsigned char i2c_write_byte(unsigned char b)
     while (!(I2C_PIN & (1 << PIN_SCL))) { /* Wait */ }
     _delay_us(3);
     if (I2C_PIN & (1 << PIN_SDA)) {
+        SCL_LO();
         return 1;
     }
     SCL_LO();
@@ -103,7 +104,7 @@ unsigned char I2C_Master_Write_Data(unsigned char addr, unsigned char *msg, unsi
     // if (i2c_write_byte(addr << 1)) return 0x01;
     i2c_write_byte(addr << 1);
     while (msg_size--) {
-	i2c_write_byte(*msg++);
+        i2c_write_byte(*msg++);
         // if (i2c_write_byte(*msg++)) return 0x04;
     }
     i2c_stop_condition();

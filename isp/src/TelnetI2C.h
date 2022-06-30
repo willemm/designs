@@ -9,9 +9,10 @@ public:
     static void pause();
     static void unpause();
 protected:
-    static void _receive(int howmany);
     static void _start_i2c();
     static void _print_i2c();
+    static void _start_analyze();
+    static void _print_analyze();
     static void _printf(const char *fmt, ...);
     static WiFiServer _server;
     static WiFiClient _client;

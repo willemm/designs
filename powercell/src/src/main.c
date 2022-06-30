@@ -38,7 +38,7 @@ static inline void delay(uint32_t dly)
 int main(void) {
     neopixel_setup();
     i2c_setup();
-    i2c_send("Setting up\n");
+    i2c_send("Setting up");
     /*
     for(uint16_t bri = 0; bri < 256; bri += 1) {
         i2c_send("Brightness increasing");
@@ -50,9 +50,11 @@ int main(void) {
     while (1) {
         i2c_send("Colour cycle");
         for (uint32_t ang=0; ang<360; ang += 1) {
-            i2c_send("Angle step");
             neopixel_send(colori(ang, 255, 64));
             delay(25);
+            if ((ang % 36) == 0) {
+                i2c_send("Angle step %d", ang);
+            }
             //PORTB ^= 2;
         }
     }

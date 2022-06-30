@@ -1,5 +1,4 @@
 #include "TelnetI2C.h"
-#include <Wire.h>
 #include <c_types.h>
 
 const uint8_t I2C_ADDRESS = (0x08 << 1);
@@ -17,7 +16,7 @@ void TelnetI2C::begin()
 
 void TelnetI2C::update()
 {
-    if (_busy == 1) {
+    if ((_busy == 1) || (_busy == 2)) {
         if (!_client.connected()) {
             _client.stop();
             _busy = 0;
@@ -27,7 +26,15 @@ void TelnetI2C::update()
             while (_client.available()) {
                 uint8_t b = (uint8_t)_client.read();
                 if (b == 13) {
-                    // _analyze();
+                    if (_busy == 1) {
+                        _busy = 2;
+                        _client.print("Start logic analyzer");
+                        _start_analyze();
+                    } else {
+                        _print_analyze();
+                        _busy = 1;
+                        _start_i2c();
+                    }
                 }
             }
         }
@@ -39,22 +46,6 @@ void TelnetI2C::update()
             _client.print("Connected to attiny\r\n");
             if (_busy < 0) {
                 /*
-                _printf("Starting i2c listen\r\n");
-                Wire.begin(SDA_PIN, SCL_PIN, I2C_ADDRESS);
-                uint8_t cnt = 0;
-                for (uint8_t address = 1; address < 127; address++) {
-                    Wire.beginTransmission(address);
-                    uint8_t err = Wire.endTransmission();
-                    if (err == 0) {
-                        _printf("Found i2c client at 0x%02x\r\n", address);
-                        cnt++;
-                    }
-                    if (err == 4) {
-                        _printf("Unknown i2c error at 0x%02x\r\n", address);
-                    }
-                }
-                _printf("Found %d i2c devices\r\n", cnt);
-                Wire.onReceive(_receive);
                 _printf("Starting pin analyzer\r\n");
                 _start_analyze();
                 */
@@ -68,7 +59,7 @@ void TelnetI2C::update()
     }
 }
 
-#define N_SAMPLES 512
+#define N_SAMPLES 4096
 
 #define bitshift(val) (val)
 #define isr_bitshift(val) ((((val) >> SDA_PIN) & 1) | (((val) >> (SCL_PIN)) & 1) << 1)
@@ -140,12 +131,21 @@ static void IRAM_ATTR handle_i2c_interrupt(void *, void *)
         case 0xC: // 0 bit
             if (I2C.bitpos < 8) {
                 I2C.bitpos += 1;
+                break;
             }
-            break;
+            // Fallthrough to clock rise
         case 0xD: // 1 bit
             if (I2C.bitpos < 8) {
                 I2C.byte |= (1 << (7 - I2C.bitpos));
                 I2C.bitpos += 1;
+                break;
+            }
+            // Fallthrough to clock rise
+        case 0xE: // clock rise: check if we're ack-ing
+        case 0xF:
+            if (I2C.bitpos == 9) {
+                // prepare to unassert SDA
+                I2C.bitpos = 10;
             }
             break;
         case 0x8: // clock fall: check if we're ack-ing or should ack
@@ -167,19 +167,18 @@ static void IRAM_ATTR handle_i2c_interrupt(void *, void *)
                     // Use bitpos 9 to show we're ack-ing
                     I2C.bitpos = 9;
                 } else {
-                    I2C.bitpos = 10;
+                    I2C.bitpos = 11;
                 }
             }
-            if (I2C.bitpos == 9) {
+            if (I2C.bitpos == 10) {
                 // Unassert SDA
                 pinMode(SDA_PIN, INPUT);
-                I2C.bitpos = 10;
+                I2C.bitpos = 11;
             }
             break;
     }
 }
 
-/*
 static void IRAM_ATTR handle_interrupt(void *arg, void *frame)
 {
     (void) arg;
@@ -192,7 +191,6 @@ static void IRAM_ATTR handle_interrupt(void *arg, void *frame)
     times[pointer] = micros();
     values[pointer] = isr_bitshift(levels);
 }
-*/
 
 void TelnetI2C::_start_i2c()
 {
@@ -208,6 +206,20 @@ void TelnetI2C::_start_i2c()
     GPC(SDA_PIN) |= ((CHANGE & 0xF) << GPCI);
     GPC(SCL_PIN) |= ((CHANGE & 0xF) << GPCI);
     ETS_GPIO_INTR_ATTACH(handle_i2c_interrupt, I2C_INTR_PINS);
+    ETS_GPIO_INTR_ENABLE();
+}
+
+void TelnetI2C::_start_analyze()
+{
+    pinMode(SDA_PIN, INPUT_PULLUP);
+    pinMode(SCL_PIN, INPUT_PULLUP);
+    ETS_GPIO_INTR_DISABLE();
+    GPC(SDA_PIN) &= ~(0xF << GPCI);
+    GPC(SCL_PIN) &= ~(0xF << GPCI);
+    GPIEC = I2C_INTR_PINS;
+    GPC(SDA_PIN) |= ((CHANGE & 0xF) << GPCI);
+    GPC(SCL_PIN) |= ((CHANGE & 0xF) << GPCI);
+    ETS_GPIO_INTR_ATTACH(handle_interrupt, I2C_INTR_PINS);
     ETS_GPIO_INTR_ENABLE();
 }
 
@@ -228,13 +240,15 @@ void TelnetI2C::_print_i2c()
 {
     uint8_t curindex = I2C.bufindex % I2C_BUF_COUNT;
     while (lastindex != curindex) {
+        char str[64 + 3 * I2C_BUF_SIZE];
         uint8_t len = I2C.buffer[lastindex][0];
         if (I2C.buffer[lastindex][1] == I2C_ADDRESS) {
-            _printf("I2C addr 08 received %d chars: '%.*s'\r\n", len-1, len-1, &I2C.buffer[lastindex][2]);
+            sprintf(str, "%x I2C addr %02x received %d chars: '%.*s'\r\n",
+                lastindex, I2C.buffer[lastindex][1], len-1, len-1, &I2C.buffer[lastindex][2]);
+            _client.print(str);
         } else {
-            char str[64 + 3 * I2C_BUF_SIZE];
-            char *ptr = str + sprintf(str, "I2C addr %02x received %d bytes:", 
-                I2C.buffer[lastindex][1], len);
+            char *ptr = str + sprintf(str, "%x I2C addr %02x received %d bytes:", 
+                lastindex, I2C.buffer[lastindex][1], len);
             for (uint8_t i = 2; i <= len; i++) {
                 ptr = ptr + sprintf(ptr, " %02x", I2C.buffer[lastindex][i]);
             }
@@ -245,8 +259,7 @@ void TelnetI2C::_print_i2c()
     }
 }
 
-#if 0
-void TelnetI2C::_analyze()
+void TelnetI2C::_print_analyze()
 {
     blockit = 1;
     int pos = pointer+1;
@@ -317,22 +330,6 @@ void TelnetI2C::_analyze()
     }
     blockit = 0;
 }
-
-void TelnetI2C::_receive(int howmany)
-{
-    if (!_client.connected()) {
-        return;
-    }
-    unsigned long rtimeout = millis() + 200;
-    while (millis() < rtimeout) {
-        while (Wire.available() > 0) {
-            char c = Wire.read();
-            _client.print(c);
-        }
-        _client.print("\r\n");
-    }
-}
-#endif
 
 void TelnetI2C::pause()
 {
