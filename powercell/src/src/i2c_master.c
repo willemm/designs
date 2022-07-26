@@ -20,6 +20,8 @@ static void i2c_start_condition()
 {
     SDA_HI();
     SCL_HI();
+    // Set output values of pin to low (DDR is used for switching on or off)
+    // Internal pullup not used, we use external pullups
     cbi(I2C_PORT,PIN_SCL);
     cbi(I2C_PORT,PIN_SDA);
     _delay_us(5);
@@ -60,6 +62,7 @@ static unsigned char i2c_write_byte(unsigned char b)
     _delay_us(3);
     while (!(I2C_PIN & (1 << PIN_SCL))) { /* Wait */ }
     _delay_us(3);
+    // Check ack bit
     if (I2C_PIN & (1 << PIN_SDA)) {
         SCL_LO();
         return 1;
@@ -101,11 +104,20 @@ static unsigned char i2c_read_byte(unsigned char ack)
 unsigned char I2C_Master_Write_Data(unsigned char addr, unsigned char *msg, unsigned char msg_size)
 {
     i2c_start_condition();
-    // if (i2c_write_byte(addr << 1)) return 0x01;
-    i2c_write_byte(addr << 1);
+    if (i2c_write_byte(addr << 1)) {
+        /*
+        i2c_stop_condition();
+        return 0x01;
+        */
+    }
     while (msg_size--) {
-        i2c_write_byte(*msg++);
-        // if (i2c_write_byte(*msg++)) return 0x04;
+        _delay_us(10);
+        if (i2c_write_byte(*msg++)) {
+            /*
+            i2c_stop_condition();
+            return 0x04;
+            */
+        }
     }
     i2c_stop_condition();
     return 0;

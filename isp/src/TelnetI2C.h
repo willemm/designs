@@ -11,6 +11,9 @@ public:
 protected:
     static void _start_i2c();
     static void _print_i2c();
+    static void _start_rx();
+    static void _stop_rx();
+    static void _print_rx();
     static void _start_analyze();
     static void _print_analyze();
     static void _printf(const char *fmt, ...);
