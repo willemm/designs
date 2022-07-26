@@ -81,7 +81,7 @@ intersection() {
 
 *rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) cubecorner();
 
-cubeside();
+*cubeside();
 
 *rotate([0,atan(sqrt(2)),0]) rotate([0,0,-45]) {
     *color("#333") cubecorner();
@@ -114,6 +114,7 @@ cubeside();
 *color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
 *color("#333") bottomblob();
+bottomblob();
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
 
 *color("#777") plugcase();
@@ -367,7 +368,7 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
     bothi = 23;
 
     br = rcx+1.3;
-    br2 = 125/2;
+    br2 = 126/2;
 
     ethi = 1.2;
 
@@ -390,9 +391,9 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
                 [for (z=[0:nly]) each zbcircle(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp) ],
                 zbcircle(0, 0, -hei, br2, 360/cp),
                 zbcircle(0, 0, -rimh, br2, 360/cp),
-                zbcircle(0, 0, -rimh, br2-2, 360/cp),
-                zbcircle(0, 0, -rimh+2, br2-2, 360/cp),
-                zbcircle(0, 0, 0, br2-4+rimh, 360/cp),
+                zbcircle(0, 0, -rimh, br2-5, 360/cp),
+                zbcircle(0, 0, -rimh+3, br2-5, 360/cp),
+                zbcircle(0, 0, 0, br2-6+rimh, 360/cp),
                 []
             ), faces = concat(
                 [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
@@ -400,15 +401,20 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
                 []
             ));
             for (an=[0:60:300]) rotate([0,0,an]) {
-                translate([0,ho,-hei/2]) cylinder(hei/2-2, 5, 5, $fn=32);
+                translate([0,ho,-hei/2-9]) cylinder(hei/2+9-2, 5, 5, $fn=32);
                 translate([0,ho,-2.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
-                translate([0,ho,-hei/2+3]) rotate([45,0,0]) {
+                *translate([0,ho,-hei/2-3.5]) rotate([45,0,0]) {
                     rotate([0,0,45]) cylinder(20, 14, 7, $fn=4);
                     #translate([ 10, 0, 10]) rotate([0,-15, 0]) cube([6,5,5], true);
                     #translate([-10, 0, 10]) rotate([0, 15, 0]) cube([6,5,5], true);
                 }
             }
             for (an=[0:60:300]) rotate([0,0,an]) translate([0, ihr+3, 0]) bottomfoothole();
+            nled = 40;
+            ledan = 360/nled;
+            for (an=[ledan:ledan:360]) rotate([0,0,an]) {
+                translate([0,br2+2.3,-hei-0.01]) cylinder(15, 4, 1.5, $fn=32);
+            }
         }
     }
 }
