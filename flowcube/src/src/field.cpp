@@ -21,6 +21,11 @@ static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3
 #define FIELD_DOWN  2
 #define FIELD_RIGHT 3
 
+#define EP_NORMAL    0
+#define EP_SELECTED  1
+#define EP_CONNECTED 2
+#define EP_DELETING  3
+
 #define FSZ 5
 #define DSZ (FSZ*2)
 #define LEDSZ ((int)(DSZ*DSZ))
@@ -107,7 +112,7 @@ static inline int field_idx(int y, int x)
 void field_init()
 {
     for (int y = 0; y < DSZ; y++) {
-        // Upper right quadrand is not used
+        // Upper right quadrant is not used
         int xsz = ((y >= FSZ) ? DSZ : FSZ);
         for (int x = 0; x < xsz; x++) {
             int idx = field_idx(y,x);
@@ -151,7 +156,7 @@ void field_init()
     }
 }
 
-int8_t field_endpoints[] = {
+int8_t endpoint_coords[] = {
     3,1, 5,5,
     1,2, 7,2,
     6,5, 5,6,
@@ -160,13 +165,36 @@ int8_t field_endpoints[] = {
     -1
 };
 
-static void set_endpoints(int8_t endpoints[])
+struct endpoint_t {
+    uint32_t color;
+    long animstart;
+    int8_t idx;
+    int8_t status;
+};
+
+static endpoint_t * make_endpoints(int8_t coords[])
 {
-    for (int c = 0; endpoints[c*2] >= 0; c++) {
-        debugD("Set endpoint %d: (%d,%d)", c, endpoints[c*2], endpoints[c*2+1]);
-        int idx = field_idx(endpoints[c*2], endpoints[c*2+1]);
-        field[idx].color = c;
-        field[idx].is_endpoint = 1;
+    int cnt = 0;
+    while (coords[cnt*2] >= 0) { cnt++; }
+    endpoint_t *endpoints = new endpoint_t[cnt+1];
+
+    for (cnt = 0; coords[cnt*2] >= 0; cnt++) {
+        endpoints[cnt].idx = field_idx(coords[cnt*2], coords[cnt*2+1]);
+        endpoints[cnt].status = 0;
+        endpoints[cnt].color = colors[cnt/2];
+    }
+    endpoints[cnt].idx = -1;
+    return endpoints;
+}
+
+endpoint_t *field_endpoints;
+
+static void set_endpoints(endpoint_t *endpoints)
+{
+    for (int c = 0; endpoints[c].idx >= 0; c++) {
+        debugD("Set endpoint %d: (%d)", c, endpoints[c].idx);
+        field[endpoints[c].idx].color = endpoints[c].color;
+        field[endpoints[c].idx].is_endpoint = 1;
     }
 }
 
@@ -184,7 +212,110 @@ static inline uint32_t colorscale(uint32_t color, uint32_t brightness)
     return (uint32_t)((r << 16) | (g << 8) | (b << 0));
 }
 
+#define ANIM_STEP 500
+static const struct anim_t {
+    uint32_t timeoff, brightness;
+} select_anim[] = {
+  {    0, 1000 },
+  { 1000,  400 },
+  { 1500, 2000 },
+  { 2000,  400 },
+  { 3000, 1000 },
+  { 5000, 1000 }
+};
+
+static uint32_t anim_color(uint32_t color, int32_t phs, const anim_t anim[], int cnt)
+{
+    if (phs <= 0) {
+        return colorscale(color, anim[0].brightness);
+    }
+    int ani;
+    uint32_t of = phs % anim[cnt-1].timeoff;
+    for (ani = 0; ani < (cnt-1); ani++) {
+        if (anim[ani].timeoff > of) break;
+    }
+    uint32_t di = anim[ani].timeoff - anim[ani-1].timeoff;
+    of = of - anim[ani-1].timeoff;
+    uint32_t brightness = (of * anim[ani-1].brightness + (di-of) * anim[ani].brightness) / di;
+    return colorscale(color, brightness);
+}
+
+static void draw_line_selected(endpoint_t *ep, long now, bool debug)
+{
+    uint32_t color = ep->color;
+    int32_t phs = (int32_t)(now - ep->animstart);
+    int idx = ep->idx;
+    for (int pi = 0; pi < 4; pi++) {
+        pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pi], color);
+    }
+    while (idx >= 0) {
+        phs -= ANIM_STEP;
+        int8_t pd = field[idx].prev;
+        if (pd < 4) {
+            uint32_t colorval = anim_color(color, phs, select_anim, sizeof(select_anim)/sizeof(select_anim[0]));
+            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pd], colorval);
+        }
+        phs -= ANIM_STEP;
+        int8_t nd = field[idx].next;
+        if (nd < 4) {
+            uint32_t colorval = anim_color(color, phs, select_anim, sizeof(select_anim)/sizeof(select_anim[0]));
+            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], colorval);
+        }
+        idx = field[idx].neighbour[nd];
+    }
+}
+
+static void draw_line_default(endpoint_t *ep, long now, bool debug)
+{
+    uint32_t color = ep->color;
+    int idx = ep->idx;
+    for (int pi = 0; pi < 4; pi++) {
+        pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pi], color);
+    }
+    while (idx >= 0) {
+        int8_t pd = field[idx].prev;
+        if (pd < 4) {
+            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pd], color);
+        }
+        int8_t nd = field[idx].next;
+        if (nd < 4) {
+            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], color);
+        }
+        idx = field[idx].neighbour[nd];
+    }
+}
+
+static void draw_line(endpoint_t *ep, long now, bool debug)
+{
+    switch (ep->status) {
+      case EP_SELECTED:
+        return draw_line_selected(ep, now, debug);
+      default:
+        return draw_line_default(ep, now, debug);
+    }
+}
+
 static void draw_field(bool debug=false)
+{
+    long now = millis();
+    pixels.clear();
+    for (int c = 0; field_endpoints[c].idx >= 0; c++) {
+        draw_line(&field_endpoints[c], now, debug);
+    }
+    // Light up pressed key
+    if (curkey > 0) {
+        int idx = curkey - 1;
+        int side = ((int)field[idx].side)*LEDSZ;
+        uint32_t colorval = pixels.Color(255,255,255);
+        for (int i = 0; i < 4; i++) {
+            pixels.setPixelColor(side+field[idx].pixel[i], colorval);
+        }
+    }
+    pixels.show();
+}
+
+/*
+static void draw_field_old(bool debug=false)
 {
     pixels.clear();
     for (int idx = 0; idx < NUMKEYS; idx++) {
@@ -266,6 +397,7 @@ static void draw_field(bool debug=false)
     }
     pixels.show();
 }
+*/
 
 void field_clear()
 {
@@ -277,7 +409,9 @@ void field_clear()
         field[idx].next = 4;
         field[idx].is_endpoint = 0;
         field[idx].dist = 0;
-    }
+    } 
+    delete field_endpoints;
+    field_endpoints = make_endpoints(endpoint_coords);
     set_endpoints(field_endpoints);
     // draw_field(true);
     debugI("Inited game field");
@@ -373,6 +507,7 @@ static void disconnect_chain(int idx)
 
 static void press_key(int key)
 {
+    long now = millis();
     int color = field[key].color;
     if (selected >= 0) {
         debugI("Press key %d, check for neighbour with selected color %d", key, selected);
@@ -471,6 +606,21 @@ static void press_key(int key)
             }
             */
             // TODO: Connect two lines ?
+        }
+    }
+    // Unset mode of selected line
+    for (int ep = 0; field_endpoints[ep].idx >= 0; ep++) {
+        if (ep == selected) {
+            if (field_endpoints[ep].status != EP_SELECTED) {
+                // TODO: Set animation start phase, stuff like that
+                field_endpoints[ep].status = EP_SELECTED;
+                field_endpoints[ep].animstart = now;
+            }
+        } else {
+            if (field_endpoints[ep].status == EP_SELECTED) {
+                // TODO: Maybe deselect animation ?
+                field_endpoints[ep].status = EP_NORMAL;
+            }
         }
     }
     draw_field(true);
