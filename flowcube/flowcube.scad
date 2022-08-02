@@ -113,8 +113,15 @@ intersection() {
 *color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
 *color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
-*color("#333") bottomblob();
-bottomblob();
+//*color("#333") bottomblob();
+color("#fe5") bottomblobmid();
+color("#cd5") bottomblobside();
+
+*color("#5554") translate([0, 0, -275]) cube([250,200,2],true);
+*color("#5954") rotate([0,0, 30]) translate([0, -100,-200]) cube([250,200,2],true);
+*color("#5594") rotate([0,0,150]) translate([0, -100,-200]) cube([250,200,2],true);
+*color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
+
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
 
 *color("#777") plugcase();
@@ -410,17 +417,136 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
                 }
             }
             for (an=[0:60:300]) rotate([0,0,an]) translate([0, ihr+3, 0]) bottomfoothole();
+            /*
             nled = 40;
             ledan = 360/nled;
             for (an=[ledan:ledan:360]) rotate([0,0,an]) {
                 translate([0,br2+2.3,-hei-0.01]) cylinder(15, 4, 1.5, $fn=32);
             }
+            */
+        }
+    }
+}
+
+module bottomblobmid(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    br = rcx+1.3;
+    br2 = 126/2;
+
+    ethi = 1.2;
+
+    bra = (br+(br2+ethi))/2;
+    brd = (br-(br2+ethi))/2;
+
+    nly = 40;
+    mly = 28;
+    hei = 120;
+
+    cwid = bra+brd*cos(mly*180/nly);
+
+    rimh = 35;
+
+    ho = botholeoff;
+    ihr = (rcx-5) * sqrt(3)/2;
+
+    // tly = nly+5;
+    tly = (nly-mly)+8;
+
+    translate([0,0,rcz-bothi-thi]) {
+        difference() {
+            polyhedron(convexity=6, points=concat(
+                [for (z=[mly:nly]) each zbcircle(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp) ],
+                zbcircle(0, 0, -hei, br2, 360/cp),
+                zbcircle(0, 0, -rimh, br2, 360/cp),
+                zbcircle(0, 0, -rimh, br2-5, 360/cp),
+                zbcircle(0, 0, -rimh+3, br2-5, 360/cp),
+                zbcircle(0, 0, -rimh+3, cwid, 360/cp),
+                zbcircle(0, 0, -rimh+3, cwid+10, 360/cp),
+                zbcircle(0, 0, -rimh, cwid+10, 360/cp),
+                zbcircle(0, 0, -rimh-10, cwid, 360/cp),
+                []
+            ), faces = concat(
+                [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
+                nquads(tly*cp, cp, -tly*cp),
+                []
+            ));
         }
     }
 }
 
 function zbcircle(x,y,z,d,an) = [
     for (a = [0:an:360-an]) [x+d*sin(a),y+d*cos(a),z]
+];
+
+module bottomblobside(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    br = rcx+1.3;
+    br2 = 126/2;
+
+    ethi = 1.2;
+
+    bra = (br+(br2+ethi))/2;
+    brd = (br-(br2+ethi))/2;
+
+    nly = 40;
+    mly = 28;
+    hei = 120;
+
+    cwid = bra+brd*cos(mly*180/nly);
+
+    rimh = 35;
+
+    ho = botholeoff;
+    ihr = (rcx-5) * sqrt(3)/2;
+
+    // tly = nly+5;
+    tly = (mly)+3;
+
+    tcp = (cp/3)+1;
+
+    translate([0,0,rcz-bothi-thi]) {
+        difference() {
+            polyhedron(convexity=6, points=concat(
+                [for (z=[0:mly]) each zbcirclearc(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp, 30, 150) ],
+                zbcirclearc(0, 0, -rimh-10, cwid, 360/cp, 30, 150),
+                zbcirclearc(0, 0, -rimh, cwid+10, 360/cp, 30, 150),
+                zbcirclearc(0, 0, 0, br2-6+rimh, 360/cp, 30, 150),
+                []
+            ), faces = concat(
+                [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
+                nquads(tly*tcp, tcp, -tly*tcp, 1),
+                [[for (z=[0:tly]) z*tcp+tcp-1]],
+                [[for (z=[tly:-1:0]) z*tcp]],
+                []
+            ));
+            for (an=[0:60:300]) rotate([0,0,an]) {
+                translate([0,ho,-hei/2-9]) cylinder(hei/2+9-2, 5, 5, $fn=32);
+                translate([0,ho,-2.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
+                *translate([0,ho,-hei/2-3.5]) rotate([45,0,0]) {
+                    rotate([0,0,45]) cylinder(20, 14, 7, $fn=4);
+                    #translate([ 10, 0, 10]) rotate([0,-15, 0]) cube([6,5,5], true);
+                    #translate([-10, 0, 10]) rotate([0, 15, 0]) cube([6,5,5], true);
+                }
+            }
+            for (an=[0:60:300]) rotate([0,0,an]) translate([0, ihr+3, 0]) bottomfoothole();
+        }
+    }
+}
+
+function zbcirclearc(x,y,z,d,an,s,e) = [
+    for (a = [s:an:e]) [x+d*sin(a),y+d*cos(a),z]
 ];
 
 module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
@@ -2375,8 +2501,8 @@ function zcircle(x,y,z,d,an) = [
 ];
 
 // Faces of side of layers
-// start offset, number, layer offset
-function nquads(s, n, o) = [for (i=[0:n-1]) each [
+// start offset, number, layer offset, startskip, endskip
+function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
     [s+(i+1)%n,s+i,s+(i+1)%n+o],
     [s+(i+1)%n+o,s+i,s+i+o]
 ]];
