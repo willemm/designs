@@ -14,12 +14,12 @@
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 const uint32_t colors[] = {
-    pixels.Color(127,0,0),
-    pixels.Color(0,101,0),
-    pixels.Color(0,0,121),
-    pixels.Color(94,86,0),
-    pixels.Color(99,0,87),
-    pixels.Color(0,75,85)
+    pixels.Color(100,0,0),
+    pixels.Color(0,80,0),
+    pixels.Color(0,0,100),
+    pixels.Color(80,75,0),
+    pixels.Color(85,0,75),
+    pixels.Color(0,60,75)
 };
 
 void leds_init()

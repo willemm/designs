@@ -213,15 +213,27 @@ static inline uint32_t colorscale(uint32_t color, uint32_t brightness)
 }
 
 #define ANIM_STEP 200
-static const struct anim_t {
+struct anim_t {
     uint32_t timeoff, brightness;
-} select_anim[] = {
+};
+static const anim_t anim_selected[] = {
   {    0,  700 },
   {  400,  200 },
-  {  700, 3000 },
+  {  700, 4000 },
   { 1000,  200 },
   { 1400,  700 },
-  { 2000,  700 }
+  { 1940,  700 },
+  { 0, 0 }
+};
+
+static const anim_t anim_connected[] = {
+  {    0,  700 },
+  {  200,  200 },
+  {  500, 4000 },
+  {  800,  200 },
+  { 1000,  700 },
+  { 1030,  700 },
+  { 0, 0 }
 };
 
 static uint32_t anim_color(uint32_t color, int32_t phs, const anim_t anim[], int cnt)
@@ -229,8 +241,8 @@ static uint32_t anim_color(uint32_t color, int32_t phs, const anim_t anim[], int
     if (phs <= 0) {
         return colorscale(color, anim[0].brightness);
     }
-    int ani;
     uint32_t of = phs % anim[cnt-1].timeoff;
+    int ani;
     for (ani = 0; ani < (cnt-1); ani++) {
         if (anim[ani].timeoff > of) break;
     }
@@ -240,8 +252,10 @@ static uint32_t anim_color(uint32_t color, int32_t phs, const anim_t anim[], int
     return colorscale(color, brightness);
 }
 
-static void draw_line_selected(endpoint_t *ep, long now, bool debug)
+static void draw_line_anim(endpoint_t *ep, long now, bool debug, const anim_t anim[])
 {
+    int anim_cnt;
+    for (anim_cnt = 1; anim[anim_cnt].timeoff > 0; anim_cnt++) { /* Nothing */ }
     uint32_t color = ep->color;
     int32_t phs = (int32_t)(now - ep->animstart);
     int idx = ep->idx;
@@ -252,13 +266,13 @@ static void draw_line_selected(endpoint_t *ep, long now, bool debug)
         phs -= ANIM_STEP;
         int8_t pd = field[idx].prev;
         if (pd < 4) {
-            uint32_t colorval = anim_color(color, phs, select_anim, sizeof(select_anim)/sizeof(select_anim[0]));
+            uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
             pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pd], colorval);
         }
         phs -= ANIM_STEP;
         int8_t nd = field[idx].next;
         if (nd < 4) {
-            uint32_t colorval = anim_color(color, phs, select_anim, sizeof(select_anim)/sizeof(select_anim[0]));
+            uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
             pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], colorval);
         }
         idx = field[idx].neighbour[nd];
@@ -289,7 +303,9 @@ static void draw_line(endpoint_t *ep, long now, bool debug)
 {
     switch (ep->status) {
       case EP_SELECTED:
-        return draw_line_selected(ep, now, debug);
+        return draw_line_anim(ep, now, debug, anim_selected);
+      case EP_CONNECTED:
+        return draw_line_anim(ep, now, debug, anim_connected);
       default:
         return draw_line_default(ep, now, debug);
     }
@@ -560,6 +576,9 @@ static void press_key(int key)
                     field[nxt].next = nn;
                     nxt = field[nxt].neighbour[nn];
                 }
+                field_endpoints[selected].status = EP_CONNECTED;
+                field_endpoints[line].status = EP_CONNECTED;
+                selected = -1;
             } else if (line >= 0) {
                 if (field[key].is_endpoint) {
                     // Endpoints cannot be pushed through
