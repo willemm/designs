@@ -193,7 +193,7 @@ static void set_endpoints(endpoint_t *endpoints)
 {
     for (int c = 0; endpoints[c].idx >= 0; c++) {
         debugD("Set endpoint %d: (%d)", c, endpoints[c].idx);
-        field[endpoints[c].idx].color = endpoints[c].color;
+        field[endpoints[c].idx].line = c;
         field[endpoints[c].idx].is_endpoint = 1;
     }
 }
@@ -212,16 +212,16 @@ static inline uint32_t colorscale(uint32_t color, uint32_t brightness)
     return (uint32_t)((r << 16) | (g << 8) | (b << 0));
 }
 
-#define ANIM_STEP 500
+#define ANIM_STEP 200
 static const struct anim_t {
     uint32_t timeoff, brightness;
 } select_anim[] = {
-  {    0, 1000 },
-  { 1000,  400 },
-  { 1500, 2000 },
-  { 2000,  400 },
-  { 3000, 1000 },
-  { 5000, 1000 }
+  {    0,  700 },
+  {  400,  200 },
+  {  700, 3000 },
+  { 1000,  200 },
+  { 1400,  700 },
+  { 2000,  700 }
 };
 
 static uint32_t anim_color(uint32_t color, int32_t phs, const anim_t anim[], int cnt)
@@ -236,7 +236,7 @@ static uint32_t anim_color(uint32_t color, int32_t phs, const anim_t anim[], int
     }
     uint32_t di = anim[ani].timeoff - anim[ani-1].timeoff;
     of = of - anim[ani-1].timeoff;
-    uint32_t brightness = (of * anim[ani-1].brightness + (di-of) * anim[ani].brightness) / di;
+    uint32_t brightness = (of * anim[ani].brightness + (di-of) * anim[ani-1].brightness) / di;
     return colorscale(color, brightness);
 }
 
@@ -404,7 +404,7 @@ void field_clear()
     debugI("Clearing game field");
     selected = -1;
     for (int idx = 0; idx < NUMKEYS; idx++) {
-        field[idx].color = -1;
+        field[idx].line = -1;
         field[idx].prev = 4;
         field[idx].next = 4;
         field[idx].is_endpoint = 0;
@@ -434,10 +434,11 @@ static void testdelay(int dly)
     }
 }
 
+/*
 void field_test()
 {
     for (int idx = 0; idx < NUMKEYS; idx++) {
-        field[idx].color = -1;
+        field[idx].line = -1;
         field[idx].is_endpoint = 0;
     }
     debugI("Init field test (field size = %d)", sizeof(fieldcell_t));
@@ -448,18 +449,18 @@ void field_test()
             ln, colors[ln+1], field_test_lines[ln][0], field_test_lines[ln][7],
             (ln+1)*2, (ln+1)*2+1);
         selected = ln*2;
-        field[field_test_lines[ln][0]].color = ln*2;
+        field[field_test_lines[ln][0]].line = ln*2;
         field[field_test_lines[ln][0]].is_endpoint = 1;
-        field[field_test_lines[ln][7]].color = ln*2+1;
+        field[field_test_lines[ln][7]].line = ln*2+1;
         field[field_test_lines[ln][7]].is_endpoint = 1;
         draw_field();
         for (int p = 1; p < 7; p++) {
             testdelay(500);
-            field[field_test_lines[ln][p]].color = ln*2;
+            field[field_test_lines[ln][p]].line = ln*2;
             draw_field();
         }
         testdelay(500);
-        field[field_test_lines[ln][7]].color = ln*2;
+        field[field_test_lines[ln][7]].line = ln*2;
         draw_field();
     }
     selected = -1;
@@ -468,6 +469,7 @@ void field_test()
 
     testdelay(2000);
 }
+*/
 
 static void disconnect_chain(int idx)
 {
@@ -480,7 +482,7 @@ static void disconnect_chain(int idx)
         int nn = field[nxt].next;
         field[nxt].next = field[nxt].prev;
         field[nxt].prev = nn;
-        field[nxt].color = field[nxt].color ^ 1;
+        field[nxt].line = field[nxt].line ^ 1;
         if (field[nxt].is_endpoint) {
             // Found an endpoint, so don't turn off
             // Only turn off the first one
@@ -500,7 +502,7 @@ static void disconnect_chain(int idx)
         int nn = field[nxt].prev;
         field[nxt].next = 4;
         field[nxt].prev = 4;
-        field[nxt].color = -1;
+        field[nxt].line = -1;
         nxt = field[nxt].neighbour[nn];
     }
 }
@@ -508,18 +510,18 @@ static void disconnect_chain(int idx)
 static void press_key(int key)
 {
     long now = millis();
-    int color = field[key].color;
+    int line = field[key].line;
     if (selected >= 0) {
-        debugI("Press key %d, check for neighbour with selected color %d", key, selected);
+        debugI("Press key %d, check for neighbour with selected line %d", key, selected);
         int fnd = -1;
         int mindist = 1000;
         for (int n = 0; n < 6; n++) {
             int nb = step_dir(field[key], n);
             if (nb >= 0) {
-                debugD("Check field #%d = %d, color %d, dist %d", n, nb, field[nb].color, field[nb].dist);
+                debugD("Check field #%d = %d, line %d, dist %d", n, nb, field[nb].line, field[nb].dist);
             }
-            if ((nb >= 0) && (field[nb].color == selected) && (field[nb].dist < mindist)) {
-                debugD("Got field #%d = %d, color %d, dist %d < %d", n, nb, field[nb].color, field[nb].dist, mindist);
+            if ((nb >= 0) && (field[nb].line == selected) && (field[nb].dist < mindist)) {
+                debugD("Got field #%d = %d, line %d, dist %d < %d", n, nb, field[nb].line, field[nb].dist, mindist);
                 fnd = n;
                 mindist = field[nb].dist;
             }
@@ -529,13 +531,13 @@ static void press_key(int key)
             // TODO: Some kind of distance/straight line stuff maybe?
             debugI("Press key %d, different chain, deselect", key);
             selected = -1;
-            // Fall through to no color selected code
+            // Fall through to no line selected code
         } else {
-            if (color == selected) {
-                debugI("Press key %d, same colour %d, do nothing", key, color);
+            if (line == selected) {
+                debugI("Press key %d, same line %d, do nothing", key, line);
                 // Nothing, maybe deselect further bit of chain?
-            } else if (color == (selected ^ 1)) {
-                debugI("Press key %d, matching colour %d, connect", key, color);
+            } else if (line == (selected ^ 1)) {
+                debugI("Press key %d, matching line %d, connect", key, line);
                 // Disconnect pressed chain end
                 int nxt = field[key].neighbour[field[key].next];
                 debugD("Connect to chain at %d, disconnect %d", key, nxt);
@@ -550,7 +552,7 @@ static void press_key(int key)
                 int dist = field[idx].dist;
                 while (nxt >= 0) {
                     debugD("Reverse %d<-%d<-%d", field[nxt].prev, nxt, field[nxt].next);
-                    field[nxt].color = selected;
+                    field[nxt].line = selected;
                     field[nxt].dist = ++dist;
 
                     int nn = field[nxt].prev;
@@ -558,23 +560,23 @@ static void press_key(int key)
                     field[nxt].next = nn;
                     nxt = field[nxt].neighbour[nn];
                 }
-            } else if (color >= 0) {
+            } else if (line >= 0) {
                 if (field[key].is_endpoint) {
                     // Endpoints cannot be pushed through
                     selected = -1;
                 } else {
-                    debugI("Press key %d, different colour %d, push through, todo", key, color);
+                    debugI("Press key %d, different line %d, push through, todo", key, line);
                     // TODO: Overwrite chain
                 }
             } else {
                 // Extend chain
-                debugI("Press key %d, no colour %d, extend chain", key, color);
+                debugI("Press key %d, no line %d, extend chain", key, line);
                 int idx = step_dir(field[key], fnd);
                 int nxt = field[idx].neighbour[field[idx].next];
                 debugD("Connect to chain at %d, disconnect %d", idx, nxt);
                 // Disconnect other chain
                 disconnect_chain(nxt);
-                field[key].color = field[idx].color;
+                field[key].line = field[idx].line;
                 field[key].dist = field[idx].dist + 1;
                 field[key].prev = step_nb(field[key], fnd);
                 field[idx].next = step_nb(field[idx], fnd+3);
@@ -583,25 +585,25 @@ static void press_key(int key)
     }
     // Don't use else to enable above block to deselect and then fall into this block
     if (selected < 0) {
-        if (color >= 0) {
-            // Select this color
-            selected = color;
+        if (line >= 0) {
+            // Select this line
+            selected = line;
             debugI("Press %d selects %d", key, selected);
         } else {
             debugI("Press %d does nothing (todo)", key);
             /*
-            int color = 0;
+            int line = 0;
             int cnt = 0;
             for (int n = 0; n < 4; n++) {
                 int nb = field[key].neighbour[n];
-                if ((nb >= 0) && (field[nb].color)) {
+                if ((nb >= 0) && (field[nb].line)) {
                     cnt++;
-                    color = field[nb].color;
+                    line = field[nb].line;
                 }
             }
             if (cnt == 1) {
-                field[key].color = color;
-                selected = color;
+                field[key].line = line;
+                selected = line;
                 debugI("Press %d selects neighbouring %d", key, selected);
             }
             */

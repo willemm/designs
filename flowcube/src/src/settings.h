@@ -42,7 +42,7 @@ struct fieldcell_t {
     uint8_t side;
     int8_t next, prev;
     uint8_t dist;
-    int8_t color;
+    int8_t line;
     unsigned is_endpoint:1;
 };
 

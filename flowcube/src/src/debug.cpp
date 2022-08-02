@@ -41,9 +41,9 @@ static void debug_dump()
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3],
             field[idx].side);
-        Debug.printf("    : chain = (%d, %d) dist = %2d color = %2d endpoint = %d\r\n",
+        Debug.printf("    : chain = (%d, %d) dist = %2d line = %2d endpoint = %d\r\n",
             field[idx].prev, field[idx].next, field[idx].dist,
-            field[idx].color, field[idx].is_endpoint);
+            field[idx].line, field[idx].is_endpoint);
     }
 }
 
