@@ -53,6 +53,9 @@ if (doitem == "bottomplate3")   { bottomplate3(); }
 if (doitem == "plugcase")       { rotate([0, 90, 0]) plugcase(); }
 if (doitem == "bottomfoot")     { rotate([180,0,0]) bottomfoot(); }
 if (doitem == "strip")          { cube([75,8,1]); }
+
+// TODO: Do this differently
+
 if (doitem == "bottomblobmid")  { bottomblobmid(); }
 if (doitem == "bottomblobside") { bottomblobside(); }
 if (doitem == "") {
@@ -108,6 +111,8 @@ intersection() {
 
 *color("#666") bottomplate();
 
+color("#777") plugcase();
+
 *color("#696") render(convexity=5) bottomplate1();
 *translate([5,2.5,0]) color("#669") render(convexity=5) bottomplate2();
 *translate([0,5,0]) color("#966") render(convexity=5) bottomplate3();
@@ -119,8 +124,9 @@ intersection() {
 
 //*color("#333") bottomblob();
 color("#fe5") bottomblobmid();
-color("#cd5") rotate([0,0,0]) bottomblobside();
-color("#fe5") rotate([0,0,120]) bottomblobside();
+color("#cd5") rotate([0,0,240]) bottomring();
+*color("#cd5") rotate([0,0,0]) bottomblobside();
+*color("#fe5") rotate([0,0,120]) bottomblobside();
 color("#fe5") rotate([0,0,240]) bottomblobside();
 
 *color("#5554") translate([0, 0, -240]) cube([250,200,2],true);
@@ -129,8 +135,6 @@ color("#fe5") rotate([0,0,240]) bottomblobside();
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
 *color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
-
-*color("#777") plugcase();
 
 
 *psu();
@@ -372,7 +376,7 @@ module bottomfoothole(fh=foothi, tol=0.4, cp=48)
         ));
 }
 
-module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
+module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -434,7 +438,7 @@ module bottomblob(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
     }
 }
 
-module bottomblobmid(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
+module bottomblobmid(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -498,7 +502,7 @@ function zbcircle(x,y,z,d,an) = [
     for (a = [0:an:360-an]) [x+d*sin(a),y+d*cos(a),z]
 ];
 
-module bottomblobside(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
+module bottomblobside(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -580,6 +584,64 @@ module bottomblobside(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120
 function zbcirclearc(x,y,z,d,an,s,e) = [
     for (a = [s:an:e]) [x+d*sin(a),y+d*cos(a),z]
 ];
+
+module bottomring(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    br = rcx+1.3;
+    br2 = 126/2;
+
+    ethi = 1.2;
+
+    bra = (br+(br2+ethi))/2;
+    brd = (br-(br2+ethi))/2;
+
+    nly = 40;
+    mly = 28;
+    hei = 120;
+
+    cwid = bra+brd*cos(mly*180/nly);
+
+    rimh = 35;
+
+    ho = botholeoff;
+    ihr = (rcx-5) * sqrt(3)/2;
+
+    tly = 5;
+
+    tcp = (cp/3)+1;
+
+    translate([0,0,rcz-bothi-thi]) {
+        difference() {
+            polyhedron(convexity=6, points=concat(
+                zbcirclearc(0, 0, -rimh+3, cwid+12-tol, 360/cp, 30, 150),
+                zbcirclearc(0, 0, -rimh+3, br2-5, 360/cp, 30, 150),
+                zbcirclearc(0, 0, -rimh+5, br2-5, 360/cp, 30, 150),
+                zbcirclearc(0, 0, -10, cwid+2, 360/cp, 30, 150),
+                zbcirclearc(0, 0,     0, cwid+ 2, 360/cp, 30, 150),
+                zbcirclearc(0, 0,     0, cwid+12-tol, 360/cp, 30, 150),
+                []
+            ), faces = concat(
+                [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
+                nquads(tly*tcp, tcp, -tly*tcp, 1),
+                [[for (z=[0:tly]) z*tcp+tcp-1]],
+                [[for (z=[tly:-1:0]) z*tcp]],
+                []
+            ));
+            for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-30]) {
+                translate([0,cwid+12,-rimh+3-0.01]) linear_extrude(height=rimh-3+0.02) polygon([
+                    [0,-10-tol],[10+tol,0],[-0.1,0]
+                ]);
+            }
+        }
+    }
+
+}
 
 module plugcase(xof=xsof*butsp, bof=10, zof=-2.3, thi=2.0, tol=0.2)
 {
