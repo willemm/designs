@@ -30,7 +30,7 @@ foothi = 20;
 pluginset = 16;
 plugoffset = 52;
 
-poleholehi = 50;
+poleholehi = 70;
 
 vertpc = 0;
 
@@ -122,12 +122,15 @@ color("#777") plugcase();
 *color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
 *color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
-//*color("#333") bottomblob();
-color("#fe5") bottomblobmid();
-color("#cd5") rotate([0,0,240]) bottomring();
+color("#cd5") bottomblob();
+*color("#fe5") rotate([0,0,120]) bottomblob();
+*color("#fe5") rotate([0,0,240]) bottomblob();
+
+*color("#fe5") bottomblobmid();
+*color("#cd5") rotate([0,0,240]) bottomring();
 *color("#cd5") rotate([0,0,0]) bottomblobside();
 *color("#fe5") rotate([0,0,120]) bottomblobside();
-color("#fe5") rotate([0,0,240]) bottomblobside();
+*color("#fe5") rotate([0,0,240]) bottomblobside();
 
 *color("#5554") translate([0, 0, -240]) cube([250,200,2],true);
 *color("#5954") rotate([0,0, 60]) translate([35, -70,-200]) cube([250,200,2],true);
@@ -376,7 +379,7 @@ module bottomfoothole(fh=foothi, tol=0.4, cp=48)
         ));
 }
 
-module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
+module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -392,32 +395,39 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
     bra = (br+(br2+ethi))/2;
     brd = (br-(br2+ethi))/2;
 
-    nly = 20;
+    nly = 40;
     hei = 120;
 
     rimh = 35;
+
+    sa = 30;
+    ea = sa+120;
 
     ho = botholeoff;
     ihr = (rcx-5) * sqrt(3)/2;
 
     tly = nly+5;
 
+    tcp = (cp/3)+1;
+
     translate([0,0,rcz-bothi-thi]) {
         difference() {
             polyhedron(convexity=6, points=concat(
-                [for (z=[0:nly]) each zbcircle(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp) ],
-                zbcircle(0, 0, -hei, br2, 360/cp),
-                zbcircle(0, 0, -rimh, br2, 360/cp),
-                zbcircle(0, 0, -rimh, br2-5, 360/cp),
-                zbcircle(0, 0, -rimh+3, br2-5, 360/cp),
-                zbcircle(0, 0, 0, br2-6+rimh, 360/cp),
+                [for (z=[0:nly]) each zbcirclearc(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp, sa, ea) ],
+                zbcirclearc(0, 0, -hei, br2, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh, br2, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh, br2-5, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh+3, br2-5, 360/cp, sa, ea),
+                zbcirclearc(0, 0, 0, br2-6+rimh, 360/cp, sa, ea),
                 []
             ), faces = concat(
-                [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
-                nquads(tly*cp, cp, -tly*cp),
+                [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
+                nquads(tly*tcp, tcp, -tly*tcp, 1),
+                [[for (z=[0:tly]) z*tcp+tcp-1]],
+                [[for (z=[tly:-1:0]) z*tcp]],
                 []
             ));
-            for (an=[0:60:300]) rotate([0,0,an]) {
+            for (an=[240,300]) rotate([0,0,an]) {
                 translate([0,ho,-hei/2-9]) cylinder(hei/2+9-2, 5, 5, $fn=32);
                 translate([0,ho,-2.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
                 *translate([0,ho,-hei/2-3.5]) rotate([45,0,0]) {
@@ -426,14 +436,19 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=60)
                     #translate([-10, 0, 10]) rotate([0, 15, 0]) cube([6,5,5], true);
                 }
             }
-            for (an=[0:60:300]) rotate([0,0,an]) translate([0, ihr+3, 0]) bottomfoothole();
-            /*
-            nled = 40;
-            ledan = 360/nled;
-            for (an=[ledan:ledan:360]) rotate([0,0,an]) {
-                translate([0,br2+2.3,-hei-0.01]) cylinder(15, 4, 1.5, $fn=32);
+            for (an=[240,300]) rotate([0,0,an]) translate([0, ihr+3, 0]) bottomfoothole();
+            for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-35]) {
+                translate([0,br2-1,-poleholehi]) rotate([-90,0,0]) cylinder(15, 2, 2, $fn=32);
+                translate([0,br2+3,-poleholehi]) translate([-5.5/2-5,0,-5.5/2]) cube([5.5+5,2.4,5.5]);
+                *translate([0,br2+3,-poleholehi]) translate([-5.5/2,0,-5.5/2]) cube([5.5,2.4,5.5+6]);
             }
-            */
+            for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-30]) {
+                phd = sqrt(2);
+                translate([-0.01, br2+ 5, -32]) rotate([0,90,0]) cylinder(10.01, phd, phd, $fn=4);
+                translate([-0.01, br2+35, -5]) rotate([0,90,0]) cylinder(10.01, phd, phd, $fn=4);
+                translate([-0.01, br -10, -5]) rotate([0,90,0]) cylinder(10.01, phd, phd, $fn=4);
+                translate([-0.01, br2+ 5, -90]) rotate([0,90,0]) cylinder(10.01, phd, phd, $fn=4);
+            }
         }
     }
 }
