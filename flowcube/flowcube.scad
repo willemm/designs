@@ -56,8 +56,7 @@ if (doitem == "strip")          { cube([75,8,1]); }
 
 // TODO: Do this differently
 
-if (doitem == "bottomblobmid")  { bottomblobmid(); }
-if (doitem == "bottomblobside") { bottomblobside(); }
+if (doitem == "bottomblob")  { bottomblob(); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -111,7 +110,7 @@ intersection() {
 
 *color("#666") bottomplate();
 
-color("#777") plugcase();
+*color("#777") plugcase();
 
 *color("#696") render(convexity=5) bottomplate1();
 *translate([5,2.5,0]) color("#669") render(convexity=5) bottomplate2();
@@ -427,6 +426,7 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
                 [[for (z=[tly:-1:0]) z*tcp]],
                 []
             ));
+            // Screw holes
             for (an=[240,300]) rotate([0,0,an]) {
                 translate([0,ho,-hei/2-9]) cylinder(hei/2+9-2, 5, 5, $fn=32);
                 translate([0,ho,-2.01]) cylinder(2.02, boltrad, boltrad, $fn=32);
@@ -436,12 +436,35 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
                     #translate([-10, 0, 10]) rotate([0, 15, 0]) cube([6,5,5], true);
                 }
             }
+            // Holes for feet
             for (an=[240,300]) rotate([0,0,an]) translate([0, ihr+3, 0]) bottomfoothole();
+
+            // Holes for extra lights
+            for (an=[240,300]) rotate([0,0,an]) {
+                translate([0, ho, -hei/2-0]) rotate([45,0,0]) {
+                    translate([0,0,3]) cylinder(17, 4, 4, $fn=32);
+                    // translate([0,0,40/2+12.5+7]) cube([12,10,40], true);
+                    translate([12/2,0,12.5+7]) rotate([0,-90,0]) linear_extrude(height=12) polygon([
+                        [0,-5],[31,-5],[30,5],[28,5],[28,8],[22,5],[0,5]
+                    ]);
+                }
+                /*
+                *translate([-10/2, ho-16, -hei/2+25]) {
+                    rotate([0,90,0]) linear_extrude(height=10) polygon([
+                        [0,7],[9,7],[16,0],[16,-22],[0,-22]
+                    ]);
+                }
+                */
+            }
+
+            // Holes for bolts and nuts
             for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-35]) {
                 translate([0,br2-1,-poleholehi]) rotate([-90,0,0]) cylinder(15, 2, 2, $fn=32);
                 translate([0,br2+3,-poleholehi]) translate([-5.5/2-5,0,-5.5/2]) cube([5.5+5,2.4,5.5]);
                 *translate([0,br2+3,-poleholehi]) translate([-5.5/2,0,-5.5/2]) cube([5.5,2.4,5.5+6]);
             }
+
+            // Small holes for connecting parts
             for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-30]) {
                 phd = sqrt(2);
                 translate([-0.01, br2+ 5, -32]) rotate([0,90,0]) cylinder(10.01, phd, phd, $fn=4);
