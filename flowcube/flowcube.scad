@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "pipeholetpl";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -56,7 +56,8 @@ if (doitem == "strip")          { cube([75,8,1]); }
 
 // TODO: Do this differently
 
-if (doitem == "bottomblob")  { bottomblob(); }
+if (doitem == "bottomblob")  { rotate([180,0,60]) bottomblob(); }
+if (doitem == "pipeholetpl")    { rotate([180,0,0]) pipeholetpl(); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -122,8 +123,10 @@ intersection() {
 *color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
 color("#cd5") bottomblob();
-*color("#fe5") rotate([0,0,120]) bottomblob();
-*color("#fe5") rotate([0,0,240]) bottomblob();
+color("#fe5") rotate([0,0,120]) bottomblob();
+color("#fe5") rotate([0,0,240]) bottomblob();
+
+color("#f5a") pipeholetpl();
 
 *color("#fe5") bottomblobmid();
 *color("#cd5") rotate([0,0,240]) bottomring();
@@ -378,7 +381,66 @@ module bottomfoothole(fh=foothi, tol=0.4, cp=48)
         ));
 }
 
-module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
+module pipeholetpl(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=240)
+{
+    cxy = (numbut+0.5)*butsp-ewid/2;
+    cz = bof+zof+2;
+    rcx = (cxy+cz)*sqrt(2/3);
+    rcz = (cz-2*cxy)/sqrt(3);
+    bothi = 23;
+
+    br = rcx+1.3;
+    br2 = 126/2;
+
+    ethi = 1.2;
+
+    bra = (br+(br2+ethi))/2;
+    brd = (br-(br2+ethi))/2;
+
+    nly = 40;
+    hei = 120;
+
+    rimh = 35;
+
+    sa = 0;
+    ea = 359;
+
+    ho = botholeoff;
+    ihr = (rcx-5) * sqrt(3)/2;
+
+    tly = 5;
+
+    tcp = cp;
+
+    translate([0,0,rcz-bothi-thi]) {
+        difference() {
+            polyhedron(convexity=6, points=concat(
+                zbcirclearc(0, 0, -poleholehi-10, br2+1.2, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -poleholehi-10, br2, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh, br2, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh, br2-5, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh+1, br2-5, 360/cp, sa, ea),
+                zbcirclearc(0, 0, -rimh+1, br2+1.2, 360/cp, sa, ea),
+                []
+            ), faces = concat(
+                [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp)],
+                nquads(tly*tcp, tcp, -tly*tcp),
+                []
+            ));
+
+            // Holes for bolts and nuts
+            for (an=[0:120:240]) rotate([0,0,an])
+            for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-35]) {
+                translate([0,br2-1,-poleholehi]) rotate([-90,0,0]) cylinder(15, 1.5, 1.5, $fn=32);
+                *translate([0,br2+3,-poleholehi]) translate([-5.5/2-5,0,-5.5/2]) cube([5.5+5,2.4,5.5]);
+                *translate([0,br2+3,-poleholehi]) translate([-5.5/2,0,-5.5/2]) cube([5.5,2.4,5.5+6]);
+            }
+
+        }
+    }
+}
+
+module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=240)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -459,7 +521,7 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
 
             // Holes for bolts and nuts
             for (m=[0,1]) mirror([0,m,0]) rotate([0,0,-35]) {
-                translate([0,br2-1,-poleholehi]) rotate([-90,0,0]) cylinder(15, 2, 2, $fn=32);
+                translate([0,br2-1,-poleholehi]) rotate([-90,0,0]) cylinder(15, 1.5, 1.5, $fn=32);
                 translate([0,br2+3,-poleholehi]) translate([-5.5/2-5,0,-5.5/2]) cube([5.5+5,2.4,5.5]);
                 *translate([0,br2+3,-poleholehi]) translate([-5.5/2,0,-5.5/2]) cube([5.5,2.4,5.5+6]);
             }
