@@ -36,8 +36,9 @@ static void debug_dump()
     for (int idx = 0; idx < NUMKEYS; idx++) {
         Debug.printf("%2d : neighbour = (%2d, %2d, %2d, %2d) pixel = (%2d, %2d, %2d, %2d) side = %d\r\n",
             idx,
-            field[idx].neighbour[0], field[idx].neighbour[1],
-            field[idx].neighbour[2], field[idx].neighbour[3],
+            // field[idx].neighbour[0], field[idx].neighbour[1],
+            // field[idx].neighbour[2], field[idx].neighbour[3],
+            -1, -1, -1, -1,
             field[idx].pixel[0], field[idx].pixel[1],
             field[idx].pixel[2], field[idx].pixel[3],
             field[idx].side);

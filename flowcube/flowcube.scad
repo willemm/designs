@@ -1,4 +1,4 @@
-doitem = "pipeholetpl";
+doitem = "bottomblob";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -440,7 +440,7 @@ module pipeholetpl(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=240)
     }
 }
 
-module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=240)
+module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=480)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -456,7 +456,7 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=240)
     bra = (br+(br2+ethi))/2;
     brd = (br-(br2+ethi))/2;
 
-    nly = 40;
+    nly = 80;
     hei = 120;
 
     rimh = 35;

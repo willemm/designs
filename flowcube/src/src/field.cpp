@@ -7,11 +7,13 @@ unsigned long lastpress = 0;
 int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
-static_assert(sizeof(fieldcell_t) <= 16, "Size of fieldcell_t is bigger than 16");
+static_assert(sizeof(fieldcell_t) == 16, "Size of fieldcell_t is bigger than 16");
+/*
 static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
 static_assert(offsetof(fieldcell_t, left ) == offsetof(fieldcell_t, neighbour)+1, "Neighbour doesn't match left");
 static_assert(offsetof(fieldcell_t, down ) == offsetof(fieldcell_t, neighbour)+2, "Neighbour doesn't match down");
 static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3, "Neighbour doesn't match right");
+*/
 
 #define FIELD_ENDPOINT 0x01
 #define FIELD_FOLD 0x02
@@ -28,11 +30,181 @@ static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3
 
 #define FSZ 5
 #define DSZ (FSZ*2)
+#define SSZ (FSZ*FSZ)
 #define LEDSZ ((int)(DSZ*DSZ))
 
 #define NUMKEYS (3*FSZ*FSZ)
 
 fieldcell_t field[NUMKEYS];
+
+struct neighbours_t { int8_t neighbour[5]; };
+
+/* Determining field neighbours:
+   Up, Left, Down, Right
+
+side = 0, 1, 2
+
+First:
+- if side = 0  (right)
+  - if idx >= 5
+    - nb = idx - 5
+  - else (idx < 5)
+    - nb = 50 + 24 - (idx * 5)
+- if side = 1  (up)
+  - if idx >= 25 + 5
+    - nb = idx - 5
+  - else (idx < 5)
+    - nb = 0 + 24 - ((idx - 25) * 5)
+- if side = 2  (left)
+  - if idx >= 50 + 5
+    - nb = idx = 5
+  - else (idx < 5)
+    - nb = 25 + 24 - ((idx - 50) * 5)
+
+Second:
+- if side = 0  (down)
+  - if (idx % 5) < 4
+    - nb = idx + 1
+  - else (idx % 5 = 4)
+    - nb = 25 + 4 - (idx / 5) 
+- if side = 1  (right)
+  - if (idx % 5) < 4
+    - nb = idx + 1
+  - else (idx % 5 = 4)
+    - nb = 50 + 4 - ((idx - 25) / 5) 
+- if side = 2  (up)
+  - if (idx % 5) < 4
+    - nb = idx + 1
+  - else (idx % 5 = 4)
+    - nb = 0 + 4 - ((idx - 50) / 5) 
+
+Third:
+- if side = 0  (left)
+  - if idx < 20
+    - nb = idx + 5
+  - else (idx >= 20)
+    - nb = -1 (none)
+- if side = 1  (down)
+  - if idx < 20 + 25
+    - nb = idx + 5
+  - else (idx >= 20 + 25)
+    - nb = -1 (none)
+- if side = 2  (right)
+  - if idx < 20 + 50
+    - nb = idx + 5
+  - else (idx >= 20 + 50)
+    - nb = -1 (none)
+
+Fourth:
+- if side = 0  (up)
+  - if idx % 5 > 0
+    - nb = idx - 1
+  - else (idx % 5 = 0)
+    - nb = -1 (none)
+- if side = 1  (left)
+  - if idx % 5 > 0
+    - nb = idx - 1
+  - else (idx % 5 = 0)
+    - nb = -1 (none)
+- if side = 2  (down)
+  - if idx % 5 > 0
+    - nb = idx - 1
+  - else (idx % 5 = 0)
+    - nb = -1 (none)
+
+First, simplified:
+- sidx = idx % 25
+- if sidx >= 5
+  - nb = idx - 5
+- else
+  - nb = (24 - (idx * 5))
+         + ((((idx / 25) + 2) % 3) * 25)  // 0 => 50, 1 => 0, 2 => 25
+
+Second, simplified:
+- if (idx % 5) < 4
+  - nb = idx + 1
+- else
+  - nb = 4 - ((idx % 25) / 5)
+         + ((((idx / 25) + 1) % 3) * 25)  // 0 => 25, 1 => 50, 2 => 0
+
+Third, simplified:
+- if (idx % 25) < 20
+  - nb = idx + 5
+- else
+  - nb = -1  // none
+
+Fourth, simplified
+- if (idx % 5) > 0
+  - nb = idx - 1
+- else
+  - nb = -1  // none
+
+*/
+
+static int8_t field_neighbour(int idx, int nd)
+{
+    switch (nd) {
+      case 0:
+        if ((idx % FSZ) > 0) { // Up (on side 0) is index minus one
+            return idx - 1;
+        } else {
+            return -1;
+        }
+      case 1:
+        if ((idx % SSZ) < (SSZ-FSZ)) { // Left (on side 0) is index plus one row
+            return idx + FSZ;
+        } else {
+            return -1;
+        }
+      case 2:
+        if ((idx % FSZ) < (FSZ-1)) { // Down (on side 0) is index plus one
+            return idx + 1;
+        } else {
+            return 4 - (idx / FSZ) +  ((((idx / SSZ) + 1) % 3) * SSZ);
+        }
+      case 3:
+        if ((idx % SSZ) >= FSZ) { // Right (on side 0) is index minus one row
+            return idx - FSZ;
+        } else {
+            return (SSZ - ((idx % SSZ) * FSZ)) + ((((idx / SSZ) + 2) % 3) * SSZ);
+        }
+      default:
+        return -1;
+    }
+}
+
+static neighbours_t field_neighbours(int idx)
+{
+    neighbours_t nb;
+
+    int sidx = idx % SSZ;  // Index on side
+    int side = idx / SSZ;  // Side (0,1,2)
+    int ridx = idx % FSZ;  // Row number
+    int cidx = idx / FSZ;  // Column number
+
+    if (ridx > 0) { // Up (on side 0) is index minus one
+        nb.neighbour[0] = idx - 1;
+    } else {
+        nb.neighbour[0] = -1;
+    }
+    if (sidx < (SSZ-FSZ)) { // Left (on side 0) is index plus one row
+        nb.neighbour[1] = idx + FSZ;
+    } else {
+        nb.neighbour[1] = -1;
+    }
+    if (ridx < (FSZ-1)) { // Down (on side 0) is index plus one
+        nb.neighbour[2] = idx + 1;
+    } else {
+        nb.neighbour[2] = 4 - cidx +  (((side + 1) % 3) * SSZ);
+    }
+    if (sidx >= FSZ) { // Right (on side 0) is index minus one row
+        nb.neighbour[3] = idx - FSZ;
+    } else {
+        nb.neighbour[3] = (SSZ - (sidx * FSZ)) + (((side + 2) % 3) * SSZ);
+    }
+    nb.neighbour[4] = -1;
+    return nb;
+}
 
 // Translate from 6 directions to four, depending on cube side
 // This way a straight line across a fold always has the same direction number
@@ -48,9 +220,9 @@ static inline uint8_t step_nb(fieldcell_t field, int dir)
 }
 
 // Find the field index in the given (one of six) direction
-static inline int step_dir(fieldcell_t field, int dir)
+static inline int step_dir(neighbours_t neighbours, fieldcell_t field, int dir)
 {
-    return field.neighbour[step_nb(field, dir)];
+    return neighbours.neighbour[step_nb(field, dir)];
 }
 
 // Find the index of the led in the given (one of six) direction
@@ -117,6 +289,7 @@ void field_init()
         for (int x = 0; x < xsz; x++) {
             int idx = field_idx(y,x);
             ledset_t cell = leds_keyidx(idx);
+            /*
             int cellrot = (idx/(FSZ*FSZ)); // Rotate by 1 or 2 steps depending on face
             field[idx].side = cell.side;
             field[idx].pixel[(cellrot+0)%4] = cell.left;   // up
@@ -128,7 +301,16 @@ void field_init()
             field[idx].left = -1;
             field[idx].prev = 4;
             field[idx].next = 4;
+            */
+            field[idx].side = cell.side;
+            field[idx].pixel[0] = cell.left;   // up
+            field[idx].pixel[1] = cell.down;   // right
+            field[idx].pixel[2] = cell.left^1; // down
+            field[idx].pixel[3] = cell.down^1; // left
+            field[idx].prev = 4;
+            field[idx].next = 4;
             field[idx].is_endpoint = 0;
+            /*
             if ((x == FSZ-1) && (y < FSZ)) {
                 // Right edge of upper left folds to top of lower right
                 field[idx].right = field_idx(DSZ-1-x, DSZ-1-y);
@@ -144,8 +326,10 @@ void field_init()
             } else {
                 field[idx].down = field_idx(y+1,x);
             }
+            */
         }
     }
+    /*
     for (int idx = 0; idx < NUMKEYS; idx++) {
         for (int n = 0; n < 3; n++) {
             int nb = step_dir(field[idx], n);
@@ -154,6 +338,7 @@ void field_init()
             }
         }
     }
+    */
 }
 
 int8_t endpoint_coords[] = {
@@ -275,7 +460,8 @@ static void draw_line_anim(endpoint_t *ep, long now, bool debug, const anim_t an
             uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
             pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], colorval);
         }
-        idx = field[idx].neighbour[nd];
+        // idx = field[idx].neighbour[nd];
+        idx = field_neighbour(idx, nd);
     }
 }
 
@@ -295,7 +481,8 @@ static void draw_line_default(endpoint_t *ep, long now, bool debug)
         if (nd < 4) {
             pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], color);
         }
-        idx = field[idx].neighbour[nd];
+        // idx = field[idx].neighbour[nd];
+        idx = field_neighbour(idx, nd);
     }
 }
 
@@ -506,10 +693,12 @@ static void disconnect_chain(int idx)
             int dist = 0;
             while (nxt >= 0) {
                 field[nxt].dist = dist++;
-                nxt = field[nxt].neighbour[field[nxt].next];
+                // nxt = field[nxt].neighbour[field[nxt].next];
+                nxt = field_neighbour(nxt, field[nxt].next);
             }
         }
-        nxt = field[nxt].neighbour[nn];
+        // nxt = field[nxt].neighbour[nn];
+        nxt = field_neighbour(nxt, nn);
     }
     // There was no endpoint so turn the chain off
     nxt = idx;
@@ -519,7 +708,8 @@ static void disconnect_chain(int idx)
         field[nxt].next = 4;
         field[nxt].prev = 4;
         field[nxt].line = -1;
-        nxt = field[nxt].neighbour[nn];
+        // nxt = field[nxt].neighbour[nn];
+        nxt = field_neighbour(nxt, nn);
     }
 }
 
@@ -531,8 +721,9 @@ static void press_key(int key)
         debugI("Press key %d, check for neighbour with selected line %d", key, selected);
         int fnd = -1;
         int mindist = 1000;
+        neighbours_t neighbours = field_neighbours(key);
         for (int n = 0; n < 6; n++) {
-            int nb = step_dir(field[key], n);
+            int nb = step_dir(neighbours, field[key], n);
             if (nb >= 0) {
                 debugD("Check field #%d = %d, line %d, dist %d", n, nb, field[nb].line, field[nb].dist);
             }
@@ -555,10 +746,11 @@ static void press_key(int key)
             } else if (line == (selected ^ 1)) {
                 debugI("Press key %d, matching line %d, connect", key, line);
                 // Disconnect pressed chain end
-                int nxt = field[key].neighbour[field[key].next];
+                // int nxt = field[key].neighbour[field[key].next];
+                int nxt = field_neighbour(key, field[key].next);
                 debugD("Connect to chain at %d, disconnect %d", key, nxt);
                 disconnect_chain(nxt);
-                int idx = step_dir(field[key], fnd);
+                int idx = step_dir(neighbours, field[key], fnd);
                 // Connect pressed chain
                 field[key].next = step_nb(field[key], fnd);
                 field[idx].next = step_nb(field[idx], fnd+3);
@@ -574,7 +766,8 @@ static void press_key(int key)
                     int nn = field[nxt].prev;
                     field[nxt].prev = field[nxt].next;
                     field[nxt].next = nn;
-                    nxt = field[nxt].neighbour[nn];
+                    // nxt = field[nxt].neighbour[nn];
+                    nxt = field_neighbour(nxt, nn);
                 }
                 field_endpoints[selected].status = EP_CONNECTED;
                 field_endpoints[line].status = EP_CONNECTED;
@@ -590,8 +783,9 @@ static void press_key(int key)
             } else {
                 // Extend chain
                 debugI("Press key %d, no line %d, extend chain", key, line);
-                int idx = step_dir(field[key], fnd);
-                int nxt = field[idx].neighbour[field[idx].next];
+                int idx = step_dir(neighbours, field[key], fnd);
+                // int nxt = field[idx].neighbour[field[idx].next];
+                int nxt = field_neighbour(idx, field[idx].next);
                 debugD("Connect to chain at %d, disconnect %d", idx, nxt);
                 // Disconnect other chain
                 disconnect_chain(nxt);

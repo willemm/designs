@@ -34,10 +34,14 @@ extern RemoteDebug Debug;
 #define OTA_NAME "eos-flowcube-1"
 
 struct fieldcell_t {
+    /*
     union {
         struct { int8_t up, left, down, right, none; };
         int8_t neighbour[5];
     };
+    */
+    long animstart;
+    uint8_t animtype;
     uint8_t pixel[4];
     uint8_t side;
     int8_t next, prev;
