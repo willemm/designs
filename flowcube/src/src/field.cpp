@@ -7,6 +7,23 @@ unsigned long lastpress = 0;
 int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
+struct fieldcell_t {
+    /*
+    union {
+        struct { int8_t up, left, down, right, none; };
+        int8_t neighbour[5];
+    };
+    */
+    long animstart;
+    uint8_t pixel[4];
+    uint8_t animtype;
+    uint8_t side;
+    uint8_t dist;
+    int8_t line;
+    unsigned next:4, prev:4;
+    unsigned is_endpoint:1;
+};
+
 static_assert(sizeof(fieldcell_t) == 16, "Size of fieldcell_t is bigger than 16");
 /*
 static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
@@ -141,8 +158,43 @@ Fourth, simplified
 
 */
 
+// Calculate offset to go to another side (sunwise or widdershins)
+// side index = index / side size.  Add step, modulo 3.  Multiply by side size again.
+#define NEIGHBOUR_SIDE_STEP(idx,s) (((((idx) / SSZ) + (s)) % 3) * SSZ)
+
+// Calculate step to go across a cube edge, downward
+// 24 19 14  9  4  (plus side index * 25)
+// --------------
+//  0  1  2  3  4  (plus side index * 25, note this is widdershins, so side index +1 (mod3))
+//
+// Take index mod25 to remove side number
+// Integer divide by FSZ (5), reverse order. e.g. 19/5 = 3, 4-3 = 1, add 25 to go widdershins
+#define NEIGHBOUR_WRAP_DOWN(idx) ((FSZ-1 - (((idx) % SSZ) / FSZ)) + NEIGHBOUR_SIDE_STEP((idx),1))
+
+// Calculate step to across a cube edge, rightward
+// Note, this is opposite downward because directions rotate across the cube
+// Therefore, caulculation is reverse of downward
+//
+// Take index mod25 to remove side number
+// Multiply by FSZ (5), reverse order from 24 to go 0,5,10,15,20/24,19,14,9,4 subtract 25 to go sunwise
+#define NEIGHBOUR_WRAP_RIGHT(idx) ((SSZ-1 - (((idx) % FSZ) * FSZ)) + NEIGHBOUR_SIDE_STEP((idx),2))
+
+// Four directions.  (Up is as seen on the first side in the diagram above)
+#define NEIGHBOUR_UP(idx)    ((((idx) % FSZ) > 0) ? ((idx) - 1) : -1)
+#define NEIGHBOUR_LEFT(idx)  ((((idx) % SSZ) < (SSZ-FSZ)) ? ((idx) + FSZ) : -1)
+#define NEIGHBOUR_DOWN(idx)  ((((idx) % FSZ) < (FSZ-1)) ? ((idx) + 1) : NEIGHBOUR_WRAP_DOWN((idx)))
+#define NEIGHBOUR_RIGHT(idx) ((((idx) % SSZ) >= FSZ) ? ((idx) - FSZ) : NEIGHBOUR_WRAP_RIGHT((idx)))
+
 static int8_t field_neighbour(int idx, int nd)
 {
+    switch(nd) {
+        case 0: return NEIGHBOUR_UP(idx);
+        case 1: return NEIGHBOUR_LEFT(idx);
+        case 2: return NEIGHBOUR_DOWN(idx);
+        case 3: return NEIGHBOUR_RIGHT(idx);
+        default: return -1;
+    }
+    /*
     switch (nd) {
       case 0:
         if ((idx % FSZ) > 0) { // Up (on side 0) is index minus one
@@ -160,27 +212,34 @@ static int8_t field_neighbour(int idx, int nd)
         if ((idx % FSZ) < (FSZ-1)) { // Down (on side 0) is index plus one
             return idx + 1;
         } else {
-            return 4 - (idx / FSZ) +  ((((idx / SSZ) + 1) % 3) * SSZ);
+            return (FSZ-1) - ((idx % SSZ) / FSZ) +  ((((idx / SSZ) + 1) % 3) * SSZ);
         }
       case 3:
         if ((idx % SSZ) >= FSZ) { // Right (on side 0) is index minus one row
             return idx - FSZ;
         } else {
-            return (SSZ - ((idx % SSZ) * FSZ)) + ((((idx / SSZ) + 2) % 3) * SSZ);
+            return ((SSZ - 1) - ((idx % SSZ) * FSZ)) + ((((idx / SSZ) + 2) % 3) * SSZ);
         }
       default:
         return -1;
     }
+    */
 }
 
 static neighbours_t field_neighbours(int idx)
 {
     neighbours_t nb;
 
+    nb.neighbour[0] = NEIGHBOUR_UP(idx);
+    nb.neighbour[1] = NEIGHBOUR_LEFT(idx);
+    nb.neighbour[2] = NEIGHBOUR_DOWN(idx);
+    nb.neighbour[3] = NEIGHBOUR_RIGHT(idx);
+    
+    /*
     int sidx = idx % SSZ;  // Index on side
     int side = idx / SSZ;  // Side (0,1,2)
     int ridx = idx % FSZ;  // Row number
-    int cidx = idx / FSZ;  // Column number
+    int cidx = sidx / FSZ; // Column number
 
     if (ridx > 0) { // Up (on side 0) is index minus one
         nb.neighbour[0] = idx - 1;
@@ -200,23 +259,48 @@ static neighbours_t field_neighbours(int idx)
     if (sidx >= FSZ) { // Right (on side 0) is index minus one row
         nb.neighbour[3] = idx - FSZ;
     } else {
-        nb.neighbour[3] = (SSZ - (sidx * FSZ)) + (((side + 2) % 3) * SSZ);
+        nb.neighbour[3] = ((SSZ - 1) - (sidx * FSZ)) + (((side + 2) % 3) * SSZ);
     }
+    */
     nb.neighbour[4] = -1;
     return nb;
 }
 
 // Translate from 6 directions to four, depending on cube side
 // This way a straight line across a fold always has the same direction number
-static const uint8_t step_dirs[3][6] = {
-    { 2, 3, 4, 0, 1, 4 },
-    { 2, 4, 3, 0, 4, 1 },
-    { 4, 2, 3, 4, 0, 1 }
-};
+// 
+// - There are 6 orthogonal directions on a cube, but each side only has 4
+// - The last three are the negative/opposite of the first three
+//
+// +------+
+// | 0    |
+// | ^ 1<-|-....
+// | |    |    |
+// +------+------+
+// | |    |    | |
+// | v 2<-|->5 v |
+// | 3    |    4 |
+// +------+------+
+//
+// Note that each side thinks it's upper left, rotation-wise, so in the above diagram:
+//   0    3    2
+//  1 3  0 2  3 1
+//   2    1    0
+//
+// So the directions are:
+// side 0:  0 1 - 2 3 -
+// side 1:  3 - 0 1 - 2
+// side 2:  - 2 3 - 0 1
+//
+// Which is the same array, only rotated by (minus) two steps per side
+// Neat, because we need mod6 anyway for the inverse (which is +3 mod6)
+// And minus two mod 6 is plus four.
+
+static const uint8_t step_dirs[6] = { 0, 1, 4, 2, 3, 4 };
 
 static inline uint8_t step_nb(fieldcell_t field, int dir)
 {
-    return step_dirs[field.side][dir%6];
+    return step_dirs[(field.side*4 + dir)%6];
 }
 
 // Find the field index in the given (one of six) direction
@@ -228,7 +312,7 @@ static inline int step_dir(neighbours_t neighbours, fieldcell_t field, int dir)
 // Find the index of the led in the given (one of six) direction
 static inline int pixel_dir(fieldcell_t field, int dir)
 {
-    uint8_t sdir = step_dirs[field.side][dir];
+    uint8_t sdir = step_nb(field, dir);
     if (sdir >= 4) {
         debugE("ERROR CANTHAPPEN: Wants to get direction %d on side %d", dir, field.side);
     }
@@ -676,6 +760,7 @@ void field_test()
 
 static void disconnect_chain(int idx)
 {
+    if (idx < 0) return;
     int nxt = idx;
     // Disconnect last link
     field[idx].prev = 4;
@@ -868,3 +953,40 @@ void field_update()
         draw_field();
     }
 }
+
+void field_debug_dump()
+{
+    for (int y = 0; y < DSZ; y++) {
+        int xsz = ((y >= FSZ) ? DSZ : FSZ);
+        for (int x = 0; x < xsz; x++) {
+            Debug.printf("%2d  ", field_idx(y, x));
+        }
+        Debug.printf("\r\n");
+    }
+    for (int idx = 0; idx < NUMKEYS; idx++) {
+        neighbours_t neighbours = field_neighbours(idx);
+        Debug.printf("%2d : neighbour = (%2d, %2d, %2d, %2d) pixel = (%2d, %2d, %2d, %2d) side = %d\r\n",
+            idx,
+            neighbours.neighbour[0], neighbours.neighbour[1],
+            neighbours.neighbour[2], neighbours.neighbour[3],
+            field[idx].pixel[0], field[idx].pixel[1],
+            field[idx].pixel[2], field[idx].pixel[3],
+            field[idx].side);
+        Debug.printf("   : chain = (%d, %d) dist = %2d line = %2d endpoint = %d\r\n",
+            field[idx].prev, field[idx].next, field[idx].dist,
+            field[idx].line, field[idx].is_endpoint);
+    }
+    for (int line = 0; field_endpoints[line].idx >= 0; line++) {
+        int idx = field_endpoints[line].idx;
+        Debug.printf("Line %d : %d", line, idx);
+        while (idx >= 0) {
+            int8_t nd = field[idx].next;
+            idx = field_neighbour(idx, nd);
+            if (idx >= 0) {
+                Debug.printf(" -%c> %d", "uldr "[nd], idx);
+            }
+        }
+        Debug.printf("\r\n");
+    }
+}
+

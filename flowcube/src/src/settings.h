@@ -33,30 +33,13 @@ extern RemoteDebug Debug;
 
 #define OTA_NAME "eos-flowcube-1"
 
-struct fieldcell_t {
-    /*
-    union {
-        struct { int8_t up, left, down, right, none; };
-        int8_t neighbour[5];
-    };
-    */
-    long animstart;
-    uint8_t animtype;
-    uint8_t pixel[4];
-    uint8_t side;
-    int8_t next, prev;
-    uint8_t dist;
-    int8_t line;
-    unsigned is_endpoint:1;
-};
-
 struct ledset_t {
     uint8_t side;
     uint8_t left;
     uint8_t down;
 };
 
-extern fieldcell_t field[];
+// extern fieldcell_t field[];
 extern const uint32_t colors[];
 extern Adafruit_NeoPixel pixels;
 
@@ -77,6 +60,7 @@ void field_init();
 void field_clear();
 void field_test();
 void field_update();
+void field_debug_dump();
 
 void webserver_log(const char *fmt, va_list args);
 void webserver_init();
