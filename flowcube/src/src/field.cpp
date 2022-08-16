@@ -24,7 +24,8 @@ static_assert(sizeof(fieldcell_t) == 8, "Size of fieldcell_t is bigger than 8");
 #define EP_NORMAL    0
 #define EP_SELECTED  1
 #define EP_CONNECTED 2
-#define EP_DELETING  3
+#define EP_OTHEREND  3
+#define EP_DELETING  4
 
 #define FSZ 5
 #define DSZ (FSZ*2)
@@ -394,15 +395,15 @@ static inline ledset_t leds_keyidx(uint8_t idx)
     unsigned int left = x*2;
     if (y%2) left = (FSZ*2-1)-left;
     left += y*(FSZ*2);
-    leds.led[1] = left;
-    leds.led[3] = left^1;
+    leds.led[0] = left;
+    leds.led[2] = left^1;
 
     unsigned int down = y*2;
     if (x%2) down = (FSZ*2-1)-down;
     down += x*(FSZ*2);
     down = (4*SSZ-1) - down;
-    leds.led[2] = down;
-    leds.led[0] = down^1;
+    leds.led[3] = down;
+    leds.led[1] = down^1;
 
     return leds;
 }
@@ -465,15 +466,39 @@ static void set_endpoints(endpoint_t *endpoints)
 
 static inline uint32_t colorscale(uint32_t color, uint32_t brightness)
 {
+    uint32_t over = 0;
     uint32_t r = (color >> 16) & 0xff;
     r = (r * brightness) / 1000;
-    if (r > 255) r = 255;
+    if (r > 255) {
+        over += (r - 255)/4;
+        r = 255;
+    }
     uint32_t g = (color >> 8) & 0xff;
     g = (g * brightness) / 1000;
-    if (g > 255) g = 255;
+    if (g > 255) {
+        over += (g - 255)/4;
+        g = 255;
+    }
     uint32_t b = (color >> 0) & 0xff;
     b = (b * brightness) / 1000;
-    if (b > 255) b = 255;
+    if (b > 255) {
+        over += (b - 255)/4;
+        b = 255;
+    }
+    if (over > 0) {
+        r += over;
+        if (r > 255) r = 255;
+        g += over;
+        if (g > 255) g = 255;
+        b += over;
+        if (b > 255) b = 255;
+        /*
+        if (over > 255) over = 255;
+        if (over > r) r = over;
+        if (over > g) g = over;
+        if (over > b) b = over;
+        */
+    }
     return (uint32_t)((r << 16) | (g << 8) | (b << 0));
 }
 
@@ -484,7 +509,7 @@ struct anim_t {
 static const anim_t anim_selected[] = {
   {    0,  700 },
   {  400,  200 },
-  {  700, 4000 },
+  {  700, 3000 },
   { 1000,  200 },
   { 1400,  700 },
   { 1940,  700 },
@@ -494,10 +519,19 @@ static const anim_t anim_selected[] = {
 static const anim_t anim_connected[] = {
   {    0,  700 },
   {  200,  200 },
-  {  500, 4000 },
+  {  500, 2000 },
   {  800,  200 },
   { 1000,  700 },
   { 1030,  700 },
+  { 0, 0 }
+};
+
+static const anim_t anim_pressed[] = {
+  {    0,  2000 },
+  {  200,  6000 },
+  {  250,  6000 },
+  {  300,  6000 },
+  {  500,  2000 },
   { 0, 0 }
 };
 
@@ -525,20 +559,21 @@ static void draw_line_anim(endpoint_t *ep, long now, bool debug, const anim_t an
     int32_t phs = (int32_t)(now - ep->animstart);
     int idx = ep->idx;
     ledset_t leds = leds_keyidx(idx);
+    uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
     for (int pi = 0; pi < 4; pi++) {
-        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pi], color);
+        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pi], colorval);
     }
     while (idx >= 0) {
         phs -= ANIM_STEP;
         int pd = GET_FIELD(idx).prev;
         if (pd < 4) {
-            uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
+            colorval = anim_color(color, phs, anim, anim_cnt);
             pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pd], colorval);
         }
         phs -= ANIM_STEP;
         int nd = GET_FIELD(idx).next;
         if (nd < 4) {
-            uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
+            colorval = anim_color(color, phs, anim, anim_cnt);
             pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[nd], colorval);
         }
         idx = field_neighbour(idx, nd);
@@ -568,13 +603,18 @@ static void draw_line_default(endpoint_t *ep, long now, bool debug)
     }
 }
 
-static void draw_line(endpoint_t *ep, long now, bool debug)
+static void draw_line(int line, endpoint_t *ep, long now, bool debug)
 {
+    if ((curkey >= 0) && (GET_FIELD(curkey).line == line)) {
+        return draw_line_anim(ep, now, debug, anim_pressed);
+    }
     switch (ep->status) {
       case EP_SELECTED:
         return draw_line_anim(ep, now, debug, anim_selected);
       case EP_CONNECTED:
         return draw_line_anim(ep, now, debug, anim_connected);
+      case EP_OTHEREND:
+        return;
       default:
         return draw_line_default(ep, now, debug);
     }
@@ -585,7 +625,7 @@ static void draw_field(bool debug=false)
     long now = millis();
     pixels.clear();
     for (int c = 0; field_endpoints[c].idx >= 0; c++) {
-        draw_line(&field_endpoints[c], now, debug);
+        draw_line(c, &field_endpoints[c], now, debug);
     }
     // Light up pressed key
     if (curkey >= 0) {
@@ -763,7 +803,8 @@ static void press_key(int key)
                     nxt = field_neighbour(nxt, nn);
                 }
                 field_endpoints[selected].status = EP_CONNECTED;
-                field_endpoints[line].status = EP_CONNECTED;
+                field_endpoints[line].status = EP_OTHEREND;
+                line = selected;  // Make sure the loose line doesn't get selected
                 selected = -1;
             } else if (line >= 0) {
                 if (GET_FIELD(key).is_endpoint) {
@@ -790,20 +831,8 @@ static void press_key(int key)
                                 GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
                                 GET_FIELD(nxt).next = nn;
                                 nxt = field_neighbour(nxt, nn);
-                                if (nxt < 0) {
-                                    debugE("While reversing, reached end of chain at %d", nn);
-                                    return;
-                                }
-                                if (dist > 150) {
-                                    debugE("While reversing, got endless loop");
-                                    return;
-                                }
                             }
                             break;
-                        }
-                        if (dist++ > 125) {
-                            debugE("While scanning, got endless loop");
-                            return;
                         }
                         nxt = field_neighbour(nxt, GET_FIELD(nxt).next);
                     }
@@ -821,8 +850,9 @@ static void press_key(int key)
                     int prv = neighbours.neighbour[GET_FIELD(key).prev];
                     debugD("Disconnect end %d", prv);
                     GET_FIELD(prv).next = 4;
-                    // GET_FIELD(ket).prev = 4    // Will be set below
+                    GET_FIELD(key).prev = 4;
                     field_endpoints[line].status = EP_NORMAL;
+                    field_endpoints[line^1].status = EP_NORMAL;
 
                     // Extend chain
                     debugI("Press key %d, no line %d, extend chain", key, line);
@@ -854,9 +884,13 @@ static void press_key(int key)
     // Don't use else to enable above block to deselect and then fall into this block
     if (selected < 0) {
         if (line >= 0) {
-            // Select this line
-            selected = line;
-            debugI("Press %d selects %d", key, selected);
+            if (field_endpoints[line].status == EP_CONNECTED) {
+                debugI("Press %d would select %d but it's already connected", key, line);
+            } else {
+                // Select this line
+                selected = line;
+                debugI("Press %d selects %d", key, selected);
+            }
         } else {
             debugI("Press %d does nothing (todo)", key);
             /*
