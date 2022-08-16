@@ -683,7 +683,70 @@ static void press_key(int key)
                     selected = -1;
                 } else {
                     debugI("Press key %d, different line %d, push through, todo", key, line);
-                    // TODO: Overwrite chain
+                    // Disconnect pushed-through chain
+                    //  disconnect next-direction
+                    int nxt = neighbours.neighbour[GET_FIELD(key).next];
+                    while (nxt >= 0) {
+                        int dist = 0;
+                        // Find end of chain
+                        if (GET_FIELD(nxt).is_endpoint) {
+                            // Reverse chain
+                            dist = 0;
+                            int dline = line ^ 1;
+                            while (nxt != key) {
+                                debugD("Reverse %d<-%d<-%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
+                                GET_FIELD(nxt).line = dline;
+                                GET_FIELD(nxt).dist = ++dist;
+
+                                int nn = GET_FIELD(nxt).prev;
+                                GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
+                                GET_FIELD(nxt).next = nn;
+                                nxt = field_neighbour(nxt, nn);
+                                if (nxt < 0) {
+                                    debugE("While reversing, reached end of chain at %d", nn);
+                                    return;
+                                }
+                                if (dist > 150) {
+                                    debugE("While reversing, got endless loop");
+                                    return;
+                                }
+                            }
+                            break;
+                        }
+                        if (dist++ > 125) {
+                            debugE("While scanning, got endless loop");
+                            return;
+                        }
+                        nxt = field_neighbour(nxt, GET_FIELD(nxt).next);
+                    }
+                    if (nxt < 0) {
+                        // No endpoint, kill chain
+                        nxt = neighbours.neighbour[GET_FIELD(key).next];
+                        debugD("Disconnect chain %d", nxt);
+                        disconnect_chain(nxt);
+                    } else {
+                        nxt = neighbours.neighbour[GET_FIELD(key).next];
+                        debugD("Disconnect second end %d", nxt);
+                        GET_FIELD(nxt).next = 4;
+                        GET_FIELD(key).next = 4;
+                    }
+                    int prv = neighbours.neighbour[GET_FIELD(key).prev];
+                    debugD("Disconnect end %d", prv);
+                    GET_FIELD(prv).next = 4;
+                    // GET_FIELD(ket).prev = 4    // Will be set below
+                    field_endpoints[line].status = EP_NORMAL;
+
+                    // Extend chain
+                    debugI("Press key %d, no line %d, extend chain", key, line);
+                    int idx = neighbours.neighbour[fnd];
+                    nxt = field_neighbour(idx, GET_FIELD(idx).next);
+                    debugD("Connect to chain at %d, disconnect %d", idx, nxt);
+                    // Disconnect other chain
+                    disconnect_chain(nxt);
+                    GET_FIELD(key).line = GET_FIELD(idx).line;
+                    GET_FIELD(key).dist = GET_FIELD(idx).dist + 1;
+                    GET_FIELD(key).prev = fnd;
+                    GET_FIELD(idx).next = invert_dir(key, idx, fnd);
                 }
             } else {
                 // Extend chain
