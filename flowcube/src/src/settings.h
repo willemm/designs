@@ -33,12 +33,6 @@ extern RemoteDebug Debug;
 
 #define OTA_NAME "eos-flowcube-1"
 
-struct ledset_t {
-    uint8_t side;
-    uint8_t left;
-    uint8_t down;
-};
-
 // extern fieldcell_t field[];
 extern const uint32_t colors[];
 extern Adafruit_NeoPixel pixels;
@@ -48,7 +42,7 @@ void ota_check();
 
 void leds_init();
 void leds_test();
-ledset_t leds_keyidx(int keyidx);
+// ledset_t leds_keyidx(int keyidx);
 void leds_setline(int keyidx1, int keyidx2, int colorindex);
 void test_lines();
 void leds_clear();

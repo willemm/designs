@@ -8,16 +8,9 @@ int lastkey = 0; // Last key pressed
 int curkey = 0; // Key currently being held down
 
 struct fieldcell_t {
-    /*
-    union {
-        struct { int8_t up, left, down, right, none; };
-        int8_t neighbour[5];
-    };
-    */
     long animstart;
     uint8_t pixel[4];
     uint8_t animtype;
-    uint8_t side;
     uint8_t dist;
     int8_t line;
     unsigned next:4, prev:4;
@@ -25,20 +18,9 @@ struct fieldcell_t {
 };
 
 static_assert(sizeof(fieldcell_t) == 16, "Size of fieldcell_t is bigger than 16");
-/*
-static_assert(offsetof(fieldcell_t, up   ) == offsetof(fieldcell_t, neighbour)+0, "Neighbour doesn't match up");
-static_assert(offsetof(fieldcell_t, left ) == offsetof(fieldcell_t, neighbour)+1, "Neighbour doesn't match left");
-static_assert(offsetof(fieldcell_t, down ) == offsetof(fieldcell_t, neighbour)+2, "Neighbour doesn't match down");
-static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3, "Neighbour doesn't match right");
-*/
 
 #define FIELD_ENDPOINT 0x01
 #define FIELD_FOLD 0x02
-
-#define FIELD_UP    0
-#define FIELD_LEFT  1
-#define FIELD_DOWN  2
-#define FIELD_RIGHT 3
 
 #define EP_NORMAL    0
 #define EP_SELECTED  1
@@ -53,6 +35,15 @@ static_assert(offsetof(fieldcell_t, right) == offsetof(fieldcell_t, neighbour)+3
 #define NUMKEYS (3*FSZ*FSZ)
 
 fieldcell_t field[NUMKEYS];
+
+// Because dividing by 25 is expensive, shift the indices to multiples of 32
+// For this we need a special function to translate back to multiples of 25
+// to actually index the field, so we don't get gaps.
+
+#define ESSZ 32  // First power of two above SSZ  (which is 25)
+
+#define GET_FIELD(idx) (field[(idx) - (ESSZ-SSZ) * ((idx)/ESSZ)])
+#define FIELD_SIDE(idx) ((idx)/ESSZ)
 
 struct neighbours_t { int8_t neighbour[5]; };
 
@@ -158,32 +149,30 @@ Fourth, simplified
 
 */
 
-// Calculate offset to go to another side (sunwise or widdershins)
-// side index = index / side size.  Add step, modulo 3.  Multiply by side size again.
-#define NEIGHBOUR_SIDE_STEP(idx,s) (((((idx) / SSZ) + (s)) % 3) * SSZ)
-
 // Calculate step to go across a cube edge, downward
-// 24 19 14  9  4  (plus side index * 25)
+// 24 19 14  9  4  (plus side index * 32)
 // --------------
-//  0  1  2  3  4  (plus side index * 25, note this is widdershins, so side index +1 (mod3))
+//  0  1  2  3  4  (plus side index * 32, note this is widdershins, so side index +1 (mod3))
 //
-// Take index mod25 to remove side number
-// Integer divide by FSZ (5), reverse order. e.g. 19/5 = 3, 4-3 = 1, add 25 to go widdershins
-#define NEIGHBOUR_WRAP_DOWN(idx) ((FSZ-1 - (((idx) % SSZ) / FSZ)) + NEIGHBOUR_SIDE_STEP((idx),1))
+// Take index mod32 to remove side number
+// Reverse order from 24  to go 24,19,14,9,4 => 0,5,10,15,20
+// Integer divide by FSZ (5) and add 32 to go widdershins
+#define NEIGHBOUR_WRAP_DOWN(idx) (((SSZ-1 - ((idx) % ESSZ)) / FSZ) + (((idx)/ESSZ + 1)%3)*ESSZ)
 
 // Calculate step to across a cube edge, rightward
 // Note, this is opposite downward because directions rotate across the cube
 // Therefore, caulculation is reverse of downward
 //
-// Take index mod25 to remove side number
-// Multiply by FSZ (5), reverse order from 24 to go 0,5,10,15,20/24,19,14,9,4 subtract 25 to go sunwise
-#define NEIGHBOUR_WRAP_RIGHT(idx) ((SSZ-1 - (((idx) % FSZ) * FSZ)) + NEIGHBOUR_SIDE_STEP((idx),2))
+// Take index mod32 to remove side number
+// Multiply by FSZ (5),
+// Reverse order from 24 to go 0,5,10,15,20/24,19,14,9,4 and add 32 twice to go sunwise
+#define NEIGHBOUR_WRAP_RIGHT(idx) ((SSZ-1 - (((idx) % ESSZ) * FSZ)) + (((idx)/ESSZ + 2)%3)*ESSZ)
 
 // Four directions.  (Up is as seen on the first side in the diagram above)
-#define NEIGHBOUR_UP(idx)    ((((idx) % FSZ) > 0) ? ((idx) - 1) : -1)
-#define NEIGHBOUR_LEFT(idx)  ((((idx) % SSZ) < (SSZ-FSZ)) ? ((idx) + FSZ) : -1)
-#define NEIGHBOUR_DOWN(idx)  ((((idx) % FSZ) < (FSZ-1)) ? ((idx) + 1) : NEIGHBOUR_WRAP_DOWN((idx)))
-#define NEIGHBOUR_RIGHT(idx) ((((idx) % SSZ) >= FSZ) ? ((idx) - FSZ) : NEIGHBOUR_WRAP_RIGHT((idx)))
+#define NEIGHBOUR_UP(idx)    (((((idx) % ESSZ) % FSZ) > 0) ? ((idx) - 1) : -1)
+#define NEIGHBOUR_LEFT(idx)  ((((idx) % ESSZ) < (SSZ-FSZ)) ? ((idx) + FSZ) : -1)
+#define NEIGHBOUR_DOWN(idx)  (((((idx) % ESSZ) % FSZ) < (FSZ-1)) ? ((idx) + 1) : NEIGHBOUR_WRAP_DOWN((idx)))
+#define NEIGHBOUR_RIGHT(idx) ((((idx) % ESSZ) >= FSZ) ? ((idx) - FSZ) : NEIGHBOUR_WRAP_RIGHT((idx)))
 
 static int8_t field_neighbour(int idx, int nd)
 {
@@ -194,39 +183,9 @@ static int8_t field_neighbour(int idx, int nd)
         case 3: return NEIGHBOUR_RIGHT(idx);
         default: return -1;
     }
-    /*
-    switch (nd) {
-      case 0:
-        if ((idx % FSZ) > 0) { // Up (on side 0) is index minus one
-            return idx - 1;
-        } else {
-            return -1;
-        }
-      case 1:
-        if ((idx % SSZ) < (SSZ-FSZ)) { // Left (on side 0) is index plus one row
-            return idx + FSZ;
-        } else {
-            return -1;
-        }
-      case 2:
-        if ((idx % FSZ) < (FSZ-1)) { // Down (on side 0) is index plus one
-            return idx + 1;
-        } else {
-            return (FSZ-1) - ((idx % SSZ) / FSZ) +  ((((idx / SSZ) + 1) % 3) * SSZ);
-        }
-      case 3:
-        if ((idx % SSZ) >= FSZ) { // Right (on side 0) is index minus one row
-            return idx - FSZ;
-        } else {
-            return ((SSZ - 1) - ((idx % SSZ) * FSZ)) + ((((idx / SSZ) + 2) % 3) * SSZ);
-        }
-      default:
-        return -1;
-    }
-    */
 }
 
-static neighbours_t field_neighbours(int idx)
+static neighbours_t field_neighbours(int8_t idx)
 {
     neighbours_t nb;
 
@@ -234,91 +193,38 @@ static neighbours_t field_neighbours(int idx)
     nb.neighbour[1] = NEIGHBOUR_LEFT(idx);
     nb.neighbour[2] = NEIGHBOUR_DOWN(idx);
     nb.neighbour[3] = NEIGHBOUR_RIGHT(idx);
-    
-    /*
-    int sidx = idx % SSZ;  // Index on side
-    int side = idx / SSZ;  // Side (0,1,2)
-    int ridx = idx % FSZ;  // Row number
-    int cidx = sidx / FSZ; // Column number
-
-    if (ridx > 0) { // Up (on side 0) is index minus one
-        nb.neighbour[0] = idx - 1;
-    } else {
-        nb.neighbour[0] = -1;
-    }
-    if (sidx < (SSZ-FSZ)) { // Left (on side 0) is index plus one row
-        nb.neighbour[1] = idx + FSZ;
-    } else {
-        nb.neighbour[1] = -1;
-    }
-    if (ridx < (FSZ-1)) { // Down (on side 0) is index plus one
-        nb.neighbour[2] = idx + 1;
-    } else {
-        nb.neighbour[2] = 4 - cidx +  (((side + 1) % 3) * SSZ);
-    }
-    if (sidx >= FSZ) { // Right (on side 0) is index minus one row
-        nb.neighbour[3] = idx - FSZ;
-    } else {
-        nb.neighbour[3] = ((SSZ - 1) - (sidx * FSZ)) + (((side + 2) % 3) * SSZ);
-    }
-    */
     nb.neighbour[4] = -1;
     return nb;
 }
 
-// Translate from 6 directions to four, depending on cube side
-// This way a straight line across a fold always has the same direction number
+// Calculate the inverse of a direction
+// Normally this is (direction ^ 2)
+// However, across a fold this is different.
 // 
-// - There are 6 orthogonal directions on a cube, but each side only has 4
-// - The last three are the negative/opposite of the first three
+// Note that each side thinks it's upper left, rotation-wise,
+// so on the cube the four directions are like this:
 //
-// +------+
-// | 0    |
-// | ^ 1<-|-....
-// | |    |    |
-// +------+------+
-// | |    |    | |
-// | v 2<-|->5 v |
-// | 3    |    4 |
-// +------+------+
+// +---+
+// | 0 |
+// |1 3|
+// | 2 |
+// +---+---+
+// | 3 | 2 |
+// |0 2|3 1|
+// | 1 | 0 |
+// +---+---+
 //
-// Note that each side thinks it's upper left, rotation-wise, so in the above diagram:
-//   0    3    2
-//  1 3  0 2  3 1
-//   2    1    0
-//
-// So the directions are:
-// side 0:  0 1 - 2 3 -
-// side 1:  3 - 0 1 - 2
-// side 2:  - 2 3 - 0 1
-//
-// Which is the same array, only rotated by (minus) two steps per side
-// Neat, because we need mod6 anyway for the inverse (which is +3 mod6)
-// And minus two mod 6 is plus four.
+// It becomes apparent that a fold always has 2 and 3 as directions.
+// So if the side is the same, the inverse direction is (direction ^ 2)
+// but on a fold, the inverse direction is (direction ^ 1)
 
-static const uint8_t step_dirs[6] = { 0, 1, 4, 2, 3, 4 };
-
-static inline uint8_t step_nb(fieldcell_t field, int dir)
+// Calculate the inverse direction (going from 'from' to 'to' is 'dir')
+static inline uint8_t invert_dir(int from, int to, int dir)
 {
-    return step_dirs[(field.side*4 + dir)%6];
+    // If sides are the same, 0<>2 and 1<>3  (so xor 2)
+    // If sides are different, 2<>3  (so xor 1)
+    return dir ^ (1 << (from/ESSZ == to/ESSZ));
 }
-
-// Find the field index in the given (one of six) direction
-static inline int step_dir(neighbours_t neighbours, fieldcell_t field, int dir)
-{
-    return neighbours.neighbour[step_nb(field, dir)];
-}
-
-// Find the index of the led in the given (one of six) direction
-static inline int pixel_dir(fieldcell_t field, int dir)
-{
-    uint8_t sdir = step_nb(field, dir);
-    if (sdir >= 4) {
-        debugE("ERROR CANTHAPPEN: Wants to get direction %d on side %d", dir, field.side);
-    }
-    return ((int)field.side)*LEDSZ + (int)field.pixel[sdir%4];
-}
-
 
 /*
    Field layout:
@@ -356,13 +262,61 @@ static inline int field_idx(int y, int x)
         //return (FSZ-1)*FSZ - x*FSZ + y;
     } else if (x < FSZ) {
         // front
-        return FSZ*FSZ + (y-FSZ)*FSZ + x;
+        return ESSZ + (y-FSZ)*FSZ + x;
         //return y*FSZ + x;
     } else {
         // right
-        return FSZ*FSZ*2 + (x-FSZ)*FSZ + (FSZ-1-(y-FSZ));
+        return ESSZ*2 + (x-FSZ)*FSZ + (FSZ-1-(y-FSZ));
         //return FSZ*FSZ + 2*FSZ - 1 + x*FSZ - y;
     }
+}
+
+struct ledset_t {
+    uint8_t left;
+    uint8_t down;
+};
+
+// Leds are ordered like this:
+//  Y   4  3  2  1  0
+//
+// X    +--+  +--+  in 
+//      |  |  |  |  |
+// 0 +--O--O--O--5--0-- out
+//   |  |  |  |  |  |   
+//   |  |  |  |  |  |   
+// 1 +--O--O--O--6--1--+
+//      |  |  |  |  |  |
+//      |  |  |  |  |  |
+// 2 +--O--O--O--7--2--+
+//   |  |  |  |  |  |
+//   |  |  |  |  |  |
+// 3 +--O--O--O--8--3--+
+//      |  |  |  |  |  |
+//      |  |  |  |  |  |
+// 4 +--O--O--O--9--4--+
+//   |  |  |  |  |  |
+//   +--+  +--+  +--+
+//
+//
+//  We only calculate left and down because right and up will be that cell xor 1
+//
+// Recalculate x and y from index (we can't re-use x and y because sides are rotated)
+// Left: Upper half of set.   (50..99)
+//       
+// 
+static inline ledset_t leds_keyidx(int idx)
+{
+    ledset_t cell;
+    // Calculate x and y
+    int x = ((idx % ESSZ) % FSZ);
+    int y = ((idx % ESSZ) / FSZ);
+    // Horizontal direction depending on row
+    int s1 = (y%2) ? -1 : 1;
+    cell.left = y*(FSZ*2) + (FSZ-1) + s1*((x*2)-(FSZ-1)) + (y%2);
+    // Vertical direction depending on column
+    int s2 = (x%2) ? -1 : 1;
+    cell.down = (SSZ*4-2) - (x*(FSZ*2) + (FSZ-1) + s2*((y*2)-(FSZ-1))) + (x%2);
+    return cell;
 }
 
 void field_init()
@@ -371,58 +325,17 @@ void field_init()
         // Upper right quadrant is not used
         int xsz = ((y >= FSZ) ? DSZ : FSZ);
         for (int x = 0; x < xsz; x++) {
-            int idx = field_idx(y,x);
+            int idx = field_idx(y, x);
             ledset_t cell = leds_keyidx(idx);
-            /*
-            int cellrot = (idx/(FSZ*FSZ)); // Rotate by 1 or 2 steps depending on face
-            field[idx].side = cell.side;
-            field[idx].pixel[(cellrot+0)%4] = cell.left;   // up
-            field[idx].pixel[(cellrot+1)%4] = cell.down;   // right
-            field[idx].pixel[(cellrot+2)%4] = cell.left^1; // down
-            field[idx].pixel[(cellrot+3)%4] = cell.down^1; // left
-            field[idx].none = -1;
-            field[idx].up = -1;
-            field[idx].left = -1;
-            field[idx].prev = 4;
-            field[idx].next = 4;
-            */
-            field[idx].side = cell.side;
-            field[idx].pixel[0] = cell.left;   // up
-            field[idx].pixel[1] = cell.down;   // right
-            field[idx].pixel[2] = cell.left^1; // down
-            field[idx].pixel[3] = cell.down^1; // left
-            field[idx].prev = 4;
-            field[idx].next = 4;
-            field[idx].is_endpoint = 0;
-            /*
-            if ((x == FSZ-1) && (y < FSZ)) {
-                // Right edge of upper left folds to top of lower right
-                field[idx].right = field_idx(DSZ-1-x, DSZ-1-y);
-            } else if (x == DSZ-1) {
-                // Sentinel value for no right neighbour
-                field[idx].right = -1;
-            } else {
-                field[idx].right = field_idx(y,x+1);
-            }
-            // Down never folds
-            if (y == DSZ-1) {
-                field[idx].down = -1;
-            } else {
-                field[idx].down = field_idx(y+1,x);
-            }
-            */
+            GET_FIELD(idx).pixel[0] = cell.left;   // up
+            GET_FIELD(idx).pixel[1] = cell.down;   // right
+            GET_FIELD(idx).pixel[2] = cell.left^1; // down
+            GET_FIELD(idx).pixel[3] = cell.down^1; // left
+            GET_FIELD(idx).prev = 4;
+            GET_FIELD(idx).next = 4;
+            GET_FIELD(idx).is_endpoint = 0;
         }
     }
-    /*
-    for (int idx = 0; idx < NUMKEYS; idx++) {
-        for (int n = 0; n < 3; n++) {
-            int nb = step_dir(field[idx], n);
-            if (nb >= 0) {
-                field[nb].neighbour[step_nb(field[nb], n+3)] = idx;
-            }
-        }
-    }
-    */
 }
 
 int8_t endpoint_coords[] = {
@@ -462,8 +375,8 @@ static void set_endpoints(endpoint_t *endpoints)
 {
     for (int c = 0; endpoints[c].idx >= 0; c++) {
         debugD("Set endpoint %d: (%d)", c, endpoints[c].idx);
-        field[endpoints[c].idx].line = c;
-        field[endpoints[c].idx].is_endpoint = 1;
+        GET_FIELD(endpoints[c].idx).line = c;
+        GET_FIELD(endpoints[c].idx).is_endpoint = 1;
     }
 }
 
@@ -529,22 +442,21 @@ static void draw_line_anim(endpoint_t *ep, long now, bool debug, const anim_t an
     int32_t phs = (int32_t)(now - ep->animstart);
     int idx = ep->idx;
     for (int pi = 0; pi < 4; pi++) {
-        pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pi], color);
+        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pi], color);
     }
     while (idx >= 0) {
         phs -= ANIM_STEP;
-        int8_t pd = field[idx].prev;
+        int8_t pd = GET_FIELD(idx).prev;
         if (pd < 4) {
             uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
-            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pd], colorval);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pd], colorval);
         }
         phs -= ANIM_STEP;
-        int8_t nd = field[idx].next;
+        int8_t nd = GET_FIELD(idx).next;
         if (nd < 4) {
             uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
-            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], colorval);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[nd], colorval);
         }
-        // idx = field[idx].neighbour[nd];
         idx = field_neighbour(idx, nd);
     }
 }
@@ -554,18 +466,17 @@ static void draw_line_default(endpoint_t *ep, long now, bool debug)
     uint32_t color = ep->color;
     int idx = ep->idx;
     for (int pi = 0; pi < 4; pi++) {
-        pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pi], color);
+        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pi], color);
     }
     while (idx >= 0) {
-        int8_t pd = field[idx].prev;
+        int8_t pd = GET_FIELD(idx).prev;
         if (pd < 4) {
-            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[pd], color);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pd], color);
         }
-        int8_t nd = field[idx].next;
+        int8_t nd = GET_FIELD(idx).next;
         if (nd < 4) {
-            pixels.setPixelColor(((int)field[idx].side)*LEDSZ+field[idx].pixel[nd], color);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[nd], color);
         }
-        // idx = field[idx].neighbour[nd];
         idx = field_neighbour(idx, nd);
     }
 }
@@ -590,101 +501,15 @@ static void draw_field(bool debug=false)
         draw_line(&field_endpoints[c], now, debug);
     }
     // Light up pressed key
-    if (curkey > 0) {
-        int idx = curkey - 1;
-        int side = ((int)field[idx].side)*LEDSZ;
+    if (curkey >= 0) {
+        int idx = curkey;
         uint32_t colorval = pixels.Color(255,255,255);
         for (int i = 0; i < 4; i++) {
-            pixels.setPixelColor(side+field[idx].pixel[i], colorval);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + GET_FIELD(idx).pixel[i], colorval);
         }
     }
     pixels.show();
 }
-
-/*
-static void draw_field_old(bool debug=false)
-{
-    pixels.clear();
-    for (int idx = 0; idx < NUMKEYS; idx++) {
-        int side = ((int)field[idx].side)*LEDSZ;
-        int color = field[idx].color;
-        if (color >= 0) {
-            uint32_t colorval = colors[color/2];
-            if (debug) debugV("color = %d, idx=%d, colorval = 0x%06x", color, color/2, colorval);
-            // if (color == selected) colorval = colorval*2; // brighten (TODO: do this better)
-            if (field[idx].is_endpoint) {
-                for (int i = 0; i < 4; i++) {
-                    pixels.setPixelColor(side+field[idx].pixel[i], colorval);
-                }
-            }
-
-            for (int i = 0; i < 3; i++) {
-                int dir = step_dir(field[idx], i);
-                if ((dir >= 0) && (field[dir].color == color)) {
-                    pixels.setPixelColor(pixel_dir(field[idx], i), colorval);
-                    pixels.setPixelColor(pixel_dir(field[dir], i+3), colorval);
-                    if (debug) debugV("Set pixels between %2d and %2d: (%3d,%3d) = 0x%06x",
-                        idx, dir,
-                        pixel_dir(field[idx], i), pixel_dir(field[dir], i+3),
-                        colorval);
-                    }
-            }
-        }
-        if (idx == (curkey-1)) {
-            uint32_t colorval = pixels.Color(255,255,255);
-            for (int i = 0; i < 4; i++) {
-                pixels.setPixelColor(side+field[idx].pixel[i], colorval);
-            }
-        }
-    }
-    if (selected >= 0) {
-        long now = millis();
-        int idx = field_idx(field_endpoints[selected*2], field_endpoints[selected*2+1]);
-        int len = 0;
-        int nxt = idx;
-        while (nxt >= 0) {
-            len++;
-            nxt = field[nxt].neighbour[field[nxt].next];
-        }
-        int32_t anpos = (now % 2000);
-        anpos = anpos * (len+3) / 2 - 2000;
-        nxt = idx;
-        if (debug) debugV("position %d", anpos);
-        while (nxt >= 0) {
-            uint32_t colorval = colors[selected/2];
-            int32_t aps = anpos;
-            if (aps < 0) aps = -aps;
-            if (aps <= 2000) {
-                if (aps <= 1000) {
-                    if (debug) debugV("key %d, brighten", nxt);
-                    colorval = colorscale(colorval, 500+(3*(1000-aps)/2));
-                } else {
-                    if (debug) debugV("key %d, dim", nxt);
-                    colorval = colorscale(colorval, aps/2);
-                }
-            }
-            int8_t pd = field[nxt].prev;
-            if (pd < 4) {
-                if (debug) debugV("Set key %d prev color to 0x%06x", nxt, colorval);
-                pixels.setPixelColor(((int)field[nxt].side)*LEDSZ+field[nxt].pixel[pd], colorval);
-            } else {
-                if (debug) debugV("Set key %d start color to 0x%06x", nxt, colorval);
-                for (int pi = 0; pi < 4; pi++) {
-                    pixels.setPixelColor(((int)field[nxt].side)*LEDSZ+field[nxt].pixel[pi], colorval);
-                }
-            }
-            int8_t nd = field[nxt].next;
-            if (nd < 4) {
-                if (debug) debugV("Set key %d next color to 0x%06x", nxt, colorval);
-                pixels.setPixelColor(((int)field[nxt].side)*LEDSZ+field[nxt].pixel[nd], colorval);
-            }
-            nxt = field[nxt].neighbour[nd];
-            anpos -= 1000;
-        }
-    }
-    pixels.show();
-}
-*/
 
 void field_clear()
 {
@@ -713,6 +538,7 @@ static const int field_test_lines[5][8] = {
     { 40,45,46,47,48,49,44,39 }
 };
 
+/*
 static void testdelay(int dly)
 {
     for (int d = 0; d < dly; d += 100) {
@@ -721,7 +547,6 @@ static void testdelay(int dly)
     }
 }
 
-/*
 void field_test()
 {
     for (int idx = 0; idx < NUMKEYS; idx++) {
@@ -763,37 +588,34 @@ static void disconnect_chain(int idx)
     if (idx < 0) return;
     int nxt = idx;
     // Disconnect last link
-    field[idx].prev = 4;
+    GET_FIELD(idx).prev = 4;
     // First reverse, see if his leads to an endpoint
     while (nxt >= 0) {
-        debugD("Reverse %d->%d->%d", field[nxt].prev, nxt, field[nxt].next);
-        int nn = field[nxt].next;
-        field[nxt].next = field[nxt].prev;
-        field[nxt].prev = nn;
-        field[nxt].line = field[nxt].line ^ 1;
-        if (field[nxt].is_endpoint) {
+        debugD("Reverse %d->%d->%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
+        int nn = GET_FIELD(nxt).next;
+        GET_FIELD(nxt).next = GET_FIELD(nxt).prev;
+        GET_FIELD(nxt).prev = nn;
+        GET_FIELD(nxt).line = GET_FIELD(nxt).line ^ 1;
+        if (GET_FIELD(nxt).is_endpoint) {
             // Found an endpoint, so don't turn off
             // Only turn off the first one
             // Fix the distances
             int dist = 0;
             while (nxt >= 0) {
-                field[nxt].dist = dist++;
-                // nxt = field[nxt].neighbour[field[nxt].next];
-                nxt = field_neighbour(nxt, field[nxt].next);
+                GET_FIELD(nxt).dist = dist++;
+                nxt = field_neighbour(nxt, GET_FIELD(nxt).next);
             }
         }
-        // nxt = field[nxt].neighbour[nn];
         nxt = field_neighbour(nxt, nn);
     }
     // There was no endpoint so turn the chain off
     nxt = idx;
     while (nxt >= 0) {
-        debugD("Disconnect %d->%d->%d", field[nxt].prev, nxt, field[nxt].next);
-        int nn = field[nxt].prev;
-        field[nxt].next = 4;
-        field[nxt].prev = 4;
-        field[nxt].line = -1;
-        // nxt = field[nxt].neighbour[nn];
+        debugD("Disconnect %d->%d->%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
+        int nn = GET_FIELD(nxt).prev;
+        GET_FIELD(nxt).next = 4;
+        GET_FIELD(nxt).prev = 4;
+        GET_FIELD(nxt).line = -1;
         nxt = field_neighbour(nxt, nn);
     }
 }
@@ -801,21 +623,21 @@ static void disconnect_chain(int idx)
 static void press_key(int key)
 {
     long now = millis();
-    int line = field[key].line;
+    int line = GET_FIELD(key).line;
     if (selected >= 0) {
         debugI("Press key %d, check for neighbour with selected line %d", key, selected);
         int fnd = -1;
         int mindist = 1000;
         neighbours_t neighbours = field_neighbours(key);
-        for (int n = 0; n < 6; n++) {
-            int nb = step_dir(neighbours, field[key], n);
+        for (int n = 0; n < 4; n++) {
+            int nb = neighbours.neighbour[n];
             if (nb >= 0) {
-                debugD("Check field #%d = %d, line %d, dist %d", n, nb, field[nb].line, field[nb].dist);
+                debugD("Check field #%d = %d, line %d, dist %d", n, nb, GET_FIELD(nb).line, GET_FIELD(nb).dist);
             }
-            if ((nb >= 0) && (field[nb].line == selected) && (field[nb].dist < mindist)) {
-                debugD("Got field #%d = %d, line %d, dist %d < %d", n, nb, field[nb].line, field[nb].dist, mindist);
+            if ((nb >= 0) && (GET_FIELD(nb).line == selected) && (GET_FIELD(nb).dist < mindist)) {
+                debugD("Got field #%d = %d, line %d, dist %d < %d", n, nb, GET_FIELD(nb).line, GET_FIELD(nb).dist, mindist);
                 fnd = n;
-                mindist = field[nb].dist;
+                mindist = GET_FIELD(nb).dist;
             }
         }
         if (fnd < 0) {
@@ -831,34 +653,32 @@ static void press_key(int key)
             } else if (line == (selected ^ 1)) {
                 debugI("Press key %d, matching line %d, connect", key, line);
                 // Disconnect pressed chain end
-                // int nxt = field[key].neighbour[field[key].next];
-                int nxt = field_neighbour(key, field[key].next);
+                int nxt = neighbours.neighbour[GET_FIELD(key).next];
                 debugD("Connect to chain at %d, disconnect %d", key, nxt);
                 disconnect_chain(nxt);
-                int idx = step_dir(neighbours, field[key], fnd);
-                // Connect pressed chain
-                field[key].next = step_nb(field[key], fnd);
-                field[idx].next = step_nb(field[idx], fnd+3);
-                debugD("Connect %d to %d and %d to %d", key, field[key].next, idx, field[idx].next);
+                int idx = neighbours.neighbour[fnd];
+                // Connect pressed chain to other chain (use next because we invert later)
+                GET_FIELD(key).next = fnd;
+                GET_FIELD(idx).next = invert_dir(key, idx, fnd);
+                debugD("Connect %d to %d and %d to %d", key, GET_FIELD(key).next, idx, GET_FIELD(idx).next);
                 // Reverse other chain to beginning
                 nxt = key;
-                int dist = field[idx].dist;
+                int dist = GET_FIELD(idx).dist;
                 while (nxt >= 0) {
-                    debugD("Reverse %d<-%d<-%d", field[nxt].prev, nxt, field[nxt].next);
-                    field[nxt].line = selected;
-                    field[nxt].dist = ++dist;
+                    debugD("Reverse %d<-%d<-%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
+                    GET_FIELD(nxt).line = selected;
+                    GET_FIELD(nxt).dist = ++dist;
 
-                    int nn = field[nxt].prev;
-                    field[nxt].prev = field[nxt].next;
-                    field[nxt].next = nn;
-                    // nxt = field[nxt].neighbour[nn];
+                    int nn = GET_FIELD(nxt).prev;
+                    GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
+                    GET_FIELD(nxt).next = nn;
                     nxt = field_neighbour(nxt, nn);
                 }
                 field_endpoints[selected].status = EP_CONNECTED;
                 field_endpoints[line].status = EP_CONNECTED;
                 selected = -1;
             } else if (line >= 0) {
-                if (field[key].is_endpoint) {
+                if (GET_FIELD(key).is_endpoint) {
                     // Endpoints cannot be pushed through
                     selected = -1;
                 } else {
@@ -868,16 +688,15 @@ static void press_key(int key)
             } else {
                 // Extend chain
                 debugI("Press key %d, no line %d, extend chain", key, line);
-                int idx = step_dir(neighbours, field[key], fnd);
-                // int nxt = field[idx].neighbour[field[idx].next];
-                int nxt = field_neighbour(idx, field[idx].next);
+                int idx = neighbours.neighbour[fnd];
+                int nxt = field_neighbour(idx, GET_FIELD(idx).next);
                 debugD("Connect to chain at %d, disconnect %d", idx, nxt);
                 // Disconnect other chain
                 disconnect_chain(nxt);
-                field[key].line = field[idx].line;
-                field[key].dist = field[idx].dist + 1;
-                field[key].prev = step_nb(field[key], fnd);
-                field[idx].next = step_nb(field[idx], fnd+3);
+                GET_FIELD(key).line = GET_FIELD(idx).line;
+                GET_FIELD(key).dist = GET_FIELD(idx).dist + 1;
+                GET_FIELD(key).prev = fnd;
+                GET_FIELD(idx).next = invert_dir(key, idx, fnd);
             }
         }
     }
@@ -936,14 +755,16 @@ void field_update()
         delay(100);
         return;
     }
+    // Translate to 32-offset index
+    key = (key-1) + (ESSZ-SSZ)*((key-1)/25);
     unsigned long tick = millis();
     if (key != curkey) {
         debugD("Field scan, key=%d, curkey=%d, lastkey=%d, tick=%ld", key, curkey, lastkey, tick);
         curkey = key;
-        if (key > 0) {
+        if (key >= 0) {
             if ((key != lastkey) || (lastpress+50 < tick)) {
                 lastkey = key;
-                press_key(key-1);
+                press_key(key);
             }
         }
         lasttick = 0;
@@ -963,24 +784,25 @@ void field_debug_dump()
         }
         Debug.printf("\r\n");
     }
-    for (int idx = 0; idx < NUMKEYS; idx++) {
+    for (int fidx = 0; fidx < NUMKEYS; fidx++) {
+        int idx = fidx + (ESSZ-SSZ)*(fidx/SSZ);
         neighbours_t neighbours = field_neighbours(idx);
         Debug.printf("%2d : neighbour = (%2d, %2d, %2d, %2d) pixel = (%2d, %2d, %2d, %2d) side = %d\r\n",
             idx,
             neighbours.neighbour[0], neighbours.neighbour[1],
             neighbours.neighbour[2], neighbours.neighbour[3],
-            field[idx].pixel[0], field[idx].pixel[1],
-            field[idx].pixel[2], field[idx].pixel[3],
-            field[idx].side);
+            GET_FIELD(idx).pixel[0], GET_FIELD(idx).pixel[1],
+            GET_FIELD(idx).pixel[2], GET_FIELD(idx).pixel[3],
+            FIELD_SIDE(idx));
         Debug.printf("   : chain = (%d, %d) dist = %2d line = %2d endpoint = %d\r\n",
-            field[idx].prev, field[idx].next, field[idx].dist,
-            field[idx].line, field[idx].is_endpoint);
+            GET_FIELD(idx).prev, GET_FIELD(idx).next, GET_FIELD(idx).dist,
+            GET_FIELD(idx).line, GET_FIELD(idx).is_endpoint);
     }
     for (int line = 0; field_endpoints[line].idx >= 0; line++) {
         int idx = field_endpoints[line].idx;
         Debug.printf("Line %d : %d", line, idx);
         while (idx >= 0) {
-            int8_t nd = field[idx].next;
+            int8_t nd = GET_FIELD(idx).next;
             idx = field_neighbour(idx, nd);
             if (idx >= 0) {
                 Debug.printf(" -%c> %d", "uldr "[nd], idx);
