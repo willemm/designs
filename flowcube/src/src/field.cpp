@@ -9,15 +9,14 @@ int curkey = 0; // Key currently being held down
 
 struct fieldcell_t {
     long animstart;
-    uint8_t pixel[4];
     uint8_t animtype;
     uint8_t dist;
     int8_t line;
-    unsigned next:4, prev:4;
+    unsigned next:3, prev:3;
     unsigned is_endpoint:1;
 };
 
-static_assert(sizeof(fieldcell_t) == 16, "Size of fieldcell_t is bigger than 16");
+static_assert(sizeof(fieldcell_t) == 8, "Size of fieldcell_t is bigger than 8");
 
 #define FIELD_ENDPOINT 0x01
 #define FIELD_FOLD 0x02
@@ -272,8 +271,7 @@ static inline int field_idx(int y, int x)
 }
 
 struct ledset_t {
-    uint8_t left;
-    uint8_t down;
+    uint8_t led[4];
 };
 
 // Leds are ordered like this:
@@ -301,22 +299,112 @@ struct ledset_t {
 //  We only calculate left and down because right and up will be that cell xor 1
 //
 // Recalculate x and y from index (we can't re-use x and y because sides are rotated)
-// Left: Upper half of set.   (50..99)
 //       
 // 
-static inline ledset_t leds_keyidx(int idx)
+//  Number of steps:
+//    
+// - divide by 5   = y
+// - get remainder = x
+//
+//  x = 0..4
+//  y = 0..4
+//
+// - Check y even/odd to calc direction
+// - multiply x by 2        0,2,4,6,8
+// - subtract 4            -4,-2,0,2,4
+// - multiply by direction -4,-2,0,2,4  but maybe reversed
+// - add 1 if y is odd     -4,-2,0,2,4 or 5,3,1,-1,-3
+// - add 4                  0,2,4,6,8 or 9,7,5,3,1
+// - multiply y by 10       0,10,20,30,40
+// - add to result          0 .. 49
+// - = left pixel.  Right pixel is left xor 1
+//
+// ALT
+// - Check y even/odd to calc direction
+// - multiply x by 2                0,2,4,6,8
+// - subtract from 9 if y is odd    0,2,4,6,8 or 9,7,5,3,1
+// - multiply y by 10               0,10,20,30,40
+// - add to result                  0 .. 49
+//
+// - Check x even/odd to calc direction
+// - multiply y by 2                0,2,4,6,8
+// - subtract 4                    -4,-2,0,2,4
+// - multiply by direction         -4,-2,0,2,4 or 4,2,0,-2,-4
+// - add 1 if x is odd             -4,-2,0,2,4 or 5,3,1,-1,-3
+// - add 4                          0,2,4,6,8 or 9,7,5,3,1
+// - multiply x by 10               10,20,30,40,50
+// - add to result                  0 .. 49
+// - subtract the whole shebang from 99   99 .. 50
+//
+// ALT
+// - Check x even/odd to calc direction
+// - same calc as ALT for left, but swap x and y
+// - Subtract from 99
+//
+//
+// Fast division by 5 for a number between 0 and 24
+//
+// get bits 0+1 in r, 2+3+4 in d
+// o = (d > r) + (d > 5)
+// div5 = r - o - (d > r)
+// mod5 = r + d - (d > r)
+//
+// 00000  = 0   0 - (0 > 0)    0 = 0 - 0 + 5*(0 > 0)
+// 00001  = 0   0 - (0 > 1)    1 = 1 - 0 + 5*(0 > 1)
+// 00010  = 0   0 - (0 > 2)    2 = 2 - 0 + 5*(0 > 2)
+// 00011  = 0   0 - (0 > 3)    3 = 3 - 0 + 5*(0 > 3)
+// 00100  = 0   1 - (1 > 0)!   4 = 0 - 1 + 5*(1 > 0)!
+// 00101  = 1   1 - (1 > 1)    0 = 1 - 1 + 5*(1 > 1)
+// 00110  = 1   1 - (1 > 2)    1 = 2 - 1 + 5*(1 > 2)
+// 00111  = 1   1 - (1 > 3)    2 = 3 - 1 + 5*(1 > 3)
+// 01000  = 1   2 - (2 > 0)!   3 = 0 - 2 + 5*(2 > 0)!
+// 01001  = 1   2 - (2 > 1)!   4 = 1 - 2 + 5*(2 > 1)!
+// 01010  = 2   2 - (2 > 2)    0 = 2 - 2 + 5*(2 > 2)
+// 01011  = 2   2 - (2 > 3)    1 = 3 - 2 + 5*(2 > 3)
+// 01100  = 2   3 - (3 > 0)!   2 = 0 - 3 + 5*(3 > 0)!
+// 01101  = 2   3 - (3 > 1)!   3 = 1 - 3 + 5*(3 > 1)!
+// 01110  = 2   3 - (3 > 2)!   4 = 2 - 3 + 5*(3 > 2)!
+// 01111  = 3   3 - (3 > 3)    0 = 3 - 3 + 5*(3 > 3)
+// 10000  = 3   4 - (4 > 0)!   1 = 0 - 4 + 5*(0 > 0)
+// 10001  = 3   4 - (4 > 1)!   2 = 1 - 4 + 5*(0 > 1)
+// 10010  = 3   4 - (4 > 2)!   3 = 2 - 4 + 5*(0 > 2)
+// 10011  = 3   4 - (4 > 3)!   4 = 3 - 4 + 5*(0 > 3)
+// 10100  = 4   5 - (5 > 0)!   0 = 0 - 5 + 5*(1 > 0)!
+// 10101  = 4   5 - (5 > 1)!   1 = 1 - 5 + 5*(1 > 1)
+// 10110  = 4   5 - (5 > 2)!   2 = 2 - 5 + 5*(1 > 2)
+// 10111  = 4   5 - (5 > 3)!   3 = 3 - 5 + 5*(1 > 3)
+// 11000  = 4   6 - (6 > 0)!   4 = 0 - 6 + 5*(2 > 0)  !!!!!
+//
+// 24 needs an extra +1 or -1, so add (d > 5) to o
+// 
+static inline ledset_t leds_keyidx(uint8_t idx)
 {
-    ledset_t cell;
+    ledset_t leds;
     // Calculate x and y
-    int x = ((idx % ESSZ) % FSZ);
-    int y = ((idx % ESSZ) / FSZ);
-    // Horizontal direction depending on row
-    int s1 = (y%2) ? -1 : 1;
-    cell.left = y*(FSZ*2) + (FSZ-1) + s1*((x*2)-(FSZ-1)) + (y%2);
-    // Vertical direction depending on column
-    int s2 = (x%2) ? -1 : 1;
-    cell.down = (SSZ*4-2) - (x*(FSZ*2) + (FSZ-1) + s2*((y*2)-(FSZ-1))) + (x%2);
-    return cell;
+    // Bitshifting calculation of div5 and mod5, see above
+    unsigned int d5r = ((idx % ESSZ) & 3);
+    unsigned int d5d = ((idx % ESSZ) >> 2);
+    unsigned int d5o = (d5d > d5r) + (d5d > 5);
+    unsigned int x = d5r + d5o*5 - d5d;  // idx % 5
+    unsigned int y = d5d - d5o;          // idx / 5
+
+    // unsigned int y = ((idx % ESSZ) / FSZ);
+    // unsigned int x = ((idx % ESSZ) % FSZ);
+    // unsigned int x = ((idx % ESSZ) - (FSZ * y));
+    unsigned int left = x*2;
+    if (y%2) left = (FSZ*2-1)-left;
+    left += y*(FSZ*2);
+    leds.led[1] = left;
+    leds.led[3] = left^1;
+
+    unsigned int down = y*2;
+    if (x%2) down = (FSZ*2-1)-down;
+    down += x*(FSZ*2);
+    down = (4*SSZ-1) - down;
+    leds.led[2] = down;
+    leds.led[0] = down^1;
+
+    return leds;
 }
 
 void field_init()
@@ -326,11 +414,6 @@ void field_init()
         int xsz = ((y >= FSZ) ? DSZ : FSZ);
         for (int x = 0; x < xsz; x++) {
             int idx = field_idx(y, x);
-            ledset_t cell = leds_keyidx(idx);
-            GET_FIELD(idx).pixel[0] = cell.left;   // up
-            GET_FIELD(idx).pixel[1] = cell.down;   // right
-            GET_FIELD(idx).pixel[2] = cell.left^1; // down
-            GET_FIELD(idx).pixel[3] = cell.down^1; // left
             GET_FIELD(idx).prev = 4;
             GET_FIELD(idx).next = 4;
             GET_FIELD(idx).is_endpoint = 0;
@@ -441,23 +524,25 @@ static void draw_line_anim(endpoint_t *ep, long now, bool debug, const anim_t an
     uint32_t color = ep->color;
     int32_t phs = (int32_t)(now - ep->animstart);
     int idx = ep->idx;
+    ledset_t leds = leds_keyidx(idx);
     for (int pi = 0; pi < 4; pi++) {
-        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pi], color);
+        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pi], color);
     }
     while (idx >= 0) {
         phs -= ANIM_STEP;
-        int8_t pd = GET_FIELD(idx).prev;
+        int pd = GET_FIELD(idx).prev;
         if (pd < 4) {
             uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
-            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pd], colorval);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pd], colorval);
         }
         phs -= ANIM_STEP;
-        int8_t nd = GET_FIELD(idx).next;
+        int nd = GET_FIELD(idx).next;
         if (nd < 4) {
             uint32_t colorval = anim_color(color, phs, anim, anim_cnt);
-            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[nd], colorval);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[nd], colorval);
         }
         idx = field_neighbour(idx, nd);
+        if (idx >= 0) { leds = leds_keyidx(idx); }
     }
 }
 
@@ -465,19 +550,21 @@ static void draw_line_default(endpoint_t *ep, long now, bool debug)
 {
     uint32_t color = ep->color;
     int idx = ep->idx;
+    ledset_t leds = leds_keyidx(idx);
     for (int pi = 0; pi < 4; pi++) {
-        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pi], color);
+        pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pi], color);
     }
     while (idx >= 0) {
         int8_t pd = GET_FIELD(idx).prev;
         if (pd < 4) {
-            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[pd], color);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[pd], color);
         }
         int8_t nd = GET_FIELD(idx).next;
         if (nd < 4) {
-            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ+GET_FIELD(idx).pixel[nd], color);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[nd], color);
         }
         idx = field_neighbour(idx, nd);
+        if (idx >= 0) { leds = leds_keyidx(idx); }
     }
 }
 
@@ -504,8 +591,9 @@ static void draw_field(bool debug=false)
     if (curkey >= 0) {
         int idx = curkey;
         uint32_t colorval = pixels.Color(255,255,255);
+        ledset_t leds = leds_keyidx(idx);
         for (int i = 0; i < 4; i++) {
-            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + GET_FIELD(idx).pixel[i], colorval);
+            pixels.setPixelColor(FIELD_SIDE(idx)*LEDSZ + leds.led[i], colorval);
         }
     }
     pixels.show();
@@ -850,12 +938,12 @@ void field_debug_dump()
     for (int fidx = 0; fidx < NUMKEYS; fidx++) {
         int idx = fidx + (ESSZ-SSZ)*(fidx/SSZ);
         neighbours_t neighbours = field_neighbours(idx);
+        ledset_t leds = leds_keyidx(idx);
         Debug.printf("%2d : neighbour = (%2d, %2d, %2d, %2d) pixel = (%2d, %2d, %2d, %2d) side = %d\r\n",
             idx,
             neighbours.neighbour[0], neighbours.neighbour[1],
             neighbours.neighbour[2], neighbours.neighbour[3],
-            GET_FIELD(idx).pixel[0], GET_FIELD(idx).pixel[1],
-            GET_FIELD(idx).pixel[2], GET_FIELD(idx).pixel[3],
+            leds.led[0], leds.led[1], leds.led[2], leds.led[3],
             FIELD_SIDE(idx));
         Debug.printf("   : chain = (%d, %d) dist = %2d line = %2d endpoint = %d\r\n",
             GET_FIELD(idx).prev, GET_FIELD(idx).next, GET_FIELD(idx).dist,
