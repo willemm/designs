@@ -16,7 +16,8 @@
 //                     . . GND
 //
 
-#include "Arduino.h"
+#include <Arduino.h>
+
 #undef SERIAL
 
 #define SPI_CLOCK 		(1000000/6)
@@ -174,6 +175,9 @@ void reset_target(bool reset) {
 }
 
 void avrisp();
+
+void i2c_read(void);
+void ana_read(void);
 
 void loop(void) {
   // is pmode active?
@@ -518,15 +522,13 @@ void read_signature() {
   SERIAL.print((char) low);
   SERIAL.print((char) STK_OK);
 }
-//////////////////////////////////////////
-//////////////////////////////////////////
 
-
-////////////////////////////////////
-////////////////////////////////////
 void avrisp() {
   uint8_t ch = getch();
   switch (ch) {
+    case 'D': // I2C Debug
+      i2c_read();
+      break;
     case '0': // signon
       error = 0;
       empty_reply();
