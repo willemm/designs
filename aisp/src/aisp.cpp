@@ -526,8 +526,11 @@ void read_signature() {
 void avrisp() {
   uint8_t ch = getch();
   switch (ch) {
-    case 'D': // I2C Debug
+    case '8': // I2C Debug
       i2c_read();
+      break;
+    case '9': // I2C Debug
+      ana_read();
       break;
     case '0': // signon
       error = 0;
