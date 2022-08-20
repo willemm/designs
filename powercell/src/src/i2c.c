@@ -8,9 +8,8 @@ void i2c_setup()
 {
 }
 
-void i2c_send(char *fmt, ...)
+void i2c_printf(char *fmt, ...)
 {
-    /*
     va_list args;
     va_start(args, fmt);
     char s[128];
@@ -18,5 +17,4 @@ void i2c_send(char *fmt, ...)
     unsigned char ln = vsnprintf(s, sizeof(s), fmt, args);
     I2C_Master_Write_Data(0x08, (unsigned char *)s, ln);
     va_end(args);
-    */
 }

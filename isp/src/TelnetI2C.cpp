@@ -120,6 +120,7 @@ volatile struct {
         uint8_t bytes[I2C_BUF_SIZE];
     } buffer[I2C_BUF_COUNT];
     uint8_t bufindex; // Index of current buffer
+    uint32_t times[I2C_BUF_SIZE * 16]; // Debug timings
 } I2C;
 #else
 volatile struct {
@@ -250,40 +251,58 @@ static void IRAM_ATTR handle_interrupt(void *arg, void *frame)
     values[pointer] = isr_bitshift(levels);
 }
 
-static void IRAM_ATTR handle_i2c_interrupt_block(void *arg, void *frame) {
-    (void) arg;
-    (void) frame;
-    uint32_t levels = GPI;
-    uint32_t status = GPIE;
-    GPIEC = status;
-    // Was it a change on SDA
-    if ((status & (1 << SDA_PIN)) == 0) { return; }
-    // Was it a falling edge on SDA while SCL is high
-    if ((levels & ((1 << SDA_PIN) | (1 << SCL_PIN))) != (1 << SCL_PIN)) { return ; }
+
+        // rcv: 08 3b fb cb fb 5b 29 0b 3b 9b 3b cb
+        // bit: 00001000 00111011 11111011 11001011 11111011 01011011 00101001 00001011
+        //      00111011 10011011 00111011 11001011 (stop)
+        // snd: 10 43 6f 6c 6f 75 72 20 63 79 63 6c 65
+        // bit: 00010000 01000011 01101111 01101100 01101111 01110101 01110010 00100000
+        //      01100011 01111001 01100011 01101100 01100101 (stop)
+        // la:  000100001010000011011011001011011100001001 ??
+        // chr: ?        A        l        n
+
+static inline int IRAM_ATTR handle_i2c_interrupt_block_read(void)
+{
     int bytepos = 0;
     // 4 milliseconds, assuming one wait cycle is 3 instructions (check bit, dec timeout, branch)
     int32_t timeout = 4 * F_CPU / 1000 / 4;
     uint8_t addr = 0;
+    int bitpos = 0;
     I2C.bufindex %= I2C_BUF_COUNT;
+    I2C.times[bitpos++] = micros();
     while (true) {
         // Marker bit
         uint16_t byte = 1;
-        // Read 8 bits on SCl rising
+        // Read 8 bits on SCL rising
         while (byte < 0x100) {
-            // Wait for SCL to fall
-            while (GPI & (1 << SCL_PIN)) {
-                if (--timeout <= 0) { return; /* Timed out */ }
-            }
-            // Wait for SCL to rise, also check if SDA changes
-            // Rise means stop condition.
-            // If it falls, it's a repeated start which we don't want to support
+            // Wait for SCL to fall, also check if SDA changes
+            // SDA Rise means stop condition.
+            // If SDA falls, it's a repeated start which we don't want to support
             uint16_t stop = (GPI & (1 << SDA_PIN));
-            while (!(GPI & (1 << SCL_PIN))) {
-                if ((GPI & (1 << SDA_PIN)) != stop) { break; /* Stop condition */ }
-                if (--timeout <= 0) { return; /* Timed out */ }
+            while (GPI & (1 << SCL_PIN)) {
+                if ((GPI & (1 << SDA_PIN)) != stop) { return bytepos; /* Stop condition */ }
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = (byte & 0XFF);
+                    bytepos++;
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 254;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
             }
+            I2C.times[bitpos++] = micros();
+            // Wait for SCL to rise
+            while (!(GPI & (1 << SCL_PIN))) {
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = (byte & 0XFF);
+                    bytepos++;
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 253;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
+            }
+            I2C.times[bitpos++] = micros();
             // Read SDA
-            byte = byte << 1 | ((GPI >> SDA_PIN) & 1);
+            byte = (byte << 1) | ((GPI >> SDA_PIN) & 1);
         }
         byte &= 0xFF;
         if (bytepos == 0) {
@@ -295,33 +314,69 @@ static void IRAM_ATTR handle_i2c_interrupt_block(void *arg, void *frame) {
             // Ack
             // Wait for SCL to fall
             while (GPI & (1 << SCL_PIN)) {
-                if (--timeout <= 0) { return; /* Timed out */ }
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 252;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
             }
             // Ack on SDA
             pinMode(SDA_PIN, OUTPUT);
             digitalWrite(SDA_PIN, LOW);
             // Wait for SCL to rise
             while (!(GPI & (1 << SCL_PIN))) {
-                if (--timeout <= 0) { return; /* Timed out */ }
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 251;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
             }
             // Wait for SCL to fall
             while (GPI & (1 << SCL_PIN)) {
-                if (--timeout <= 0) { return; /* Timed out */ }
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 250;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
             }
             pinMode(SDA_PIN, INPUT_PULLUP);
         } else {
             // Wait for SCL to fall
             while (GPI & (1 << SCL_PIN)) {
-                if (--timeout <= 0) { return; /* Timed out */ }
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 249;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
             }
             // Wait for SCL to rise
             while (!(GPI & (1 << SCL_PIN))) {
-                if (--timeout <= 0) { return; /* Timed out */ }
+                if (--timeout <= 0) {
+                    I2C.buffer[I2C.bufindex].bytes[bytepos] = 248;
+                    bytepos++;
+                    return bytepos; /* Timed out */
+                }
             }
         }
     }
+}
+
+static void IRAM_ATTR handle_i2c_interrupt_block(void *arg, void *frame)
+{
+    (void) arg;
+    (void) frame;
+    uint32_t levels = GPI;
+    uint32_t status = GPIE;
+    GPIEC = status;
+    // Was it a change on SDA
+    if ((status & (1 << SDA_PIN)) == 0) { return; }
+    // Was it a falling edge on SDA while SCL is high
+    if ((levels & ((1 << SDA_PIN) | (1 << SCL_PIN))) != (1 << SCL_PIN)) { return ; }
+    cli();
+    int bytepos = handle_i2c_interrupt_block_read();
     I2C.buffer[I2C.bufindex].len = bytepos;
     I2C.bufindex = (I2C.bufindex + 1) % I2C_BUF_COUNT;
+    sei();
 }
 
 #if 1
@@ -391,7 +446,8 @@ void TelnetI2C::_print_i2c()
 {
     uint8_t curindex = I2C.bufindex % I2C_BUF_COUNT;
     while (lastindex != curindex) {
-        char str[64 + 3 * I2C_BUF_SIZE];
+        // char str[64 + 3 * I2C_BUF_SIZE];
+        char str[512];
         uint8_t len = I2C.buffer[lastindex].len;
         if (0 /*I2C.buffer[lastindex][1] == I2C_ADDRESS*/) {
             sprintf(str, "%x I2C addr %02x received %d chars: '%.*s'\r\n",
@@ -402,6 +458,14 @@ void TelnetI2C::_print_i2c()
                 lastindex, I2C.buffer[lastindex].bytes[0] >> 1, len-1);
             for (uint8_t i = 1; i < len; i++) {
                 ptr = ptr + sprintf(ptr, " %02x", I2C.buffer[lastindex].bytes[i]);
+            }
+            sprintf(ptr, "\r\n");
+            _client.print(str);
+            int32_t pt = I2C.times[0];
+            ptr = str + sprintf(str, "  Times: ");
+            for (uint8_t i = 1; i <= 32; i++) {
+                ptr = ptr + sprintf(ptr, "%d ", I2C.times[i] - pt);
+                pt = I2C.times[i];
             }
             sprintf(ptr, "\r\n");
             _client.print(str);
