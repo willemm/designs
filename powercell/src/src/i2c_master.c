@@ -105,18 +105,14 @@ unsigned char I2C_Master_Write_Data(unsigned char addr, unsigned char *msg, unsi
 {
     i2c_start_condition();
     if (i2c_write_byte(addr << 1)) {
-        /*
         i2c_stop_condition();
         return 0x01;
-        */
     }
     while (msg_size--) {
         _delay_us(10);
         if (i2c_write_byte(*msg++)) {
-            /*
             i2c_stop_condition();
             return 0x04;
-            */
         }
     }
     i2c_stop_condition();
