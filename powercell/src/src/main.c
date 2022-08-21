@@ -1,6 +1,7 @@
 #include "neopixel.h"
 #include <util/delay.h>
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include "i2c.h"
 #include "radio.h"
 
@@ -40,7 +41,7 @@ int main(void) {
     neopixel_setup();
     radio_setup();
     i2c_setup();
-    i2c_printf("Setting up");
+    i2c_print("Setting up");
     /*
     for(uint16_t bri = 0; bri < 256; bri += 1) {
         i2c_printf("Brightness increasing");
@@ -50,9 +51,9 @@ int main(void) {
     */
     //DDRB |= 2;
     while (1) {
-        i2c_printf("Colour cycle");
+        i2c_print("Colour cycle");
         for (uint32_t ang=0; ang<360; ang += 1) {
-            neopixel_send(colori(ang, 255, 64));
+            neopixel_send(colori(ang, 128, 64));
             delay(12);
             radio_read();
             delay(12);

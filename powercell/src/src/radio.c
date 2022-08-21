@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
 
@@ -6,7 +7,7 @@
 #include "i2c_master.h"
 
 #define RADIO_PIN 3
-#define RADIO_BUFSIZE 256
+#define RADIO_BUFSIZE 128
 
 // Time between rising and falling edges.
 // A check in the isr makes sure the falling edges go in even slots
@@ -69,19 +70,21 @@ ISR(TIMER0_OVF_vect)
 // Store timer value and start timer
 ISR(PCINT0_vect)
 {
-    if ((timeidx & 1) != ((PINB >> RADIO_PIN) & 1)) {
+    uint8_t pin = ((PINB >> RADIO_PIN) & 1);
+    uint8_t tm = TCNT0;
+    TCCR0B = 0b00000101;  // Turn on timer, prescaler 1/1024
+    GTCCR |= (1 << PSR0); // Reset prescaler
+    TCNT0 = 0;            // Start count from 0
+    if ((timeidx & 1) != pin) {
         // If not in sync, skip and write 0
         times[timeidx] = 0;
         timeidx = (timeidx+1) % RADIO_BUFSIZE;
         times[timeidx] = 0;
         timeidx = (timeidx+1) % RADIO_BUFSIZE;
     } else {
-        times[timeidx] = TCNT0;
+        times[timeidx] = tm;
         timeidx = (timeidx+1) % RADIO_BUFSIZE;
     }
-    TCCR0B = 0b00000101;  // Prescaler 1/1024
-    TCNT0 = 0;
-    GTCCR |= (1 << PSR0); // Reset prescaler
 }
 
 static uint8_t timeptr;
@@ -99,15 +102,38 @@ void radio_setup(void)
     PCMSK = (1 << RADIO_PIN);
 }
 
+static inline unsigned char hex(uint8_t v)
+{
+    return (v < 10) ? (v + '0') : (v + ('a' - 10));
+}
+
+// #define DUMPTIMES
+
 void radio_read(void)
 {
-    static const char *hex = "0123456789abcdef";
     uint8_t ti = timeidx;
     uint8_t tp = timeptr;
     // Round down to even
     if (tp % 2) tp--;
     if (ti % 2) ti--;
-    unsigned char s[128];
+#ifdef DUMPTIMES
+    static unsigned char str[128];
+    while (tp != ti) {
+        uint8_t i = 0;
+        while ((i < 120) && (tp != ti)) {
+            str[i++] = hex((times[tp] >> 4) & 0xF);
+            str[i++] = hex((times[tp] >> 0) & 0xF);
+            str[i++] = '-';
+            str[i++] = hex((times[tp+1] >> 4) & 0xF);
+            str[i++] = hex((times[tp+1] >> 0) & 0xF);
+            str[i++] = ' ';
+            tp = (tp + 2) % RADIO_BUFSIZE;
+        }
+        I2C_Master_Write_Data(0x08, str, i);
+    }
+    timeptr = tp;
+#else
+    static unsigned char str[48];
     while (tp != ti) {
         if (times[tp+1] < 24) {
             // Eat garbage data up to large high pulse
@@ -119,23 +145,28 @@ void radio_read(void)
             uint8_t i = 0;
             uint8_t didx = 0;
             uint16_t b = 1;
-            s[i++] = '>';
+            str[i++] = '>';
             tp = (tp + 2) % RADIO_BUFSIZE;
             while (i < (32+1)) {
                 uint8_t v1 = times[tp];
                 uint8_t v2 = times[tp+1];
                 if (v2 >= 24) break; // Short read
-                if ((v1 < 5) && (v2 > 5)) {
+                if ((v1 <= 5) && (v2 > 5)) {
                     b = (b << 1) | 0;
-                    s[i++] = '0';
-                } else if ((v1 > 5) && (v2 < 5)) {
+                    str[i++] = '0';
+                } else if ((v1 > 5) && (v2 <= 5)) {
                     b = (b << 1) | 1;
-                    s[i++] = '1';
+                    str[i++] = '1';
                 } else {
-                    s[i++] = '?';
+                    str[i++] = '?';
                     break; // Garbage read
                 }
-                if (b >= 0x100) { data[didx++] = (b & 0xFF); }
+                if (b >= 0x100) {
+                    if (didx < sizeof(data)) {
+                        data[didx++] = (b & 0xFF);
+                    }
+                    b = 1;
+                }
 
                 tp = (tp + 2) % RADIO_BUFSIZE;
                 if (tp == ti) {
@@ -145,22 +176,21 @@ void radio_read(void)
                 }
             }
             if (i == (24 + 1)) {
-                s[i++] = ' ';
-                s[i++] = '=';
-                s[i++] = ' ';
-                s[i++] = hex[(data[0] >> 4) & 0xF];
-                s[i++] = hex[(data[0] >> 0) & 0xF];
-                s[i++] = hex[(data[1] >> 4) & 0xF];
-                s[i++] = hex[(data[1] >> 0) & 0xF];
-                s[i++] = hex[(data[2] >> 4) & 0xF];
-                s[i++] = hex[(data[2] >> 0) & 0xF];
+                str[i++] = ' ';
+                str[i++] = '=';
+                str[i++] = ' ';
+                for (int bt = 0; bt < 3; bt++) {
+                    str[i++] = hex((data[bt] >> 4) & 0xF);
+                    str[i++] = hex((data[bt] >> 0) & 0xF);
+                }
             } else {
-                s[0] = '!';
+                str[0] = '!';
             }
             if (i > 20) {
-                I2C_Master_Write_Data(0x08, s, i);
+                I2C_Master_Write_Data(0x08, str, i);
             }
         }
     }
     timeptr = tp;
+#endif
 }

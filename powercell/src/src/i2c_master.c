@@ -101,7 +101,7 @@ static unsigned char i2c_read_byte(unsigned char ack)
     return b;
 }
 
-unsigned char I2C_Master_Write_Data(unsigned char addr, unsigned char *msg, unsigned char msg_size)
+unsigned char I2C_Master_Write_Data(unsigned char addr, const unsigned char *msg, unsigned char msg_size)
 {
     i2c_start_condition();
     if (i2c_write_byte(addr << 1)) {
@@ -123,7 +123,7 @@ unsigned char I2C_Master_Write_Data(unsigned char addr, unsigned char *msg, unsi
     return 0;
 }
 
-unsigned char I2C_Master_Write(unsigned char addr, unsigned char reg, unsigned char *msg, unsigned char msg_size)
+unsigned char I2C_Master_Write(unsigned char addr, unsigned char reg, const unsigned char *msg, unsigned char msg_size)
 {
     i2c_start_condition();
     if (i2c_write_byte(addr << 1)) return 0x01;

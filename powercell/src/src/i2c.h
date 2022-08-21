@@ -2,7 +2,7 @@
 #define _I2C_H_
 
 void i2c_setup();
-void i2c_print(char *txt);
-void i2c_printf(char *fmt, ...);
+void i2c_print(const char *txt);
+void i2c_printf(const char *fmt, ...);
 
 #endif
