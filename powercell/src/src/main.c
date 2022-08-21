@@ -42,48 +42,76 @@ int main(void) {
     radio_setup();
     i2c_setup();
     i2c_print("Setting up");
-    /*
-    for(uint16_t bri = 0; bri < 256; bri += 1) {
-        i2c_printf("Brightness increasing");
-        neopixel_send(PIXELCOLOR(bri, bri, bri));
-        delay(25);  
-    }
-    */
-    //DDRB |= 2;
+    uint8_t mode = 1;
+    uint32_t anim = 0;
+    i2c_print("Slow cycle");
     while (1) {
-        i2c_print("Colour cycle");
-        for (uint32_t ang=0; ang<360; ang += 1) {
-            neopixel_send(colori(ang, 128, 64));
-            delay(12);
-            radio_read();
-            delay(12);
-            if ((ang % 36) == 0) {
-                i2c_printf("Angle step %d", ang);
+        switch (mode) {
+          case 1:
+            neopixel_send(colori(anim, 128, 64));
+            if ((anim % 36) == 0) {
+                i2c_printf("Angle step %d", anim);
             }
-            //PORTB ^= 2;
+            anim = (anim + 1) % 360;
+            break;
+          case 2:
+            neopixel_send(colori(anim, 128, 64));
+            if ((anim % 72) == 0) {
+                i2c_printf("Angle step %d", anim);
+            }
+            anim = (anim + 12) % 360;
+            break;
+          case 3:
+            if ((anim % 64) == 0) {
+                if ((anim / 64)) {
+                    i2c_printf("Blink off");
+                    neopixel_send((color_t) { 0, 0, 0 });
+                } else {
+                    i2c_printf("Blink on");
+                    neopixel_send((color_t) { 0, 96, 0 });
+                }
+            }
+            anim = (anim + 1) % 192;
+            break;
+          default:
+            break;
+        }
+        delay(25);
+        uint32_t rd = radio_read();
+        uint8_t newmode = mode;
+        switch (rd & 0x0F) {
+          case 0x08:
+            newmode = 1;
+            break;
+          case 0x04:
+            newmode = 2;
+            break;
+          case 0x02:
+            newmode = 3;
+            break;
+          case 0x01:
+            newmode = 4;
+            break;
+        }
+        if (newmode != mode) {
+            mode = newmode;
+            anim = 0;
+            switch(mode) {
+              case 1:
+                i2c_print("Slow cycle");
+                break;
+              case 2:
+                i2c_print("Fast cycle");
+                break;
+              case 3:
+                i2c_print("Flash red");
+                break;
+              case 4:
+                i2c_print("Turn off");
+                neopixel_send((color_t) { 0, 0, 0 });
+                break;
+            }
         }
     }
-    /*
-    DDRB |= 2;
-    while (1) {
-        for(uint16_t bri = 0; bri < 256; bri += 1) {
-            neopixel_send(PIXELCOLOR(bri, bri, bri));
-            delay(20);  
-            if ((bri & 15) == 0) {
-                PORTB ^= 2;
-            }
-        }
-        for (int i = 0; i < 10; i++) {
-            PORTB ^= 2;
-            delay(1000);
-        }
-
-        for (uint32_t ang=0; ang<28800; ang += 2+(ang/1600)) {
-            neopixel_send(colori(ang, 255));
-            PORTB ^= 2;
-            delay(20);
-        }
-    }
-    */
     return 0;
 }
