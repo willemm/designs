@@ -13,7 +13,7 @@
 
 #define I2C_ADDRESS 0x08
 
-#define I2C_BUFSIZE 32
+#define I2C_BUFSIZE 132
 
 static inline int i2c_wait_start(void)
 {

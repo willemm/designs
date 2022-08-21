@@ -19,3 +19,6 @@ uploadfs:
 
 update:
 	pio -f -c vim update
+
+disassemble:
+	c:\users\wille\.platformio\packages\toolchain-atmelavr\bin\avr-objdump.exe -d .pio\build\attiny\firmware.elf > firmware.s

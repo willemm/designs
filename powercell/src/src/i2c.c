@@ -18,3 +18,8 @@ void i2c_printf(char *fmt, ...)
     I2C_Master_Write_Data(0x08, (unsigned char *)s, ln);
     va_end(args);
 }
+
+void i2c_print(char *txt)
+{
+    I2C_Master_Write_Data(0x08, (unsigned char *)txt, strlen(txt));
+}
