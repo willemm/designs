@@ -37,7 +37,28 @@ static inline void delay(uint32_t dly)
     _delay_ms(dly);
 }
 
-int main(void) {
+uint16_t check_vcc(void)
+{
+    ADCSRA |= (1 << ADSC);
+    while (ADCSRA & (1 << ADSC)) { } // Wait
+    uint8_t res = ADCH;
+    uint16_t decivolt = 0x2160 / res;
+    i2c_printf("vcc: %d dV", decivolt);
+
+    return decivolt;
+
+    /* 3.844~3.845 V = 222..223
+     * 4.542~4.546 V = 185..192 ??
+     *
+     * 855 / 222..223 = 3.82..3.84
+     * 855 / 185..192 = 4.45..4.62
+     */
+}
+
+int main(void)
+{
+    ADCSRA = (1 << ADEN) | (5 << ADPS0); // Prescale 101 = 1/32 = 125Khz
+    ADMUX = (1 << ADLAR) | (1 << MUX0);  // 
     neopixel_setup();
     radio_setup();
     i2c_setup();
@@ -50,7 +71,8 @@ int main(void) {
           case 1:
             neopixel_send(colori(anim, 128, 64));
             if ((anim % 36) == 0) {
-                i2c_printf("Angle step %d", anim);
+                i2c_printf("Angle step %d (%d)", anim);
+                check_vcc();
             }
             anim = (anim + 1) % 360;
             break;
