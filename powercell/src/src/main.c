@@ -3,6 +3,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include "i2c.h"
+#include "mcp.h"
 #include "radio.h"
 
 #define PIXELCOLOR(r,g,b) ((color_t){ (r), (g), (b) })
@@ -59,6 +60,7 @@ int main(void)
 {
     ADCSRA = (1 << ADEN) | (5 << ADPS0); // Prescale 101 = 1/32 = 125Khz
     ADMUX = (1 << ADLAR) | (1 << MUX0);  // 
+    mcp_stop();
     neopixel_setup();
     radio_setup();
     i2c_setup();
@@ -71,7 +73,7 @@ int main(void)
           case 1:
             neopixel_send(colori(anim, 128, 64));
             if ((anim % 36) == 0) {
-                i2c_printf("Angle step %d (%d)", anim);
+                i2c_printf("Angle step %d", anim);
                 check_vcc();
             }
             anim = (anim + 1) % 360;
@@ -79,6 +81,7 @@ int main(void)
           case 2:
             neopixel_send(colori(anim, 128, 64));
             if ((anim % 72) == 0) {
+                mcp_read();
                 i2c_printf("Angle step %d", anim);
             }
             anim = (anim + 12) % 360;
@@ -120,15 +123,19 @@ int main(void)
             anim = 0;
             switch(mode) {
               case 1:
+                mcp_stop();
                 i2c_print("Slow cycle");
                 break;
               case 2:
+                mcp_start();
                 i2c_print("Fast cycle");
                 break;
               case 3:
+                mcp_stop();
                 i2c_print("Flash red");
                 break;
               case 4:
+                mcp_stop();
                 i2c_print("Turn off");
                 neopixel_send((color_t) { 0, 0, 0 });
                 break;

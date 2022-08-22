@@ -11,9 +11,12 @@
 #define I2C_SCL  1     // B1 = 15 = SCK
 #define I2C_SDA  2     // B2 = 13 = MOSI
 
-#define I2C_ADDRESS 0x08
+#define I2C_ADDRESS (0x08 << 1)  // address 8, read bit 0
 
 #define I2C_BUFSIZE 132
+
+#define cbi(p,b) asm volatile ( "cbi %[port], %[bit] \n\t" :: [port] "I" (_SFR_IO_ADDR(p)),[bit] "I" (b) )
+#define sbi(p,b) asm volatile ( "sbi %[port], %[bit] \n\t" :: [port] "I" (_SFR_IO_ADDR(p)),[bit] "I" (b) )
 
 static inline int i2c_wait_start(void)
 {
@@ -50,7 +53,7 @@ static inline int i2c_read_byte(void)
     // Read bit
     byte = (byte << 1) | ((I2C_PIN >> I2C_SDA) & 1);
   }
-  return byte;
+  return (byte & 0xFF);
 }
 
 static inline int i2c_ack(int doack)
@@ -63,8 +66,8 @@ static inline int i2c_ack(int doack)
   }
   if (doack) {
     // Pull sda low to ack
-    I2C_DDR |= (1 << I2C_SDA);
-    I2C_PORT &= ~(1 << I2C_SDA);
+    sbi(I2C_DDR, I2C_SDA);
+    cbi(I2C_PORT, I2C_SDA);
   }
   // Wait for scl to go high
   while (!(I2C_PIN & (1 << I2C_SCL))) {
@@ -77,7 +80,7 @@ static inline int i2c_ack(int doack)
     if ((I2C_PIN & (1 << I2C_SDA)) != stop) return -1;
   }
   // Release ack
-  I2C_DDR &= ~(1 << I2C_SDA);
+  cbi(I2C_DDR, I2C_SDA);
   return 0;
 }
 
@@ -87,13 +90,13 @@ static inline int i2c_read_line(uint8_t buf[])
   if (b < 0) return -1;
   cli();
   b = i2c_read_byte();
-  int addr = b;
+  int doack = (b == I2C_ADDRESS) ? 1 : 0;
   int bi = 0;
   while (b >= 0) {
     if (bi < I2C_BUFSIZE) {
       buf[bi++] = b;
     }
-    if (i2c_ack((addr >> 1) == I2C_ADDRESS) < 0) {
+    if (i2c_ack(doack) < 0) {
       break;
     }
     b = i2c_read_byte();
@@ -108,11 +111,14 @@ void i2c_read(void)
   uint8_t buf[I2C_BUFSIZE+1];
 
   // Setup pins as input
-  I2C_DDR &= ~((1 << I2C_SCL) | (1 << I2C_SDA));
+  cbi(I2C_DDR, I2C_SCL);
+  cbi(I2C_DDR, I2C_SDA);
   // Enable pullups
-  // I2C_PORT |= ((1 << I2C_SCL) | (1 << I2C_SDA));
+  // sbi(I2C_PORT, I2C_SCL);
+  // sbi(I2C_PORT, I2C_SDA);
   // Disable pullups
-  I2C_PORT &= ~((1 << I2C_SCL) | (1 << I2C_SDA));
+  cbi(I2C_PORT, I2C_SCL);
+  cbi(I2C_PORT, I2C_SDA);
 
   char prt[64 + 3 * I2C_BUFSIZE];
 
@@ -121,7 +127,7 @@ void i2c_read(void)
     int n = i2c_read_line(buf);
     if (n < 0) break;
     if (n > 0) {
-      if ((buf[0] >> 1) == I2C_ADDRESS) {
+      if (buf[0] == I2C_ADDRESS) {
         buf[n] = 0;
         sprintf(prt, "I2C DBG: %s", buf);
       } else {
@@ -131,6 +137,8 @@ void i2c_read(void)
         }
       }
       Serial.println(prt);
+    } else {
+      delay(100);
     }
   }
 }
