@@ -67,6 +67,7 @@ int main(void)
     i2c_print("Setting up");
     uint8_t mode = 1;
     uint32_t anim = 0;
+    uint8_t tiltcount = 0;
     i2c_print("Slow cycle");
     while (1) {
         switch (mode) {
@@ -81,7 +82,13 @@ int main(void)
           case 2:
             neopixel_send(colori(anim, 128, 64));
             if ((anim % 72) == 0) {
-                mcp_read();
+                uint16_t tilt = mcp_read();
+                if (tilt > 5000) {
+                    i2c_print("TILT");
+                    tiltcount++;
+                    neopixel_send((color_t) { 0, 0, 0});
+                    break;
+                }
                 i2c_printf("Angle step %d", anim);
             }
             anim = (anim + 12) % 360;
@@ -118,9 +125,14 @@ int main(void)
             newmode = 4;
             break;
         }
+        if (tiltcount > 40) {
+            newmode = 3;
+            tiltcount = 0;
+        }
         if (newmode != mode) {
             mode = newmode;
             anim = 0;
+            tiltcount = 0;
             switch(mode) {
               case 1:
                 mcp_stop();

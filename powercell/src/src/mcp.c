@@ -26,24 +26,27 @@ void mcp_stop(void)
 }
 
 // Read data from MCP
-void mcp_read(void)
+uint16_t mcp_read(void)
 {
     if (i2c_read_reg_start(MCP, ACCEL_XOUT) < 0) {
         i2c_print("MCP read error");
-        return;
+        return 0;
     }
     // Accellerometers
-    uint16_t ax = i2c_read_u16(0);
-    uint16_t ay = i2c_read_u16(0);
-    uint16_t az = i2c_read_u16(0);
+    int16_t ax = i2c_read_u16(0);
+    int16_t ay = i2c_read_u16(0);
+    int16_t az = i2c_read_u16(0);
 
     // Temperature
-    uint16_t tp = i2c_read_u16(0);
+    int16_t tp = i2c_read_u16(0);
 
     // Gyroscopes
-    uint16_t gx = i2c_read_u16(0);
-    uint16_t gy = i2c_read_u16(0);
-    uint16_t gz = i2c_read_u16(1);  // Last
+    int16_t gx = i2c_read_u16(0);
+    int16_t gy = i2c_read_u16(0);
+    int16_t gz = i2c_read_u16(1);  // Last
 
     i2c_printf("MCP Acc: (%d,%d,%d), Tem: %d, Gyr: (%d,%d,%d)", ax, ay, az, tp, gx, gy, gz);
+    if (ay < 0) ay = -ay;
+    if (az < 0) az = -az;
+    return (ay < az) ? az : ay;
 }
