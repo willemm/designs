@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <util/delay.h>
 #include "i2c.h"
 
 #define MCP 0x68
@@ -7,10 +8,15 @@
 #define SMPLRT_DIV 0x19
 #define ACCEL_XOUT 0x3B
 
+void mcp_init(void)
+{
+    i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b10000000);  // Reset
+}
+
 // Setup MCP, wake from sleep etc
 void mcp_start(void)
 {
-    i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b10000000);  // Reset, normal operation
+    i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b00000000);  // Normal operation
 }
 
 // Put MCP to sleep

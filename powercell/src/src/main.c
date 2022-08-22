@@ -60,7 +60,7 @@ int main(void)
 {
     ADCSRA = (1 << ADEN) | (5 << ADPS0); // Prescale 101 = 1/32 = 125Khz
     ADMUX = (1 << ADLAR) | (1 << MUX0);  // 
-    mcp_stop();
+    mcp_init();
     neopixel_setup();
     radio_setup();
     i2c_setup();

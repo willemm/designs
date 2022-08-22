@@ -42,9 +42,10 @@ static inline int i2c_read_byte(void)
   while (byte < 0x100) {
     int stop = I2C_PIN & (1 << I2C_SDA);
     // Wait for scl to go low
-    // If sda changes while scl is high, bail out
+    // If sda rises while scl is high, bail out
     while ((I2C_PIN & (1 << I2C_SCL))) {
-      if ((I2C_PIN & (1 << I2C_SDA)) != stop) return -1;
+      // if ((I2C_PIN & (1 << I2C_SDA)) != stop) return -1;
+      if (!stop && (I2C_PIN & (1 << I2C_SDA))) return -1;
     }
     // Wait for scl to go high
     while (!(I2C_PIN & (1 << I2C_SCL))) {
