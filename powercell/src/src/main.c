@@ -88,6 +88,10 @@ int main(void)
                     tiltcount++;
                     neopixel_send((color_t) { 0, 0, 0});
                     break;
+                } else {
+                    if (tiltcount > 0) {
+                        tiltcount--;
+                    }
                 }
                 i2c_printf("Angle step %d", anim);
             }
