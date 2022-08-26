@@ -80,6 +80,7 @@ int main(void)
             anim = (anim + 1) % 360;
             break;
           case 2:
+            /*
             neopixel_send(colori(anim, 128, 64));
             if ((anim % 72) == 0) {
                 uint16_t tilt = mcp_read();
@@ -96,6 +97,8 @@ int main(void)
                 i2c_printf("Angle step %d", anim);
             }
             anim = (anim + 12) % 360;
+            */
+            neopixel_send(mcp_read_color());
             break;
           case 3:
             if ((anim % 64) == 0) {

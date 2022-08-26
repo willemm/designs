@@ -187,6 +187,29 @@ int i2c_read_reg_u8(unsigned char addr, unsigned char reg)
     return data;
 }
 
+/*
+// Start batch read from register address
+char i2c_write_reg_start(unsigned char addr, unsigned char reg)
+{
+    i2c_start_condition();
+    if (i2c_write_byte(addr << 1)) {
+        I2C_ERROR(-0x10);
+    }
+    if (i2c_write_byte(reg)) {
+        I2C_ERROR(-0x20);
+    }
+    return 0;
+}
+
+// Read one byte in batch
+uint8_t i2c_write_u8(unsigned char data, char last)
+{
+    i2c_write_byte(data);
+    if (last) i2c_stop_condition();
+    return data;
+}
+*/
+
 // Start batch read from register address
 char i2c_read_reg_start(unsigned char addr, unsigned char reg)
 {
