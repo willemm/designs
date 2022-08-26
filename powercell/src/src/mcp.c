@@ -2,7 +2,7 @@
 #include <util/delay.h>
 #include "i2c.h"
 #include "mcp.h"
-#include <math.h>
+// #include <math.h>
 
 #define MCP 0x68
 
@@ -29,6 +29,7 @@ void mcp_stop(void)
     i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b01101000);  // Sleep
 }
 
+#if 0
 // Imprecise but fast atan2 function
 float fatan2(float y, float x)
 {
@@ -39,9 +40,29 @@ float fatan2(float y, float x)
     if (y < 0.0) { at = -at; }
     return at;
 }
+#endif
+
+// Imprecise but fast atan2 function with integer math
+// Returns degrees in range 0-360
+int16_t iatan2(int16_t y, int16_t x)
+{
+    static const uint32_t b = 19537; // (0.596227 << 15)
+    uint32_t ux = (x > 0) ? x : -x;
+    uint32_t uy = (y > 0) ? y : -y;
+    uint32_t bxy = ((uy*ux)>>16)*b;  // Shift right one to make room plus 15 for the constant
+    uint32_t numer = bxy + ((uy*uy)>>1);
+    // Shift denominator 10 bits to scale range 0-1 to 0-1024
+    uint32_t at = numer / ((numer + bxy + ((ux*ux)>>1)) >> 10);
+    // at is now scaled from 0 to 1024 which should be 0 to 90
+    at = (at * 90) >> 10;
+
+    if (x < 0) { at = 180 - at; }
+    if (y < 0) { at = -at; }
+    return at;
+}
 
 // Estimate euclidean distance with octogonal approximation
-uint16_t fdist(int16_t x, int16_t y)
+uint16_t idist(int16_t x, int16_t y)
 {
     uint32_t mx = (x > 0) ? x : -x;
     uint32_t mn = (y > 0) ? y : -y;
@@ -118,19 +139,23 @@ color_t mcp_read_color(void)
     // float c_at = sqrtf(ayzs + axf*axf);
 #endif
 
-    int16_t ayz = fdist(ay,az);
+    int16_t ayz = idist(ay,az);
+    int16_t angh = iatan2(ay,az)+180;
+    int16_t angt = iatan2(ax,ayz);
+    /*
     float angh = fatan2(ay,az)*90.0+180.0;
     float angt = fatan2(ax,ayz)*90.0;
+    */
     uint32_t mbr, bri;
-    if (angt >= 15.0) {
+    if (angt >= 15) {
         mbr = 0;
-        bri = (uint32_t)(180.0-angt*2.0);
-    } else if (angt >= -15.0) {
+        bri = (uint32_t)(180-angt*2);
+    } else if (angt >= -15) {
         mbr = 0;
         bri = 180;
     } else {
         bri = 180;
-        mbr = (uint32_t)(-angt*2.0);
+        mbr = (uint32_t)(-angt*2);
     }
     color_t col = colori((uint32_t)angh, mbr, bri);
     // i2c_printf("(%d,%d)=%d (%d,%d)~(%d,%d) = (%d,%u,%u) -> (%u,%u,%u)", ay, az, ayz, (int)c_angt, (int)c_angh, (int)angt, (int)angh, (uint32_t)angh, mbr, bri, col.r, col.g, col.b);
