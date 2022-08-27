@@ -33,6 +33,21 @@ color_t colori(uint32_t ang, uint32_t bri, uint32_t mbr)
   return PIXELCOLOR(mbr+bf*(120-(ang-240))/120, bri, mbr+bf*((ang-240))/120);
 }
 
+color_t fcolori(uint16_t ang, uint16_t bri, uint16_t mbr)
+{
+    ang = ang % 256;
+    uint16_t bf = (bri - mbr)*3;
+    if (ang <= 0x55) {
+        return PIXELCOLOR(mbr+bf*ang/256, mbr+bf*(0x55-ang)/256, bri);
+    }
+    if (ang <= 0xAA) {
+        ang -= 0x55;
+        return PIXELCOLOR(bri, mbr+bf*ang/256, mbr+bf*(0x55-ang)/256);
+    }
+    ang -= 0x55;
+    return PIXELCOLOR(mbr+bf*(0x55-ang)/256, bri, mbr+bf*ang/256);
+}
+
 static inline void delay(uint32_t dly)
 {
     _delay_ms(dly);
@@ -64,16 +79,31 @@ int main(void)
     neopixel_setup();
     radio_setup();
     i2c_setup();
-    i2c_print("Setting up");
-    uint8_t mode = 1;
+    i2c_print("Setting up, start off");
+    uint8_t mode = 16;
     uint32_t anim = 0;
     uint8_t tiltcount = 0;
-    i2c_print("Slow cycle");
+    uint16_t ccnt = 1000;
     while (1) {
+        if (mode < 16) {
+            ccnt++;
+            if (ccnt > 1024) {
+                ccnt = 0;
+                uint16_t vcc = check_vcc();
+                // Decivolts
+                // When lower than 3.3 volts, switch off
+                i2c_printf("Vcc: %d dV", vcc);
+                if (vcc < 35) {
+                    mode = 16;
+                    anim = 0;
+                }
+            }
+        }
         switch (mode) {
           case 1:
             neopixel_send(colori(anim, 128, 64));
             if ((anim % 36) == 0) {
+                mcp_stop();
                 i2c_printf("Angle step %d", anim);
                 check_vcc();
             }
@@ -112,7 +142,36 @@ int main(void)
             }
             anim = (anim + 1) % 192;
             break;
+          case 16:
+            anim++;
+            switch (anim % 16) {
+              case 0:
+                neopixel_send((color_t) {64, 0, 0} );
+                break;
+              case 5:
+                neopixel_send((color_t) {0, 64, 0} );
+                break;
+              case 10:
+                neopixel_send((color_t) {0, 0, 64} );
+                break;
+              case 1:
+              case 6:
+              case 11:
+                neopixel_send((color_t) {0, 0, 0} );
+                break;
+              default:
+                if (anim >= 64) {
+                    i2c_print("Low power, turn off");
+                    // Off.
+                    neopixel_send((color_t) {0, 0, 0} );
+                    mode = 17;
+                }
+            }
+            // Extra slow
+            delay(225);
+            break;
           default:
+            delay(1000);
             break;
         }
         delay(25);
@@ -129,7 +188,7 @@ int main(void)
             newmode = 3;
             break;
           case 0x01:
-            newmode = 4;
+            newmode = 16;
             break;
         }
         if (tiltcount > 40) {
@@ -137,6 +196,7 @@ int main(void)
             tiltcount = 0;
         }
         if (newmode != mode) {
+            ccnt = 1000;
             mode = newmode;
             anim = 0;
             tiltcount = 0;
@@ -153,7 +213,7 @@ int main(void)
                 mcp_stop();
                 i2c_print("Flash red");
                 break;
-              case 4:
+              case 16:
                 mcp_stop();
                 i2c_print("Turn off");
                 neopixel_send((color_t) { 0, 0, 0 });

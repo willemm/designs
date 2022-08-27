@@ -71,8 +71,10 @@ uint16_t idist(int16_t x, int16_t y)
         mn = mx;
         mx = tmp;
     }
-    return (((mx << 8) + (mx << 3) - (mx << 4) - (mx << 1) +
-             (mn << 7) - (mn << 5) + (mn << 3) - (mn << 1)) >> 8);
+    // mx * (256 + 8 - 16 - 2) = mx * 246
+    // mn * (128 - 32 + 8 - 2) = mn * 102
+    return (((mx << 8) - (mx << 3) - (mx << 1) +
+             (mn << 7) - (mn << 4) - (mn << 3) - (mn << 1)) >> 8);
 }
 
 // Read data from MCP
@@ -115,7 +117,7 @@ uint16_t mcp_read(void)
     return 0;
 }
 
-color_t colori(uint32_t ang, uint32_t bri, uint32_t mbr);
+color_t fcolori(uint16_t ang, uint16_t bri, uint16_t mbr);
 
 color_t mcp_read_color(void)
 {
@@ -146,18 +148,18 @@ color_t mcp_read_color(void)
     float angh = fatan2(ay,az)*90.0+180.0;
     float angt = fatan2(ax,ayz)*90.0;
     */
-    uint32_t mbr, bri;
+    uint16_t mbr, bri;
     if (angt >= 15) {
         mbr = 0;
-        bri = (uint32_t)(180-angt*2);
+        bri = (uint16_t)(180-angt*2);
     } else if (angt >= -15) {
         mbr = 0;
         bri = 180;
     } else {
         bri = 180;
-        mbr = (uint32_t)(-angt*2);
+        mbr = (uint16_t)(-angt*2);
     }
-    color_t col = colori((uint32_t)angh, mbr, bri);
+    color_t col = fcolori((uint16_t)angh, mbr, bri);
     // i2c_printf("(%d,%d)=%d (%d,%d)~(%d,%d) = (%d,%u,%u) -> (%u,%u,%u)", ay, az, ayz, (int)c_angt, (int)c_angh, (int)angt, (int)angh, (uint32_t)angh, mbr, bri, col.r, col.g, col.b);
     return col;
 }
