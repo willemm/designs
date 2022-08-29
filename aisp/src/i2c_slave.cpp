@@ -23,11 +23,11 @@ static inline int i2c_wait_start(void)
   for (;;) {
     // Wait for sda to be high
     while (!(I2C_PIN & (1 << I2C_SDA))) {
-      // if (Serial.available()) { return -1; }
+      if (Serial.available()) { return -1; }
     }
     // Wait for sda to go low
     while ((I2C_PIN & (1 << I2C_SDA))) {
-      // if (Serial.available()) { return -1; }
+      if (Serial.available()) { return -1; }
     }
     // Return if scl is high
     if ((I2C_PIN & (1 << I2C_SCL))) {

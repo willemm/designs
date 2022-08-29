@@ -321,7 +321,7 @@ module cover_pin()
 
 function mirrorx(ar) = concat(ar, [for (i=[len(ar)-1:-1:0]) [-ar[i][0], ar[i][1]]]);
 
-module hexbase_bot(battery = true)
+module hexbase_bot(battery = false)
 {
     dia = 109.6;
     can = 0.6;

@@ -119,6 +119,8 @@ uint16_t mcp_read(void)
 
 color_t fcolori(uint16_t ang, uint16_t bri, uint16_t mbr);
 
+#define PIXELCOLOR(r,g,b) ((color_t){ (uint8_t)(r), (uint8_t)(g), (uint8_t)(b) })
+
 color_t mcp_read_color(void)
 {
     if (i2c_read_reg_start(MCP, ACCEL_XOUT) < 0) {
@@ -129,6 +131,24 @@ color_t mcp_read_color(void)
     int16_t ax = i2c_read_u16(0);
     int16_t ay = i2c_read_u16(0);
     int16_t az = i2c_read_u16(1); // Last
+
+#if 1
+    az = az >> 8;
+    ay = ay >> 8;
+    ax = ax >> 8;
+    int16_t r = ((az * 256) >> 7) - ax*2;
+    int16_t g = ((ay *  222 + az * -128) >> 7) - ax*2;
+    int16_t b = ((ay * -222 + az * -128) >> 7) - ax*2;
+    if (r < 0) r = 0;
+    if (r > 255) r = 255;
+    if (g < 0) g = 0;
+    if (g > 255) g = 255;
+    if (b < 0) b = 0;
+    if (b > 255) b = 255;
+    // i2c_printf("(%d,%d,%d) => (%d,%d,%d)", ax, ay, az, r, g, b);
+    // delay(175);
+    return PIXELCOLOR(r, g, b);
+#else
 
 #if 0
     float c_axf = ax;
@@ -162,4 +182,5 @@ color_t mcp_read_color(void)
     color_t col = fcolori((uint16_t)angh, mbr, bri);
     // i2c_printf("(%d,%d)=%d (%d,%d)~(%d,%d) = (%d,%u,%u) -> (%u,%u,%u)", ay, az, ayz, (int)c_angt, (int)c_angh, (int)angt, (int)angh, (uint32_t)angh, mbr, bri, col.r, col.g, col.b);
     return col;
+#endif
 }

@@ -92,10 +92,12 @@ int main(void)
                 uint16_t vcc = check_vcc();
                 // Decivolts
                 // When lower than 3.3 volts, switch off
-                i2c_printf("Vcc: %d dV", vcc);
-                if (vcc < 35) {
+                if (vcc < 34) {
+                    i2c_printf("Low power %d, turn off", vcc);
                     mode = 16;
                     anim = 0;
+                } else {
+                    i2c_printf("Vcc: %d dV", vcc);
                 }
             }
         }
@@ -161,7 +163,6 @@ int main(void)
                 break;
               default:
                 if (anim >= 64) {
-                    i2c_print("Low power, turn off");
                     // Off.
                     neopixel_send((color_t) {0, 0, 0} );
                     mode = 17;
