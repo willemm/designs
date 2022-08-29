@@ -528,6 +528,7 @@ void avrisp() {
   switch (ch) {
     case '8': // I2C Debug
       i2c_read();
+      while (SERIAL.available()) { SERIAL.read(); }
       break;
     case '9': // I2C Debug
       ana_read();
