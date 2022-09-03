@@ -6,7 +6,6 @@
 void mcp_init(void);
 void mcp_start(void);
 void mcp_stop(void);
-uint16_t mcp_read(void);
-color_t mcp_read_color(void);
+color_t mcp_read_color(uint8_t flicker);
 
 #endif

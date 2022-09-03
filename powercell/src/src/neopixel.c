@@ -82,7 +82,7 @@ void neopixel_setup()
 
 void neopixel_send(color_t color)
 {
-    sendBits(color.r);
     sendBits(color.g);
+    sendBits(color.r);
     sendBits(color.b);
 }

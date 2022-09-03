@@ -38,7 +38,7 @@ void mcp_stop(void)
 
 #define PIXELCOLOR(r,g,b) ((color_t){ (uint8_t)(r), (uint8_t)(g), (uint8_t)(b) })
 
-color_t mcp_read_color(void)
+color_t mcp_read_color(uint8_t flicker)
 {
     if (i2c_read_reg_start(MCP, ACCEL_XOUT) < 0) {
         i2c_print("MCP read error");
@@ -53,40 +53,54 @@ color_t mcp_read_color(void)
     ay = ay >> 8;
     ax = ax >> 8;
 
-    int16_t dif = lastz - az;
-    if (dif < 0) dif = -dif;
-    int16_t shake = dif;
-    dif = lasty - ay;
-    if (dif < 0) dif = -dif;
-    shake += dif;
-    dif = lastx - ax;
-    if (dif < 0) dif = -dif;
-    shake += dif;
-    if (shake > 127) shake = 127;
-    instability = instability + (shake * shake) - 16;
-    if (instability < 0) instability = 0;
-    if (instability > 2047) instability = 2047;
+    if (lastx || lasty || lastz) {
+        int16_t dif = lastz - az;
+        if (dif < 0) dif = -dif;
+        int16_t shake = dif/2;
+        dif = lasty - ay;
+        if (dif < 0) dif = -dif;
+        shake += dif/2;
+        dif = lastx - ax;
+        if (dif < 0) dif = -dif;
+        shake += dif/2;
+        if (shake > 127) shake = 127;
+        instability = instability + (shake * shake) - 5;
+        if (instability < 0) instability = 0;
+        if (instability > 8191) instability = 8191;
+    }
 
     lastx = ax;
     lasty = ay;
     lastz = az;
 
-    int16_t g = ((az * 256) >> 7) - ax*2;
-    int16_t r = ((ay *  222 + az * -128) >> 7) - ax*2;
+    int16_t r = ((az * 256) >> 7) - ax*2;
+    int16_t g = ((ay *  222 + az * -128) >> 7) - ax*2;
     int16_t b = ((ay * -222 + az * -128) >> 7) - ax*2;
 
     if (instability >= 512) {
-        instanim += (instability-256) * 4;
+        instanim += (instability-256) * 1;
     } else {
-        instanim += 256*4;
+        instanim += 256*1;
     }
     int16_t offs = ((int16_t)(instanim >> 8)) - 64;
     if (offs >= 64) offs = 128 - offs;
-    offs = (offs * (instability >> 3)) >> 8;
-    // i2c_printf("inst %d, anim %u, ianim %d, offs %d", instability, instanim, (int16_t)(instanim >> 8), offs);
-    r += offs;
-    g += offs;
-    b += offs;
+    offs = (offs * (instability >> 5)) >> 6;
+    if (flicker) {
+        uint8_t offs_rnd = (offs & 0xFF);
+        offs_rnd = (offs_rnd << 4) | (offs_rnd >> 4);
+        offs_rnd = ((offs_rnd & 0xCC) >> 2) | ((offs_rnd & 0x33) << 2);
+        offs_rnd = ((offs_rnd & 0xAA) >> 1) | ((offs_rnd & 0x55) << 1);
+        // i2c_printf("inst %d, anim %u, ianim %d, offs %d", instability, instanim, (int16_t)(instanim >> 8), offs);
+        if ((instability >> 7) > offs_rnd) {
+            r += offs;
+            g += offs;
+            b += offs;
+        }
+    } else {
+        r += offs;
+        g += offs;
+        b += offs;
+    }
 
     if (r < 0) r = 0;
     if (r > 255) r = 255;
