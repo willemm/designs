@@ -1,4 +1,4 @@
-doitem = "bottomblob";
+doitem = "";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -95,8 +95,8 @@ intersection() {
     *cubecornernut();
 
     cubeside();
-    *rotate([90,90,0]) cubeside();
-    *rotate([-90,0,90]) cubeside();
+    rotate([90,90,0]) cubeside();
+    rotate([-90,0,90]) cubeside();
 }
 
 *color("#333") translate([0,0,-0.1]) for (an=[0:120:240]) rotate([0,0,an])
@@ -122,9 +122,9 @@ intersection() {
 *color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
 *color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
-color("#cd5") bottomblob();
-color("#fe5") rotate([0,0,120]) bottomblob();
-color("#fe5") rotate([0,0,240]) bottomblob();
+color("#cd5") bottomblob(cp=120);
+color("#fe5") rotate([0,0,120]) bottomblob(cp=120);
+color("#fe5") rotate([0,0,240]) bottomblob(cp=120);
 
 color("#f5a") pipeholetpl();
 
@@ -148,6 +148,8 @@ color("#f5a") pipeholetpl();
 *rotate([90,0,0]) mcpback();
 *esp();
 
+translate([0,0,-200]) brakedisc();
+
 }
 
 module cubeside() {
@@ -156,21 +158,21 @@ module cubeside() {
     bof = 10;
     
     translate([0,0,zof]) {
-        *cubeedgeswhite(xof, bof, zof);
-        *cubeedgesblack(xof, bof, zof);
-        *color("#333") cubebackedges(xof, bof, zof);
+        cubeedgeswhite(xof, bof, zof);
+        cubeedgesblack(xof, bof, zof);
+        color("#333") cubebackedges(xof, bof, zof);
 
-        *whiteside(xof, bof, zof);
-        *sidefacets(zof, bof, zof);
+        whiteside(xof, bof, zof);
+        sidefacets(zof, bof, zof);
 
         *cubebacknuts(xof, bof, zof);
         *cubeedgenuts(xof, bof, zof);
         *buttonseries(xof, bof, zof);
-        partseries(xof, bof, zof);
+        *partseries(xof, bof, zof);
         *color("#beb") render(convexity=5) translate([0, 0, ledz+1.8]) backendfront();
         *color("#beb") translate([0, 0, ledz+1.8]) backendfront();
-        color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
-        color("#8cc") translate([0, 0, ledz-1.8-0.2]) backendguide();
+        *color("#8c8") translate([0, 0, ledz-1.8-0.1]) backendback();
+        *color("#8cc") translate([0, 0, ledz-1.8-0.2]) backendguide();
     }
 }
 
@@ -2680,6 +2682,34 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
         []
     ));
 }
+
+
+module brakedisc()
+{
+    odia = 295;
+    idia = 155;
+    cdia = 68;
+    hdia = 178;
+    oth = 25.5;
+    ith = 18.5;
+    hth = 7;
+    ndia = 12.8;
+
+    color("#976")
+    difference() {
+        union() {
+            cylinder(oth, odia/2, odia/2, $fn=60);
+            cylinder(oth+ith, idia/2, idia/2, $fn=60);
+        }
+        translate([0,0,-0.01]) cylinder(oth+ith+0.02, cdia/2, cdia/2, $fn=60);
+        translate([0,0,-0.01]) cylinder(hth+0.02, hdia/2, hdia/2, $fn=60);
+        for (an = [360/5:360/5:360]) {
+            rotate([0,0,an]) translate([0,(cdia+idia)/4,-0.01])
+                cylinder(oth+ith+0.02, ndia/2, ndia/2, $fn=30);
+        }
+    }
+}
+
 
 // Square with multiple points on sides
 // width, height, side steps, z coord
