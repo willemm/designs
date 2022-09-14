@@ -122,11 +122,11 @@ intersection() {
 *color("#5594") translate([boxx-30+200/2,          0,-208]) cube([200,250,2],true);
 *color("#9554") translate([boxx+20-250/2, boxy-10+200/2,-208]) cube([250,200,2],true);
 
-color("#cd5") bottomblob(cp=120);
-color("#fe5") rotate([0,0,120]) bottomblob(cp=120);
-color("#fe5") rotate([0,0,240]) bottomblob(cp=120);
+*color("#cd5") bottomblob(cp=120);
+*color("#fe5") rotate([0,0,120]) bottomblob(cp=120);
+*color("#fe5") rotate([0,0,240]) bottomblob(cp=120);
 
-color("#f5a") pipeholetpl();
+*color("#f5a") pipeholetpl();
 
 *color("#fe5") bottomblobmid();
 *color("#cd5") rotate([0,0,240]) bottomring();
@@ -139,7 +139,16 @@ color("#f5a") pipeholetpl();
 *color("#5594") rotate([0,0,150]) translate([0, -100,-200]) cube([250,200,2],true);
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
-*color("#888") translate([0,0,-500]) cylinder(200, 40, 40, $fn=64);
+color("#dd3") translate([0,0,-845]) footblob(seed=130, cp=120);
+*color("#ad3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
+*color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
+*color("#ad3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
+
+*color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
+
+*color("#888") translate([0,0,-800]) standpole();
+
+*translate([0,0,-845]) brakedisc();
 
 
 *psu();
@@ -147,8 +156,6 @@ color("#f5a") pipeholetpl();
 *mcp();
 *rotate([90,0,0]) mcpback();
 *esp();
-
-translate([0,0,-200]) brakedisc();
 
 }
 
@@ -417,12 +424,12 @@ module pipeholetpl(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=240)
     translate([0,0,rcz-bothi-thi]) {
         difference() {
             polyhedron(convexity=6, points=concat(
-                zbcirclearc(0, 0, -poleholehi-10, br2+1.2, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -poleholehi-10, br2, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh, br2, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh, br2-5, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh+1, br2-5, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh+1, br2+1.2, 360/cp, sa, ea),
+                zbcirclearc(-poleholehi-10, br2+1.2, 360/cp, sa, ea),
+                zbcirclearc(-poleholehi-10, br2, 360/cp, sa, ea),
+                zbcirclearc(-rimh, br2, 360/cp, sa, ea),
+                zbcirclearc(-rimh, br2-5, 360/cp, sa, ea),
+                zbcirclearc(-rimh+1, br2-5, 360/cp, sa, ea),
+                zbcirclearc(-rimh+1, br2+1.2, 360/cp, sa, ea),
                 []
             ), faces = concat(
                 [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp)],
@@ -476,12 +483,12 @@ module bottomblob(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=480)
     translate([0,0,rcz-bothi-thi]) {
         difference() {
             polyhedron(convexity=6, points=concat(
-                [for (z=[0:nly]) each zbcirclearc(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp, sa, ea) ],
-                zbcirclearc(0, 0, -hei, br2, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh, br2, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh, br2-5, 360/cp, sa, ea),
-                zbcirclearc(0, 0, -rimh+3, br2-5, 360/cp, sa, ea),
-                zbcirclearc(0, 0, 0, br2-6+rimh, 360/cp, sa, ea),
+                [for (z=[0:nly]) each zbcirclearc(-z*hei/nly, bra+brd*cos(z*180/nly), 360/cp, sa, ea) ],
+                zbcirclearc(-hei, br2, 360/cp, sa, ea),
+                zbcirclearc(-rimh, br2, 360/cp, sa, ea),
+                zbcirclearc(-rimh, br2-5, 360/cp, sa, ea),
+                zbcirclearc(-rimh+3, br2-5, 360/cp, sa, ea),
+                zbcirclearc(0, br2-6+rimh, 360/cp, sa, ea),
                 []
             ), faces = concat(
                 [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
@@ -640,10 +647,10 @@ module bottomblobside(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
         difference() {
             union() {
                 polyhedron(convexity=6, points=concat(
-                    [for (z=[0:mly]) each zbcirclearc(0, 0, -z*hei/nly, bra+brd*cos(z*180/nly), 360/cp, 30, 150) ],
-                    zbcirclearc(0, 0, -rimh-12, cwid, 360/cp, 30, 150),
-                    zbcirclearc(0, 0, -rimh, cwid+12, 360/cp, 30, 150),
-                    zbcirclearc(0, 0, 0, cwid+12, 360/cp, 30, 150),
+                    [for (z=[0:mly]) each zbcirclearc(-z*hei/nly, bra+brd*cos(z*180/nly), 360/cp, 30, 150) ],
+                    zbcirclearc(-rimh-12, cwid, 360/cp, 30, 150),
+                    zbcirclearc(-rimh, cwid+12, 360/cp, 30, 150),
+                    zbcirclearc(0, cwid+12, 360/cp, 30, 150),
                     []
                 ), faces = concat(
                     [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
@@ -683,8 +690,8 @@ module bottomblobside(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
     }
 }
 
-function zbcirclearc(x,y,z,d,an,s,e) = [
-    for (a = [s:an:e]) [x+d*sin(a),y+d*cos(a),z]
+function zbcirclearc(z,d,an,s,e) = [
+    for (a = [s:an:e]) [d*sin(a),d*cos(a),z]
 ];
 
 module bottomring(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
@@ -721,12 +728,12 @@ module bottomring(bof=10, zof=-2.3, thi=2.0, tol=0.2, cp=120)
     translate([0,0,rcz-bothi-thi]) {
         difference() {
             polyhedron(convexity=6, points=concat(
-                zbcirclearc(0, 0, -rimh+3, cwid+12-tol, 360/cp, 30, 150),
-                zbcirclearc(0, 0, -rimh+3, br2-5, 360/cp, 30, 150),
-                zbcirclearc(0, 0, -rimh+5, br2-5, 360/cp, 30, 150),
-                zbcirclearc(0, 0, -10, cwid+2, 360/cp, 30, 150),
-                zbcirclearc(0, 0,     0, cwid+ 2, 360/cp, 30, 150),
-                zbcirclearc(0, 0,     0, cwid+12-tol, 360/cp, 30, 150),
+                zbcirclearc(-rimh+3, cwid+12-tol, 360/cp, 30, 150),
+                zbcirclearc(-rimh+3, br2-5, 360/cp, 30, 150),
+                zbcirclearc(-rimh+5, br2-5, 360/cp, 30, 150),
+                zbcirclearc(-10, cwid+2, 360/cp, 30, 150),
+                zbcirclearc(0, cwid+ 2, 360/cp, 30, 150),
+                zbcirclearc(0, cwid+12-tol, 360/cp, 30, 150),
                 []
             ), faces = concat(
                 [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
@@ -2683,8 +2690,122 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
     ));
 }
 
+module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130)
+{
+    sa = 0;
+    ea = sa+arc;
+    ethi = 1.2;
 
-module brakedisc()
+    br = dia/2;
+    br1 = ddia/2+tol;
+    br2 = pdia/2;
+
+    bra = (br+(br2+ethi))/2;
+    brd = (br-(br2+ethi))/2;
+
+    nly = cp/3;
+
+    tly = nly+6;
+    tcp = (cp/(360/arc))+1;
+
+    difference() {
+        union() {
+            polyhedron(convexity=5,
+                points = concat(
+                    [for (z=[nly:-1:0]) each zbcirclearc(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea) ],
+                    zbcirclearc(-bth   , br2, 360/cp, sa, ea),
+                    zbcirclearc(0      , br2, 360/cp, sa, ea),
+                    zbcirclearc(0      , br1, 360/cp, sa, ea),
+                    zbcirclearc(dth+tol, br1, 360/cp, sa, ea),
+                    zbcirclearc(dth+tol+(br1-br2), br2, 360/cp, sa, ea),
+                    zbcirclearc(hei, br2, 360/cp, sa, ea),
+                    zbcirclearc(hei, br2+ethi, 360/cp, sa, ea),
+                    []
+                ), faces = concat(
+                    [for (z=[0:tly-1]) each nquads(z*tcp, tcp, tcp, 1)],
+                    nquads(tly*tcp, tcp, -tly*tcp, 1),
+                    [[for (z=[0:tly]) z*tcp+tcp-1]],
+                    [[for (z=[tly:-1:0]) z*tcp]],
+                    []
+                )
+            );
+            ns = 5;
+            difference() {
+                for (fs=[0:ns]) {
+                    rv = rands(0, 1, 6, seed+fs);
+                    s_sd = 8+rv[0]*12;
+                    s_ed = 2+rv[0]*1;
+                    s_sx = (dia/2-s_sd-100)*rv[1]+100;
+                    s_ex = 126/2+1.2-s_ed;
+                    s_san = 5+(fs/ns)*70+10*rv[2];
+                    s_ean = s_san+30*(rv[3]-0.5);
+                    s_shi = (dia/2)-s_sx-s_sd-10;
+                    s_hei = hei+0-30*rv[4]*rv[4]-s_shi;
+                    s_sof = -45*rv[5];
+
+                    footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
+                }
+                translate([0,0,-21]) cylinder(20, br, br, $fn=30);
+                cylinder(dth+(br1-br2)-2, br-5, br2+1, $fn=30);
+                cylinder(hei, br2, br2+1, $fn=30);
+            }
+        }
+    }
+}
+
+module footstalk(shi=40, hei=160, san=10, ean=25, sx=130, ex=126/2-0.8, sd=12, ed=2, sof=0, cp=30)
+{
+    tly = cp;
+    bra = (sx+ex)/2;
+    brd = (sx-ex)/2;
+    ana = (san+ean)/2;
+    and = (san-ean)/2;
+    polyhedron(convexity=3,
+        points = concat(
+            [for (z=[tly:-1:0]) each
+                let (r = bra+brd*footblobarc(z/tly, sof, 1),
+                     an = ana+and*footblobarc(z/tly, 0, 1))
+                zbcircle(r*cos(an), r*sin(an), shi+z*hei/tly, sd+(ed-sd)*z/tly, 360/cp)],
+            []
+        ), faces = concat(
+            [bface(0, cp)],
+            [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
+            [tface(cp*tly, cp)],
+            []
+        )
+    );
+}
+
+// Function that outputs an arc from -1 to 1 where z goes from 0 to 1
+//function footblobarc(z, sa=45) = ((2/(cos(sa)+1))*(((1-cos(sa))/2)+cos(sa+z*(180-sa))));
+
+function footblobarc(z, sa=45, ex=0.75) = (
+    (z > ex) ? -1 : 
+    (2/(cos(sa)+1))*(((1-cos(sa))/2)+cos(sa+(z/ex)*(180-sa)))
+    );
+
+module standpole(dia=126, hei=558, cp=60)
+{
+    br = dia/2;
+    th = 4;
+    tly = 3;
+    polyhedron(convexity=5,
+        points = concat(
+            zbcircle(0,0,0,br,360/cp),
+            zbcircle(0,0,0,br-th,360/cp),
+            zbcircle(0,0,hei,br-th,360/cp),
+            zbcircle(0,0,hei,br,360/cp),
+            []
+        ),
+        faces = concat(
+            [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
+            nquads(tly*cp, cp, -tly*cp),
+            []
+        )
+    );
+}
+
+module brakedisc(cp = 60)
 {
     odia = 295;
     idia = 155;
@@ -2695,14 +2816,36 @@ module brakedisc()
     hth = 7;
     ndia = 12.8;
 
+    tly = 7;
+
     color("#976")
     difference() {
+        polyhedron(convexity=5,
+            points = concat(
+                zbcircle(0, 0, 0, hdia/2, 360/cp),
+                zbcircle(0, 0, hth, hdia/2, 360/cp),
+                zbcircle(0, 0, hth, cdia/2, 360/cp),
+                zbcircle(0, 0, oth+ith, cdia/2, 360/cp),
+                zbcircle(0, 0, oth+ith, idia/2, 360/cp),
+                zbcircle(0, 0, oth, idia/2, 360/cp),
+                zbcircle(0, 0, oth, odia/2, 360/cp),
+                zbcircle(0, 0, 0, odia/2, 360/cp),
+                []
+            ),
+            faces = concat(
+                [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
+                nquads(tly*cp, cp, -tly*cp),
+                []
+            )
+        );
+        /*
         union() {
             cylinder(oth, odia/2, odia/2, $fn=60);
             cylinder(oth+ith, idia/2, idia/2, $fn=60);
         }
         translate([0,0,-0.01]) cylinder(oth+ith+0.02, cdia/2, cdia/2, $fn=60);
         translate([0,0,-0.01]) cylinder(hth+0.02, hdia/2, hdia/2, $fn=60);
+        */
         for (an = [360/5:360/5:360]) {
             rotate([0,0,an]) translate([0,(cdia+idia)/4,-0.01])
                 cylinder(oth+ith+0.02, ndia/2, ndia/2, $fn=30);
