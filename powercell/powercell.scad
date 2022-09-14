@@ -37,9 +37,56 @@ if (doitem == "try") { cover_holder(159.6, 19); }
 if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "receiver_jig") { receiver_jig(); }
 if (doitem == "") {
+
+    color("#abd") translate([0,0,-5]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
+    difference() {
+        cubesz = 130;
+        tetsz = 250;
+        tety = tetsz/sqrt(2);
+        tetx = tety*2/sqrt(3);
+        tetz = tetsz/sqrt(3);
+        union() {
+            color("#ab8") translate([0,0,-tetsz/sqrt(3)/4-4*sqrt(3)]) 
+            polyhedron(
+                points=[[0,0,tetz],[tetx,0,0],[-tetx/2,-tety,0],[-tetx/2,tety,0]],
+                faces=[[0,1,2],[0,3,1],[0,2,3],[1,3,2]]
+                );
+            color("#bca") difference() {
+                rotate([45,asin(1/s3),0]) cube(cubesz, true);
+                translate([0,0,-200]) cylinder(157, 120, 120, $fn=6);
+            }
+        }
+        cutsz = 50*sqrt(3);
+        excutsz = 10.5;
+        tol = 1;
+        translate([0,0,-30]) {
+            cylinder(200, cutsz+tol*sqrt(3), cutsz+tol*sqrt(3), $fn=6);
+            for (an=[0:60:360-60]) rotate([0,0,an]) translate([50*sqrt(3),0,0])
+                cylinder(200, 10.2, 10.2, $fn=6);
+        }
+        translate([0,0,35]) rotate([45,asin(1/s3),0]) cube(cubesz, true);
+        for (an=[0:120:360-1]) rotate([0,0,an]) translate([50*sqrt(3),0,40.7])
+            rotate([45,asin(1/s3),0]) cube(16, true);
+        // TODO
+        *for (an=[60:120:360-1]) rotate([0,0,an]) translate([50*sqrt(3)+5,0,-19])
+            rotate([45,-asin(1/s3),0]) cube(12.4, true);
+    }
+    *color("#ae8") difference() {
+        tetsz = 170;
+        tety = tetsz/sqrt(2);
+        tetx = tety*2/sqrt(3);
+        tetz = tetsz/sqrt(3);
+        translate([0,0,-tetsz/sqrt(3)/4-4*sqrt(3)]) 
+        polyhedron(
+            points=[[0,0,tetz],[tetx,0,0],[-tetx/2,-tety,0],[-tetx/2,tety,0]],
+            faces=[[0,1,2],[0,3,1],[0,2,3],[1,3,2]]
+            );
+        translate([0,0,-20]) cylinder(200, 60, 60, $fn=6);
+    }
+
     if (1) {
         *hexbase_top();
-        receiver_jig();
+        *receiver_jig();
         *translate([0,0,13.5]) cover_top();
         *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
@@ -48,7 +95,7 @@ if (doitem == "") {
         *ws2811();
         *digispark();
         *attiny_board();
-        receiver();
+        *receiver();
     } else {
         hexbase_bot();
         *translate([0,0,14]) cover_bot();

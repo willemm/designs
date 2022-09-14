@@ -140,15 +140,15 @@ intersection() {
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
 color("#dd3") translate([0,0,-845]) footblob(seed=131);
-*color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
-*color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
-*color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
+color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
+color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
+color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
-*color("#888") translate([0,0,-800]) standpole();
+color("#888") translate([0,0,-800]) standpole();
 
-*translate([0,0,-845]) brakedisc();
+translate([0,0,-845]) brakedisc();
 
 
 *psu();
@@ -2745,7 +2745,7 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
 
                     footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
                 }
-                polyhedron(convexity=5,
+                *polyhedron(convexity=5,
                     points = concat(
                         zbcirclearc(-21, br, 360/cp, sa, ea),
                         zbcirclearc( -2, br, 360/cp, sa, ea),
@@ -2763,10 +2763,6 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
                         []
                     )
                 );
-
-                *translate([0,0,-21]) cylinder(20.1, br, br, $fn=30);
-                *translate([0,0,-1]) cylinder(dth+(br1-br2)-1, br-5, br2+1, $fn=30);
-                *cylinder(hei, br2, br2+1, $fn=30);
             }
         }
     }
