@@ -23,11 +23,15 @@ wof2 = topnut ? 10+((tubeth-wireth)/2)+1 : 0;
 
 slitw = 24;
 
-translate([0,0,hei+0.1]) boxcover();
-junctionbox();
+*translate([0,0,hei+0.1]) boxcover();
+*rotate([180,0,0]) boxcover();
+*junctionbox();
 
-translate([topholeof+38.25, len-7.1,whi-7]) rotate([-90,0,0]) slitclamp(14,6);
-translate([topholeof+38.25, len-17.1,whi-7]) rotate([-90,0,0]) slitclamp(18,4,2);
+*translate([topholeof+38.25, len-7.1,whi-7]) rotate([-90,0,0]) slitclamp(14,6);
+*translate([topholeof+38.25, len-17.1,whi-7]) rotate([-90,0,0]) slitclamp(18,4,2);
+
+*translate([-20,-20,0]) slitclamp(14,6);
+translate([-50,-20,0]) slitclamp(20,4,2);
 
 module slitclamp(hi = 20, ind=4, slp=1.5, th=1.0)
 {
@@ -35,7 +39,8 @@ module slitclamp(hi = 20, ind=4, slp=1.5, th=1.0)
     *color("#8af") translate([-w/2,0,0]) cube([w, hi, th]);
 
     color("#8af") linear_extrude(height=th) polygon([
-        [-w/2,0],[w/2,0],[w/2,hi],[ind*slp,hi],[0,hi-ind],[-ind*slp,hi],[-w/2,hi]
+        [-w/2,-7],[-2,-7],[-2,0],[2,0],[2,-7],[w/2,-7],
+        [w/2,hi],[ind*slp,hi],[0,hi-ind],[-ind*slp,hi],[-w/2,hi]
     ]);
 }
 

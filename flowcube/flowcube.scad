@@ -34,6 +34,10 @@ poleholehi = 70;
 
 vertpc = 0;
 
+connhi = 49;
+fplughi = 30;
+
+
 boxx = 79.2;
 boxy = 51.2;
 
@@ -139,16 +143,18 @@ intersection() {
 *color("#5594") rotate([0,0,150]) translate([0, -100,-200]) cube([250,200,2],true);
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
-color("#dd3") translate([0,0,-845]) footblob(seed=131);
-color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
-color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
-color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
+color("#dd3") translate([0,0,-845]) footblob(seed=131, conn=20);
+*color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
+*color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
+*color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
+
+rotate([0,0,20]) translate([190-28,0,-845+fplughi]) powerplug_f();
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
-color("#888") translate([0,0,-800]) standpole();
+*color("#888") translate([0,0,-800]) standpole();
 
-translate([0,0,-845]) brakedisc();
+*translate([0,0,-845]) brakedisc();
 
 
 *psu();
@@ -250,7 +256,7 @@ module mcpback(xof=xsof*butsp, bof=10, zof=-2.3)
     }
 }
 
-module powerplug_h(xof=xsof*butsp, bof=10, zof=-2.3)
+module powerplug_h(bof=10, zof=-2.3)
 {
     cxy = (numbut+0.5)*butsp-ewid/2;
     cz = bof+zof+2;
@@ -275,7 +281,7 @@ module powerplug_h(xof=xsof*butsp, bof=10, zof=-2.3)
         color("#cce") translate([-4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
 
         pluglen = 32.5;
-        color("#654") translate([0, 0, -pluglen]) {
+        color("#975") translate([0, 0, -pluglen]) {
             minkowski() {
                 cylinder(pluglen, 10.5/2, 10.5/2, $fn=48);
                 cube([8, 0.001, 0.001], true);
@@ -284,6 +290,35 @@ module powerplug_h(xof=xsof*butsp, bof=10, zof=-2.3)
         }
     }
 }
+
+module powerplug_f()
+{
+    rotate([90,0,-90]) {
+        color("#543") difference() {
+            translate([0,0,4.2/2]) cube([35, 15, 4.2], true);
+            translate([ 14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
+            translate([-14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
+        }
+        color("#543") translate([0,0,-0.9]) {
+            minkowski() {
+                cylinder(14.6, 12.5/2, 12.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+        }
+        color("#cce") translate([ 4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
+        color("#cce") translate([-4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
+
+        pluglen = 32.5;
+        color("#975") translate([0, 0, -pluglen]) {
+            minkowski() {
+                cylinder(pluglen, 10.5/2, 10.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+            *translate([0, -4, 7.5]) rotate([90,0,0]) cylinder(20, 7.5, 5, $fn=48);
+        }
+    }
+}
+
 
 module powerplug(xof=xsof*butsp, bof=10, zof=-2.3)
 {
@@ -2690,7 +2725,7 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
     ));
 }
 
-module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130)
+module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0)
 {
     sa = 0;
     ea = sa+arc;
@@ -2705,14 +2740,17 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
 
     nly = cp/3;
 
-    tly = nly+6;
+    tly = nly+7;
     tcp = (cp/(360/arc))+1;
 
     difference() {
         union() {
             polyhedron(convexity=5,
                 points = concat(
-                    [for (z=[nly:-1:0]) each zbcirclearc(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea) ],
+                    //[for (z=[nly:-1:0]) each zbcirclearc(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea) ],
+                    //[for (z=[nly:-1:0]) each radliftmorph(zbcirclearc(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea), conn, connhi, br/2, br) ],
+                    [for (z=[nly:-1:0]) each zbcirclearcblob(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea, bbr=br, ban=90-conn, bup=(conn?connhi-3:0)) ],
+                    zbcirclearc(-bth   , br, 360/cp, sa, ea),
                     zbcirclearc(-bth   , br2, 360/cp, sa, ea),
                     zbcirclearc(0      , br2, 360/cp, sa, ea),
                     zbcirclearc(0      , br1, 360/cp, sa, ea),
@@ -2729,8 +2767,8 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
                     []
                 )
             );
-            ns = 5;
             difference() {
+                ns = 5;
                 for (fs=[0:ns]) {
                     rv = rands(0, 1, 6, seed+fs);
                     s_sd = 8+rv[0]*12;
@@ -2739,13 +2777,13 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
                     s_ex = 126/2+1.2-s_ed;
                     s_san = 5+(fs/ns)*70+10*rv[2];
                     s_ean = s_san+30*(rv[3]-0.5);
-                    s_shi = (dia/2)-s_sx-s_sd-10;
+                    s_shi = (dia/2)-s_sx*0.85-s_sd-30;
                     s_hei = hei+0-30*rv[4]*rv[4]-s_shi;
                     s_sof = -45*rv[5];
 
                     footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
                 }
-                *polyhedron(convexity=5,
+                polyhedron(convexity=5,
                     points = concat(
                         zbcirclearc(-21, br, 360/cp, sa, ea),
                         zbcirclearc( -2, br, 360/cp, sa, ea),
@@ -2765,8 +2803,65 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
                 );
             }
         }
+        if (conn) {
+            s1of = 38;
+            s2of = 22;
+            slex = 7;
+            rotate([0,0,conn]) {
+                translate([br,0,connhi-24]) rotate([0,-90,0]) cylinder(27-2+0.01, 17, 17, $fn=90);
+                translate([br-27+2,0,0]) rotate([0,-90,0]) linear_extrude(height=11,convexity=5)
+                    polygon(concat(
+                        [[38.9,-22/2],[s2of,-22/2],[s2of-slex,-22/2-slex],[0,-22/2-slex],
+                            [0,22/2+slex],[s2of-slex,22/2+slex],[s2of,22/2],[38.9,22/2]],
+                        [for (an=[40:-4:-40]) [connhi-24+cos(an)*17,sin(an)*17]]
+                    ));
+                translate([br-28-4.4,-36/2,0]) cube([4.2,36,38]);
+                translate([br-27-8.4,0,0]) rotate([0,-90,0]) linear_extrude(height=25,convexity=5)
+                    polygon(concat(
+                        [[s1of-slex,-22/2-slex],[0,-22/2-slex],
+                            [0,22/2+slex],[s1of-slex,22/2+slex]],
+                        [for (an=[40:-4:-40]) [connhi-24+cos(an)*17,sin(an)*17]]
+                    ));
+
+                // screw holes for plugsocket
+                translate([br-27+3,-14,fplughi]) rotate([0,-90,0]) cylinder(12, 1.2, 1.2, $fn=24);
+                translate([br-27+3, 14,fplughi]) rotate([0,-90,0]) cylinder(12, 1.2, 1.2, $fn=24);
+            }
+        }
     }
 }
+
+// Circle arc but with a blob at angle 'ban'
+function zbcirclearcblob(z,d,an,s,e,ban=70,banw=20,bup=40,bbo=120,bbr=190) = [
+    for (a = [s:an:e])
+        let (
+            sca = abs(a-ban)>banw ? 0 : (banw-abs(a-ban))/banw,
+            scr = (bbr-d)>bbo ? 0 : (bbo-(bbr-d))/bbo,
+            scsa = cos(180-180*sca)/2+0.5,
+            scsr = scr>1 ? (cos(180-90*scr)+1+(cos((scr-1)*270)-1)*1) : cos(180-90*scr)+1,
+            upadd = bup*scsa*scsr
+        )
+        [d*sin(a),d*cos(a),z+upadd]
+];
+
+// Raise points in direction 'an' by distance scaled from 0 at radius 'rd1' to 'up' at radius 'rd2'
+function radliftmorph(pnts, an, up, rd1, rd2) = (
+    let (
+        mdis = rd2 - rd1,
+        tx = cos(an)*rd2,
+        ty = sin(an)*rd2
+    )
+    [for (i=[0:len(pnts)-1])
+        let (
+            p = pnts[i],
+            dx = tx-p.x,
+            dy = ty-p.y,
+            dis = sqrt(dx*dx + dy*dy),
+            dscl = (dis < mdis) ? (dis/mdis) : 1,
+            scl = cos(dscl*180+0)/2+0.5,
+            upadd = up*scl
+        ) [p.x, p.y, p.z+upadd]]
+);
 
 module footstalk(shi=40, hei=160, san=10, ean=25, sx=130, ex=126/2-0.8, sd=12, ed=2, sof=0, cp=30)
 {
