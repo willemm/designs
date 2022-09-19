@@ -143,7 +143,7 @@ intersection() {
 *color("#5594") rotate([0,0,150]) translate([0, -100,-200]) cube([250,200,2],true);
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
-color("#dd3") translate([0,0,-845]) footblob(seed=131, conn=20);
+color("#dd3") translate([0,0,-845]) footblob(seed=131, conn=20, cp=240);
 *color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
 *color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
 *color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
@@ -2783,7 +2783,7 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
 
                     footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
                 }
-                polyhedron(convexity=5,
+                *polyhedron(convexity=5,
                     points = concat(
                         zbcirclearc(-21, br, 360/cp, sa, ea),
                         zbcirclearc( -2, br, 360/cp, sa, ea),
@@ -2871,20 +2871,45 @@ module footstalk(shi=40, hei=160, san=10, ean=25, sx=130, ex=126/2-0.8, sd=12, e
     ana = (san+ean)/2;
     and = (san-ean)/2;
     polyhedron(convexity=3,
-        points = concat(
+        points = clampcone(179, 179, -2, clampcyl(127/2, concat(
             [for (z=[tly:-1:0]) each
                 let (r = bra+brd*footblobarc(z/tly, sof, 1),
                      an = ana+and*footblobarc(z/tly, 0, 1))
                 zbcircle(r*cos(an), r*sin(an), shi+z*hei/tly, sd+(ed-sd)*z/tly, 360/cp)],
-            []
+            [[sx*cos(san), sx*sin(san), shi]] )) 
         ), faces = concat(
             [bface(0, cp)],
             [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
-            [tface(cp*tly, cp)],
+            tfacec(cp*tly, cp, cp*(tly+1)),
             []
         )
     );
 }
+
+// Make sure points do not fall inside a cylinder of diameter 'dia'
+// Push points out when they do
+// Factor 0.99 is to just keep it 3d
+function clampcyl(dia, pts) = [
+    for (i=[0:len(pts)-1])
+        let (p = pts[i]
+            ,d = sqrt(p.x*p.x + p.y*p.y)
+            ,s = d>dia ? 1 : (((dia/d)-1)*0.99)+1
+            )
+        [p.x*s, p.y*s, p.z]
+];
+
+// Make sure points do not fall inside a cone of base 'dia' and height 'hi'
+// Push points up when they do
+function clampcone(hei, dia, ofs, pts) = [
+    for (i=[0:len(pts)-1])
+        let (p = pts[i]
+            ,d = sqrt(p.x*p.x + p.y*p.y)
+            ,coned = dia*(hei-p.z+ofs)/hei
+            ,t = d>coned ? 0 : (coned-d)*0.7
+            ,s = d>coned ? 1 : (((coned/d)-1)*0.25)+1
+            )
+        [p.x*s, p.y*s, p.z+t]
+];
 
 // Function that outputs an arc from -1 to 1 where z goes from 0 to 1
 //function footblobarc(z, sa=45) = ((2/(cos(sa)+1))*(((1-cos(sa))/2)+cos(sa+z*(180-sa))));
@@ -3087,6 +3112,8 @@ function fqfacei(s, n, o, di=1) = bqfacei(s, n, o, di);
 // top/bottom face
 function bface(o, n) = [for (p=[0:n-1]) p+o];
 function tface(o, n) = [for (p=[n-1:-1:0]) p+o];
+
+function tfacec(o, n, e) = [[o,o+n-1,e],[for (p=[0:n-2]) each [o+p+1,o+p,e]]];
 
 // Part of a circle
 // x, y, z, radius, start, end, an
