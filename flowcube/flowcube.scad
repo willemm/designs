@@ -2815,7 +2815,7 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
                 )
             );
             ns = 5;
-            *for (fs=[0:ns]) {
+            for (fs=[0:ns]) {
                 rv = rands(0, 1, 6, seed+fs);
                 s_sd = 8+rv[0]*12;
                 s_ed = 2+rv[0]*1;
@@ -2840,13 +2840,15 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
         }
         // Side to side connector holes
         rotate([0,0,sa]) {
-            translate([br-30,-0.01,10]) rotate([-90,0,0]) cylinder(20.01, 10/sqrt(2), 10/sqrt(2), $fn=4);
-            translate([br-30,10,-bth-0.01]) cylinder(10.01, 2, 2, $fn=48);
+            translate([br-30, 20/2-0.01, 3+4/2]) cube([10, 20.02, 4], true);
+            *translate([br-30,-0.01,8]) rotate([-90,45,0]) cylinder(20.01, 10/sqrt(2), 10/sqrt(2), $fn=4);
+            translate([br-30,10,-bth+3-0.01]) cylinder(10.01, 2, 2, $fn=48);
             translate([br-30,10,-bth-0.01]) cylinder(3.01, 3.7, 3.7, $fn=48);
         }
         rotate([0,0,ea]) {
-            translate([br-30, 0.01,10]) rotate([90,0,0]) cylinder(20.01, 10/sqrt(2), 10/sqrt(2), $fn=4);
-            translate([br-30,-10,-bth-0.01]) cylinder(10.01, 2, 2, $fn=48);
+            translate([br-30,-20/2+0.01, 3+4/2]) cube([10, 20.02, 4], true);
+            *translate([br-30, 0.01,8]) rotate([90,45,0]) cylinder(20.01, 10/sqrt(2), 10/sqrt(2), $fn=4);
+            translate([br-30,-10,-bth+3-0.01]) cylinder(10.01, 2, 2, $fn=48);
             translate([br-30,-10,-bth-0.01]) cylinder(3.01, 3.7, 3.7, $fn=48);
         }
 
@@ -2858,6 +2860,19 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
         rotate([0,0,ea]) {
             translate([br2+10,-10,-bth-0.01]) cylinder(6.01, 2, 2, $fn=48);
             translate([br2+10,-10,-bth-0.01]) cylinder(3.01, 3.7, 3.7, $fn=48);
+        }
+
+        // Top pole screw holes
+        rotate([0,0,sa]) {
+            translate([br2+1.6+4/2, 5-2/2, 118+0.1]) cube([4, 7+2, 7.2], true);
+            translate([br2-0.5, 5, 118]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
+            translate([br2+7.2, 5, 118]) rotate([0,90,0]) cylinder(6, 3.6, 3.6, $fn=48);
+        }
+        // Top pole screw holes
+        rotate([0,0,ea]) {
+            translate([br2+1.6+4/2,-5+2/2, 118+0.1]) cube([4, 7+2, 7.2], true);
+            translate([br2-0.5,-5, 118]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
+            translate([br2+7.2,-5, 118]) rotate([0,90,0]) cylinder(6, 3.6, 3.6, $fn=48);
         }
         
         // Power connector hole
@@ -2891,10 +2906,12 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
     rotate([0,0,sa]) {
         #translate([br2+10, 10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
         #translate([br-30, 10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
+        #translate([br-30, 10, 7]) cylinder(0.2, 2.5, 2.5, $fn=48);
     }
     rotate([0,0,ea]) {
         #translate([br2+10,-10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
         #translate([br-30,-10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
+        #translate([br-30,-10, 7]) cylinder(0.2, 2.5, 2.5, $fn=48);
     }
 }
 
