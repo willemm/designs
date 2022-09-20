@@ -143,12 +143,13 @@ intersection() {
 *color("#5594") rotate([0,0,150]) translate([0, -100,-200]) cube([250,200,2],true);
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
-color("#dd3") translate([0,0,-845]) footblob(seed=131, conn=20, cp=240);
+footblob(seed=131, conn=20, cp=240);
+*color("#dd3") translate([0,0,-845]) footblob(seed=131, conn=20);
 *color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
 *color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
 *color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
 
-rotate([0,0,20]) translate([190-28,0,-845+fplughi]) powerplug_f();
+*rotate([0,0,20]) translate([190-28,0,-845+fplughi]) powerplug_f();
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
@@ -2738,18 +2739,20 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
     bra = (br+(br2+ethi))/2;
     brd = (br-(br2+ethi))/2;
 
-    nly = cp/3;
+    nly = floor(cp/3);
 
-    tly = nly+7;
+    tly = nly+8;
     tcp = (cp/(360/arc))+1;
+
+    midly = floor(nly*0.7);
 
     difference() {
         union() {
-            polyhedron(convexity=5,
+            polyhedron(convexity=8,
                 points = concat(
                     //[for (z=[nly:-1:0]) each zbcirclearc(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea) ],
                     //[for (z=[nly:-1:0]) each radliftmorph(zbcirclearc(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea), conn, connhi, br/2, br) ],
-                    [for (z=[nly:-1:0]) each zbcirclearcblob(z*(hei+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80), 360/cp, sa, ea, bbr=br, ban=90-conn, bup=(conn?connhi-3:0)) ],
+                    [for (z=[nly:-1:0]) each zbcirclearcblob(z*((hei*0.75)+bth)/nly-bth, bra+brd*footblobarc(z/nly, 80, ex=1), 360/cp, sa, ea, bbr=br, ban=90-conn, bup=(conn?connhi-3:0)) ],
                     zbcirclearc(-bth   , br, 360/cp, sa, ea),
                     zbcirclearc(-bth   , br2, 360/cp, sa, ea),
                     zbcirclearc(0      , br2, 360/cp, sa, ea),
