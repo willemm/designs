@@ -67,8 +67,9 @@ if (doitem == "footblob1") { footblob(seed=131, conn=20, cp=480); }
 if (doitem == "footblob2") { footblob(seed=252, conn=0, cp=480); }
 if (doitem == "footblob3") { footblob(seed=301, conn=0, cp=480); }
 if (doitem == "footblob4") { footblob(seed=509, conn=0, cp=480); }
-if (doitem == "footmid")   { footmid(); }
-if (doitem == "footdisc")  { footmiddisc(); }
+if (doitem == "footmid")   { footmid(cp=480); }
+if (doitem == "footdisc")  { footmiddisc(cp=480); }
+if (doitem == "test")  { stalks(seed=252, conn=0, cp=480); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -2847,6 +2848,24 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=240)
     }
 }
 
+module stalks(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0) {
+            ns = 5;
+            for (fs=[0:ns]) {
+                rv = rands(0, 1, 6, seed+fs);
+                s_sd = 8+rv[0]*12;
+                s_ed = 2+rv[0]*1;
+                s_sx = (dia/2-s_sd-100)*rv[1]+100;
+                s_ex = 126/2+1.2-s_ed;
+                s_san = 5+(fs/ns)*70+10*rv[2];
+                s_ean = s_san+30*(rv[3]-0.5);
+                s_shi = (dia/2)-s_sx*0.8-s_sd-37;
+                s_hei = hei+0-30*rv[4]*rv[4]-s_shi;
+                s_sof = -45*rv[5];
+
+                footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
+            }
+}
+
 module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0)
 {
     sa = 0;
@@ -3283,7 +3302,7 @@ function fqfacei(s, n, o, di=1) = bqfacei(s, n, o, di);
 function bface(o, n) = [for (p=[0:n-1]) p+o];
 function tface(o, n) = [for (p=[n-1:-1:0]) p+o];
 
-function tfacec(o, n, e) = [[o,o+n-1,e],[for (p=[0:n-2]) each [o+p+1,o+p,e]]];
+function tfacec(o, n, e) = concat([[o,o+n-1,e]],[for (p=[0:1:n-2]) [o+p+1,o+p,e]]);
 
 // Part of a circle
 // x, y, z, radius, start, end, an
