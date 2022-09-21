@@ -36,7 +36,7 @@ vertpc = 0;
 
 connhi = 49;
 fplughi = 30;
-
+fpshi = 111;
 
 boxx = 79.2;
 boxy = 51.2;
@@ -143,21 +143,27 @@ intersection() {
 *color("#5594") rotate([0,0,150]) translate([0, -100,-200]) cube([250,200,2],true);
 *color("#9554") rotate([0,0,270]) translate([0, -100,-200]) cube([250,200,2],true);
 
-*footblob(seed=131, conn=20, cp=240);
-color("#dd3") translate([0,0,-845]) footblob(seed=131, conn=20);
-*color("#dd3") rotate([0,0,90]) translate([0,0,-845]) footblob(seed=252);
-*color("#dd3") rotate([0,0,180]) translate([0,0,-845]) footblob(seed=301);
-*color("#dd3") rotate([0,0,270]) translate([0,0,-845]) footblob(seed=509);
 
-color("#ae3") translate([0,0,-845+0.1]) footmiddisc();
+botoffset = 860;
 
-*rotate([0,0,20]) translate([190-28,0,-845+fplughi]) powerplug_f();
+*footblob(seed=131, conn=20, cp=480);
+*footblob(seed=252, conn=0, cp=480);
+color("#dd3") translate([0,0,-botoffset]) footblob(seed=131, conn=20);
+*color("#dd3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=252);
+*color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=301);
+*color("#dd3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=509);
+
+color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
+
+color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
+
+*rotate([0,0,20]) translate([190-28,0,-botoffset+fplughi]) powerplug_f();
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
-*color("#888") translate([0,0,-800]) standpole();
+color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
 
-*translate([0,0,-845]) brakedisc();
+translate([0,0,-botoffset]) brakedisc();
 
 
 *psu();
@@ -2728,10 +2734,62 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
     ));
 }
 
-module footmiddisc(thi=6.8, dia=175, idia=120, cp=240)
+module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, bot=44, cp=240)
+{
+    tly = 9;
+    br2 = pdia/2;
+    difference() {
+        polyhedron(convexity=5,
+            points = concat(
+                zbcircle(0, 0, bot,  dia/2, 360/cp),
+                zbcircle(0, 0, bot, idia/2, 360/cp),
+                zbcircle(0, 0, bot+bthi, idia/2, 360/cp),
+                zbcircle(0, 0, bot+bthi, pdia/2, 360/cp),
+                zbcircle(0, 0, hei+ehei-ethi, pdia/2, 360/cp),
+                zbcircle(0, 0, hei+ehei-ethi+0.4, pdia/2+0.4, 360/cp),
+                zbcircle(0, 0, hei+ehei-ethi+0.4, pdia/2+ethi-0.4, 360/cp),
+                zbcircle(0, 0, hei+ehei-ethi, pdia/2+ethi, 360/cp),
+                zbcircle(0, 0, hei-ethi, pdia/2+ethi, 360/cp),
+                zbcircle(0, 0, hei-(dia-pdia)/2,  dia/2, 360/cp),
+                []
+            ), faces = concat(
+                [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
+                nquads(tly*cp, cp, -tly*cp),
+                []
+            ));
+        // Screw holes
+        for (an=[0:90:360-90]) {
+            rotate([0,0,an+6]) {
+                translate([br2+1.4+3/2, 0, fpshi+2/2]) cube([3, 7, 7+2], true);
+                translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(ethi+1, 2, 2, $fn=48);
+            }
+            rotate([0,0,an+90-6]) {
+                translate([br2+1.4+3/2, 0, fpshi+2/2]) cube([3, 7, 7+2], true);
+                translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(ethi+1, 2, 2, $fn=48);
+            }
+        }
+        // Cable throughholes
+        for (an=[0:72:360-72]) rotate([0,0,an+36]) {
+            translate([0, idia/2-1.5, bot+6]) rotate([-90,0,0]) cylinder((dia-idia)/2+2, 6, 6, $fn=48);
+            translate([-12/2, idia/2-1.5, bot-0.01]) cube([12, (dia-idia)/2+2, 6.01]);
+        }
+        // Disc mounting holes
+        for (an=[0:72:360-72]) rotate([0,0,an]) {
+            translate([0, (68+155)/4, bot-0.01]) {
+                cylinder(bthi+0.02, 3, 3, $fn=48);
+                *translate([0,0,3]) cylinder(bthi-3+0.02, 7, 7, $fn=48);
+                // Hex nut M6
+                m6rd = (10*2/sqrt(3))/2;
+                translate([0,0,3]) cylinder(bthi-3+0.02, m6rd, m6rd, $fn=6);
+            }
+        }
+    }
+}
+
+module footmiddisc(thi=6.8, dia=175, pdia=126, idia=120, cp=240)
 {
     tly = 3;
-    br2 = 126/2;
+    br2 = pdia/2;
 
     difference() {
         polyhedron(convexity=5,
@@ -2785,7 +2843,7 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
 
     nly = floor(cp/3);
 
-    tly = nly+8;
+    tly = nly+10;
     tcp = (cp/(360/arc))+1;
 
     midly = floor(nly*0.7);
@@ -2802,7 +2860,9 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
                     zbcirclearc(0      , br2, 360/cp, sa, ea),
                     zbcirclearc(0      , br1, 360/cp, sa, ea),
                     zbcirclearc(dth+tol, br1, 360/cp, sa, ea),
-                    zbcirclearc(dth+tol+(br1-br2), br2, 360/cp, sa, ea),
+                    zbcirclearc(dth+tol+(br1-br2)-6, br2+6, 360/cp, sa, ea),
+                    zbcirclearc(122-6, br2+6, 360/cp, sa, ea),
+                    zbcirclearc(122, br2, 360/cp, sa, ea),
                     zbcirclearc(hei, br2, 360/cp, sa, ea),
                     zbcirclearc(hei, br2+ethi, 360/cp, sa, ea),
                     []
@@ -2863,16 +2923,23 @@ module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, t
         }
 
         // Top pole screw holes
-        rotate([0,0,sa]) {
-            translate([br2+1.6+4/2, 5-2/2, 118+0.1]) cube([4, 7+2, 7.2], true);
-            translate([br2-0.5, 5, 118]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
-            translate([br2+7.2, 5, 118]) rotate([0,90,0]) cylinder(6, 3.6, 3.6, $fn=48);
+        *rotate([0,0,sa]) {
+            translate([br2+1.6+4/2, 5-2/2, fpshi+0.1]) cube([4, 7+2, 7.2], true);
+            translate([br2-0.5, 5, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
+            translate([br2+7.2, 5, fpshi]) rotate([0,90,0]) cylinder(10, 3.6, 3.6, $fn=48);
         }
-        // Top pole screw holes
-        rotate([0,0,ea]) {
-            translate([br2+1.6+4/2,-5+2/2, 118+0.1]) cube([4, 7+2, 7.2], true);
-            translate([br2-0.5,-5, 118]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
-            translate([br2+7.2,-5, 118]) rotate([0,90,0]) cylinder(6, 3.6, 3.6, $fn=48);
+        rotate([0,0,sa+6]) {
+            translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
+            translate([br2+7.2, 0, fpshi]) rotate([0,90,0]) cylinder(11, 3.6, 3.6, $fn=48);
+        }
+        *rotate([0,0,ea]) {
+            translate([br2+1.6+4/2,-5+2/2, fpshi+0.1]) cube([4, 7+2, 7.2], true);
+            translate([br2-0.5,-5, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
+            translate([br2+7.2,-5, fpshi]) rotate([0,90,0]) cylinder(10, 3.6, 3.6, $fn=48);
+        }
+        rotate([0,0,ea-6]) {
+            translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
+            translate([br2+7.2, 0, fpshi]) rotate([0,90,0]) cylinder(11, 3.6, 3.6, $fn=48);
         }
         
         // Power connector hole
