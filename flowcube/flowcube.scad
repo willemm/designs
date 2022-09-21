@@ -68,7 +68,7 @@ if (doitem == "footblob2") { footblob(seed=252, conn=0, cp=480); }
 if (doitem == "footblob3") { footblob(seed=301, conn=0, cp=480); }
 if (doitem == "footblob4") { footblob(seed=509, conn=0, cp=480); }
 if (doitem == "footmid")   { footmid(cp=480); }
-if (doitem == "footdisc")  { footmiddisc(cp=480); }
+if (doitem == "footdisc")  { rotate([180,0,0]) footmiddisc(cp=480); }
 if (doitem == "test")  { stalks(seed=252, conn=0, cp=480); }
 if (doitem == "") {
 
@@ -167,9 +167,9 @@ color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
-color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
+*color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
 
-translate([0,0,-botoffset]) brakedisc();
+*translate([0,0,-botoffset]) brakedisc();
 
 
 *psu();
@@ -2792,7 +2792,7 @@ module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, 
     }
 }
 
-module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=240)
+module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=120)
 {
     tly = 3;
     br2 = pdia/2;
@@ -2826,7 +2826,7 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=240)
         for (an=[0:72:360-72]) rotate([0,0,an]) {
             translate([0, (68+155)/4, 0]) {
                 translate([0,0,-0.01]) cylinder(thi+0.02, 3, 3, $fn=48);
-                translate([0,0,-0.01]) cylinder(thi-3+0.01, 7, 7, $fn=48);
+                translate([0,0,-0.01]) cylinder(thi-3+0.01, 7.5, 7.5, $fn=48);
             }
         }
     }
@@ -2848,7 +2848,7 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=240)
     }
 }
 
-module stalks(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0) {
+module stalks(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0) {
             ns = 5;
             for (fs=[0:ns]) {
                 rv = rands(0, 1, 6, seed+fs);
@@ -2866,7 +2866,7 @@ module stalks(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol
             }
 }
 
-module footblob(hei=208, dia=380, cp=240, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0)
+module footblob(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0)
 {
     sa = 0;
     ea = sa+arc;
