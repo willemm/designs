@@ -62,6 +62,13 @@ if (doitem == "strip")          { cube([75,8,1]); }
 
 if (doitem == "bottomblob")  { rotate([180,0,60]) bottomblob(); }
 if (doitem == "pipeholetpl")    { rotate([180,0,0]) pipeholetpl(); }
+
+if (doitem == "footblob1") { footblob(seed=131, conn=20, cp=480); }
+if (doitem == "footblob2") { footblob(seed=252, conn=0, cp=480); }
+if (doitem == "footblob3") { footblob(seed=301, conn=0, cp=480); }
+if (doitem == "footblob4") { footblob(seed=509, conn=0, cp=480); }
+if (doitem == "footmid")   { footmid(); }
+if (doitem == "footdisc")  { footmiddisc(); }
 if (doitem == "") {
 
 *mirror([0,0,1]) sidefacet();
@@ -146,8 +153,6 @@ intersection() {
 
 botoffset = 860;
 
-*footblob(seed=131, conn=20, cp=480);
-*footblob(seed=252, conn=0, cp=480);
 color("#dd3") translate([0,0,-botoffset]) footblob(seed=131, conn=20);
 *color("#dd3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=252);
 *color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=301);
@@ -2775,8 +2780,8 @@ module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, 
         }
         // Disc mounting holes
         for (an=[0:72:360-72]) rotate([0,0,an]) {
-            translate([0, (68+155)/4, bot-0.01]) {
-                cylinder(bthi+0.02, 3, 3, $fn=48);
+            translate([0, (68+155)/4, bot]) {
+                translate([0,0,-0.01]) cylinder(bthi+0.02, 3, 3, $fn=48);
                 *translate([0,0,3]) cylinder(bthi-3+0.02, 7, 7, $fn=48);
                 // Hex nut M6
                 m6rd = (10*2/sqrt(3))/2;
@@ -2786,7 +2791,7 @@ module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, 
     }
 }
 
-module footmiddisc(thi=6.8, dia=175, pdia=126, idia=120, cp=240)
+module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=240)
 {
     tly = 3;
     br2 = pdia/2;
@@ -2816,14 +2821,28 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=120, cp=240)
                 translate([br2+10,-10, thi-3.6]) cylinder(3.61, 7/sqrt(2), 7/sqrt(2), $fn=4);
             }
         }
+        // Disc mounting holes
+        for (an=[0:72:360-72]) rotate([0,0,an]) {
+            translate([0, (68+155)/4, 0]) {
+                translate([0,0,-0.01]) cylinder(thi+0.02, 3, 3, $fn=48);
+                translate([0,0,-0.01]) cylinder(thi-3+0.01, 7, 7, $fn=48);
+            }
+        }
     }
     // Mid bottom connector holes sacrificial layer
-    #for (an=[0:90:360-90]) {
+    // Not needed; print upside down
+    *for (an=[0:90:360-90]) {
         rotate([0,0,an+0]) {
             translate([br2+10, 10, 2.2]) cylinder(0.2, 2.5, 2.5, $fn=48);
         }
         rotate([0,0,an+90]) {
             translate([br2+10,-10, 2.2]) cylinder(0.2, 2.5, 2.5, $fn=48);
+        }
+        // Disc mounting holes
+        for (an=[0:72:360-72]) rotate([0,0,an]) {
+            translate([0, (68+155)/4, 0]) {
+                translate([0,0,thi-3]) cylinder(0.2, 3.2, 3.2, $fn=48);
+            }
         }
     }
 }
