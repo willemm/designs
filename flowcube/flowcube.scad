@@ -68,7 +68,7 @@ if (doitem == "footblob2") { footblob(seed=252, conn=0, cp=480); }
 if (doitem == "footblob3") { footblob(seed=301, conn=0, cp=480); }
 if (doitem == "footblob4") { footblob(seed=509, conn=0, cp=480); }
 if (doitem == "footmid")   { footmid(cp=480); }
-if (doitem == "footdisc")  { rotate([180,0,0]) footmiddisc(cp=480); }
+if (doitem == "footdisc")  { footmiddisc(cp=480); }
 if (doitem == "test")  { stalks(seed=252, conn=0, cp=480); }
 if (doitem == "") {
 
@@ -2831,19 +2831,18 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=120)
         }
     }
     // Mid bottom connector holes sacrificial layer
-    // Not needed; print upside down
-    *for (an=[0:90:360-90]) {
+    #for (an=[0:90:360-90]) {
         rotate([0,0,an+0]) {
             translate([br2+10, 10, 2.2]) cylinder(0.2, 2.5, 2.5, $fn=48);
         }
         rotate([0,0,an+90]) {
             translate([br2+10,-10, 2.2]) cylinder(0.2, 2.5, 2.5, $fn=48);
         }
-        // Disc mounting holes
-        for (an=[0:72:360-72]) rotate([0,0,an]) {
-            translate([0, (68+155)/4, 0]) {
-                translate([0,0,thi-3]) cylinder(0.2, 3.2, 3.2, $fn=48);
-            }
+    }
+    // Disc mounting holes
+    #for (an=[0:72:360-72]) rotate([0,0,an]) {
+        translate([0, (68+155)/4, 0]) {
+            translate([0,0,thi-3]) cylinder(0.2, 3.2, 3.2, $fn=48);
         }
     }
 }
