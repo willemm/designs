@@ -35,6 +35,8 @@ poleholehi = 70;
 vertpc = 0;
 
 connhi = 49;
+connrad = 20;
+
 fplughi = 30;
 fpshi = 111;
 
@@ -160,15 +162,15 @@ intersection() {
 botoffset = 860;
 
 color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connpos[0]);
-color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
-color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
-color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
+*color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
+*color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
+*color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
 
-color("#4dd") translate([0,0,-botoffset]) footconnector();
+*color("#4dd") translate([0,0,-botoffset]) footconnector();
 
-color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
+*color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
 
-color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
+*color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
 *rotate([0,0,20]) translate([190-28,0,-botoffset+fplughi]) powerplug_f();
 
@@ -3002,20 +3004,22 @@ module footblob(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, t
             s1of = 38;
             s2of = 22;
             slex = 7;
+            toparcan = 4*floor(asin(11/connrad)/4);
+            toparcbot = connhi-7-connrad+cos(asin(11/connrad))*connrad;
             rotate([0,0,conn]) {
-                translate([br,0,connhi-24]) rotate([0,-90,0]) cylinder(27-2+0.01, 17, 17, $fn=90);
+                translate([br,0,connhi-7-connrad]) rotate([0,-90,0]) cylinder(27-2+0.01, connrad, connrad, $fn=90);
                 translate([br-27+2,0,0]) rotate([0,-90,0]) linear_extrude(height=11,convexity=5)
                     polygon(concat(
-                        [[38.9,-22/2],[s2of,-22/2],[s2of-slex,-22/2-slex],[0,-22/2-slex],
-                            [0,22/2+slex],[s2of-slex,22/2+slex],[s2of,22/2],[38.9,22/2]],
-                        [for (an=[40:-4:-40]) [connhi-24+cos(an)*17,sin(an)*17]]
+                        [[toparcbot,-22/2],[s2of,-22/2],[s2of-slex,-22/2-slex],[0,-22/2-slex],
+                            [0,22/2+slex],[s2of-slex,22/2+slex],[s2of,22/2],[toparcbot,22/2]],
+                        [for (an=[toparcan:-4:-toparcan]) [connhi-7-connrad+cos(an)*connrad,sin(an)*connrad]]
                     ));
                 translate([br-28-4.4,-36/2,0]) cube([4.2,36,38]);
                 translate([br-27-8.4,0,0]) rotate([0,-90,0]) linear_extrude(height=25,convexity=5)
                     polygon(concat(
-                        [[s1of-slex,-22/2-slex],[0,-22/2-slex],
-                            [0,22/2+slex],[s1of-slex,22/2+slex]],
-                        [for (an=[40:-4:-40]) [connhi-24+cos(an)*17,sin(an)*17]]
+                        [[toparcbot,-22/2],[s1of-slex,-22/2-slex],[0,-22/2-slex],
+                            [0,22/2+slex],[s1of-slex,22/2+slex],[toparcbot,22/2]],
+                        [for (an=[toparcan:-4:-toparcan]) [connhi-7-connrad+cos(an)*connrad,sin(an)*connrad]]
                     ));
 
                 // screw holes for plugsocket
