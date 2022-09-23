@@ -3001,25 +3001,26 @@ module footblob(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, t
         
         // Power connector hole
         if (conn) {
+            topan = 4*360/cp;
             s1of = 38;
             s2of = 22;
             slex = 7;
-            toparcan = 4*floor(asin(11/connrad)/4);
+            toparcan = topan*floor(asin(11/connrad)/topan);
             toparcbot = connhi-7-connrad+cos(asin(11/connrad))*connrad;
             rotate([0,0,conn]) {
-                translate([br,0,connhi-7-connrad]) rotate([0,-90,0]) cylinder(27-2+0.01, connrad, connrad, $fn=90);
+                translate([br,0,connhi-7-connrad]) rotate([0,-90,0]) cylinder(27-2+0.01, connrad, connrad, $fn=360/topan);
                 translate([br-27+2,0,0]) rotate([0,-90,0]) linear_extrude(height=11,convexity=5)
                     polygon(concat(
                         [[toparcbot,-22/2],[s2of,-22/2],[s2of-slex,-22/2-slex],[0,-22/2-slex],
                             [0,22/2+slex],[s2of-slex,22/2+slex],[s2of,22/2],[toparcbot,22/2]],
-                        [for (an=[toparcan:-4:-toparcan]) [connhi-7-connrad+cos(an)*connrad,sin(an)*connrad]]
+                        [for (an=[toparcan:-topan:-toparcan]) [connhi-7-connrad+cos(an)*connrad,sin(an)*connrad]]
                     ));
                 translate([br-28-4.4,-36/2,0]) cube([4.2,36,38]);
                 translate([br-27-8.4,0,0]) rotate([0,-90,0]) linear_extrude(height=25,convexity=5)
                     polygon(concat(
                         [[toparcbot,-22/2],[s1of-slex,-22/2-slex],[0,-22/2-slex],
                             [0,22/2+slex],[s1of-slex,22/2+slex],[toparcbot,22/2]],
-                        [for (an=[toparcan:-4:-toparcan]) [connhi-7-connrad+cos(an)*connrad,sin(an)*connrad]]
+                        [for (an=[toparcan:-topan:-toparcan]) [connhi-7-connrad+cos(an)*connrad,sin(an)*connrad]]
                     ));
 
                 // screw holes for plugsocket
