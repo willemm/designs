@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "footconn";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -69,6 +69,7 @@ if (doitem == "footblob3") { footblob(seed=301, conn=0, cp=480); }
 if (doitem == "footblob4") { footblob(seed=509, conn=0, cp=480); }
 if (doitem == "footmid")   { footmid(cp=480); }
 if (doitem == "footdisc")  { footmiddisc(cp=480); }
+if (doitem == "footconn")  { footconnector(); }
 if (doitem == "test")  { stalks(seed=252, conn=0, cp=480); }
 if (doitem == "") {
 
@@ -158,6 +159,8 @@ color("#dd3") translate([0,0,-botoffset]) footblob(seed=131, conn=20);
 *color("#dd3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=252);
 *color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=301);
 *color("#dd3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=509);
+
+color("#4dd") translate([0,0,-botoffset]) footconnector();
 
 color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
 
@@ -2863,6 +2866,17 @@ module stalks(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, tol
 
                 footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
             }
+}
+
+module footconnector(dia=380, xtol=0.2, ytol=0.4)
+{
+    br=dia/2;
+    // Side to side connector holes
+    translate([br-30, 0, 3]) difference() {
+        translate([0,0,4/2]) cube([10-xtol, 40-xtol, 4-ytol], true);
+        translate([0,10,-0.01]) cylinder(4.02, 1.7, 1.7, $fn=48);
+        translate([0,-10,-0.01]) cylinder(4.02, 1.7, 1.7, $fn=48);
+    }
 }
 
 module footblob(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, tol=1, arc=90, seed=130, conn=0)
