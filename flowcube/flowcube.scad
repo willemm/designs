@@ -1,4 +1,4 @@
-doitem = "footconn";
+doitem = "";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -41,6 +41,10 @@ fpshi = 111;
 boxx = 79.2;
 boxy = 51.2;
 
+stalkseed = [146,252,324,516];
+//connpos = [20,40,70,0];
+connpos = [20,46,0,38];
+
 if (doitem == "sidefacet"   )   { mirror([0,0,1]) sidefacet(); }
 if (doitem == "side"        )   { whiteside(); }
 if (doitem == "backendfront")   { backendfront(); }
@@ -63,10 +67,10 @@ if (doitem == "strip")          { cube([75,8,1]); }
 if (doitem == "bottomblob")  { rotate([180,0,60]) bottomblob(); }
 if (doitem == "pipeholetpl")    { rotate([180,0,0]) pipeholetpl(); }
 
-if (doitem == "footblob1") { footblob(seed=131, conn=20, cp=480); }
-if (doitem == "footblob2") { footblob(seed=252, conn=0, cp=480); }
-if (doitem == "footblob3") { footblob(seed=301, conn=0, cp=480); }
-if (doitem == "footblob4") { footblob(seed=509, conn=0, cp=480); }
+if (doitem == "footblob1") { footblob(seed=stalkseed[0], conn=connpos[0], cp=480); }
+if (doitem == "footblob2") { footblob(seed=stalkseed[1], conn=connpos[1], cp=480); }
+if (doitem == "footblob3") { footblob(seed=stalkseed[2], conn=connpos[2], cp=480); }
+if (doitem == "footblob4") { footblob(seed=stalkseed[3], conn=connpos[3], cp=480); }
 if (doitem == "footmid")   { footmid(cp=480); }
 if (doitem == "footdisc")  { footmiddisc(cp=480); }
 if (doitem == "footconn")  { footconnector(); }
@@ -155,10 +159,10 @@ intersection() {
 
 botoffset = 860;
 
-color("#dd3") translate([0,0,-botoffset]) footblob(seed=131, conn=20);
-*color("#dd3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=252);
-*color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=301);
-*color("#dd3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=509);
+color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connpos[0]);
+color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
+color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
+color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
 
 color("#4dd") translate([0,0,-botoffset]) footconnector();
 
