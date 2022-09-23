@@ -168,7 +168,7 @@ color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connp
 
 *color("#4dd") translate([0,0,-botoffset]) footconnector();
 
-*color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
+color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
 
 *color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
@@ -176,7 +176,7 @@ color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connp
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
-*color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
+color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
 
 *translate([0,0,-botoffset]) brakedisc();
 
@@ -2749,7 +2749,7 @@ module perfboard(w,h, thi=boardth, hsp = holesp, hdi = holedia, eof=1, cp=16)
     ));
 }
 
-module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, bot=44, cp=240)
+module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, bot=44, cp=60)
 {
     tly = 9;
     br2 = pdia/2;
@@ -2801,7 +2801,7 @@ module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, 
     }
 }
 
-module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=120)
+module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=60)
 {
     tly = 3;
     br2 = pdia/2;
@@ -2944,59 +2944,59 @@ module footblob(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, t
                 s_hei = hei+0-30*rv[4]*rv[4]-s_shi;
                 s_sof = -45*rv[5];
 
-                footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/3);
+                footstalk(shi=s_shi, hei=s_hei, san=s_san, ean=s_ean, sx=s_sx, ex=s_ex, sd=s_sd, ed=s_ed, sof=s_sof, cp=cp/6);
             }
 
             // Mid bottom connector hole plugs
             rotate([0,0,sa]) {
-                translate([br2+10, 10, 0]) cylinder(2, 6, 4, $fn=48);
+                translate([br2+10, 10, 0]) cylinder(2, 6, 4, $fn=cp/10);
             }
             rotate([0,0,ea]) {
-                translate([br2+10,-10, 0]) cylinder(2, 6, 4, $fn=48);
+                translate([br2+10,-10, 0]) cylinder(2, 6, 4, $fn=cp/10);
             }
         }
         // Side to side connector holes
         rotate([0,0,sa]) {
             translate([br-30, 20/2-0.01, 3+4/2]) cube([10, 20.02, 4], true);
             *translate([br-30,-0.01,8]) rotate([-90,45,0]) cylinder(20.01, 10/sqrt(2), 10/sqrt(2), $fn=4);
-            translate([br-30,10,-bth+3-0.01]) cylinder(10.01, 2, 2, $fn=48);
-            translate([br-30,10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=48);
+            translate([br-30,10,-bth+3-0.01]) cylinder(10.01, 2, 2, $fn=cp/10);
+            translate([br-30,10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=cp/10);
         }
         rotate([0,0,ea]) {
             translate([br-30,-20/2+0.01, 3+4/2]) cube([10, 20.02, 4], true);
             *translate([br-30, 0.01,8]) rotate([90,45,0]) cylinder(20.01, 10/sqrt(2), 10/sqrt(2), $fn=4);
-            translate([br-30,-10,-bth+3-0.01]) cylinder(10.01, 2, 2, $fn=48);
-            translate([br-30,-10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=48);
+            translate([br-30,-10,-bth+3-0.01]) cylinder(10.01, 2, 2, $fn=cp/10);
+            translate([br-30,-10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=cp/10);
         }
 
         // Mid bottom connector holes
         rotate([0,0,sa]) {
-            translate([br2+10, 10,-bth-0.01]) cylinder(6.01, 2, 2, $fn=48);
-            translate([br2+10, 10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=48);
+            translate([br2+10, 10,-bth-0.01]) cylinder(6.01, 2, 2, $fn=cp/10);
+            translate([br2+10, 10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=cp/10);
         }
         rotate([0,0,ea]) {
-            translate([br2+10,-10,-bth-0.01]) cylinder(6.01, 2, 2, $fn=48);
-            translate([br2+10,-10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=48);
+            translate([br2+10,-10,-bth-0.01]) cylinder(6.01, 2, 2, $fn=cp/10);
+            translate([br2+10,-10,-bth-0.01]) cylinder(3.01, 4.0, 4.0, $fn=cp/10);
         }
 
         // Top pole screw holes
         *rotate([0,0,sa]) {
             translate([br2+1.6+4/2, 5-2/2, fpshi+0.1]) cube([4, 7+2, 7.2], true);
-            translate([br2-0.5, 5, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
-            translate([br2+7.2, 5, fpshi]) rotate([0,90,0]) cylinder(10, 4.0, 4.0, $fn=48);
+            translate([br2-0.5, 5, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=cp/10);
+            translate([br2+7.2, 5, fpshi]) rotate([0,90,0]) cylinder(10, 4.0, 4.0, $fn=cp/10);
         }
         rotate([0,0,sa+6]) {
-            translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
-            translate([br2+7.2, 0, fpshi]) rotate([0,90,0]) cylinder(11, 4.0, 4.0, $fn=48);
+            translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=cp/10);
+            translate([br2+7.2, 0, fpshi]) rotate([0,90,0]) cylinder(11, 4.0, 4.0, $fn=cp/10);
         }
         *rotate([0,0,ea]) {
             translate([br2+1.6+4/2,-5+2/2, fpshi+0.1]) cube([4, 7+2, 7.2], true);
-            translate([br2-0.5,-5, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
-            translate([br2+7.2,-5, fpshi]) rotate([0,90,0]) cylinder(10, 4.0, 4.0, $fn=48);
+            translate([br2-0.5,-5, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=cp/10);
+            translate([br2+7.2,-5, fpshi]) rotate([0,90,0]) cylinder(10, 4.0, 4.0, $fn=cp/10);
         }
         rotate([0,0,ea-6]) {
-            translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=48);
-            translate([br2+7.2, 0, fpshi]) rotate([0,90,0]) cylinder(11, 4.0, 4.0, $fn=48);
+            translate([br2-0.5, 0, fpshi]) rotate([0,90,0]) cylinder(12, 2, 2, $fn=cp/10);
+            translate([br2+7.2, 0, fpshi]) rotate([0,90,0]) cylinder(11, 4.0, 4.0, $fn=cp/10);
         }
         
         // Power connector hole
@@ -3024,21 +3024,21 @@ module footblob(hei=208, dia=380, cp=120, pdia=126, ddia=295, dth=25.5, bth=2, t
                     ));
 
                 // screw holes for plugsocket
-                translate([br-27+3,-14,fplughi]) rotate([0,-90,0]) cylinder(12, 1.2, 1.2, $fn=24);
-                translate([br-27+3, 14,fplughi]) rotate([0,-90,0]) cylinder(12, 1.2, 1.2, $fn=24);
+                translate([br-27+3,-14,fplughi]) rotate([0,-90,0]) cylinder(12, 1.2, 1.2, $fn=cp/10);
+                translate([br-27+3, 14,fplughi]) rotate([0,-90,0]) cylinder(12, 1.2, 1.2, $fn=cp/10);
             }
         }
     }
     // Mid bottom connector holes sacrificial layer
     rotate([0,0,sa]) {
-        #translate([br2+10, 10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
-        #translate([br-30, 10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
-        #translate([br-30, 10, 7]) cylinder(0.2, 2.5, 2.5, $fn=48);
+        #translate([br2+10, 10, 1]) cylinder(0.2, 2.5, 2.5, $fn=8);
+        #translate([br-30, 10, 1]) cylinder(0.2, 2.5, 2.5, $fn=8);
+        #translate([br-30, 10, 7]) cylinder(0.2, 2.5, 2.5, $fn=8);
     }
     rotate([0,0,ea]) {
-        #translate([br2+10,-10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
-        #translate([br-30,-10, 1]) cylinder(0.2, 2.5, 2.5, $fn=48);
-        #translate([br-30,-10, 7]) cylinder(0.2, 2.5, 2.5, $fn=48);
+        #translate([br2+10,-10, 1]) cylinder(0.2, 2.5, 2.5, $fn=8);
+        #translate([br-30,-10, 1]) cylinder(0.2, 2.5, 2.5, $fn=8);
+        #translate([br-30,-10, 7]) cylinder(0.2, 2.5, 2.5, $fn=8);
     }
 }
 
