@@ -57,12 +57,13 @@ if (doitem == "") {
         }
         *color("#ccc8") rotate([0,0,-30]) translate([-50,-40,-130]) cube([210,250,2], true);
     }
-    render(convexity=8) receptacle();
+    *color("#ade") receptacle();
+    *color("#ade") render(convexity=8) receptacle();
     *rotate([0,0,120]) render(convexity=8) receptacle();
     *rotate([0,0,240]) render(convexity=8) receptacle();
     // Rotate for printing ?
-    *rotate([0,90-asin(1/s3),0]) {
-        receptacle();
+    color("#aae") rotate([0,90-asin(1/s3),0]) {
+        render(convexity=8) receptacle();
     }
     *color("#8cc8") translate([-70,15,-143]) rotate([0,0,45]) cube([210,250,2], true);
 
@@ -228,6 +229,21 @@ module receptacle()
                 //faces=[for (i=[0:len(fcs)-1]) if (i>=0 && i <= 12) fcs[i]]
                 faces=fcs
                 );
+
+            *#translate([0,0,tetof-tetsz*sqrt(3)/2])
+            rotate([-45,asin(1/s3),0])
+            translate([-tetsz/2, -tetsz/2, -tetsz/2])
+            rotate([0,0,0]) 
+            cube([tetsz,tetsz,tetsz]);
+
+            translate([tetx/2,-tety,tetof-tetz*2])
+            rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) 
+            linear_extrude(height=thi) polygon([ [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz] ]);
+
+            mirror([0,1,0])
+            translate([tetx/2,-tety,tetof-tetz*2])
+            rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) 
+            linear_extrude(height=thi) polygon([ [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz] ]);
         }
         translate([0,0,tetof-pcof]) {
             linear_extrude(height=200, convexity=6) polygon(
@@ -249,10 +265,11 @@ module receptacle()
             );
         }
         holeof = 28;
-        holedep = 40;
-        translate([tetx-holeof/sqrt(2),0,58.5*sqrt(3)-tetz- holeof])
-            rotate([0,-90+asin(1/s3),00])
+        holedep = 38;
+        translate([tetx-holeof/sqrt(2),0,58.5*sqrt(3)-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
             translate([0,0,-0.01]) cylinder(holedep + 0.01,20,20,$fn=48);
+            translate([0,0,holedep-0.01]) cylinder(15,20,0,$fn=48);
+        }
     }
     *#translate([0,0,-30]) union() {
         cylinder(200, cutsz+tol*s3, cutsz+tol*s3, $fn=6);
