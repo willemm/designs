@@ -22,12 +22,14 @@ if (doitem == "") {
         }
         *color("#ccc8") rotate([0,0,-30]) translate([-50,-40,-130]) cube([210,250,2], true);
     }
-    *color("#ade") receptacle();
+    color("#653") socket();
+    color("#ade7") render(convexity=8) receptacle();
+
     *color("#ade") render(convexity=8) receptacle();
     *rotate([0,0,120]) render(convexity=8) receptacle();
     *rotate([0,0,240]) render(convexity=8) receptacle();
     // Rotate for printing ?
-    color("#aae") rotate([0,90-asin(1/s3),0]) {
+    *color("#aae") rotate([0,90-asin(1/s3),0]) {
         render(convexity=8) receptacle();
     }
     *color("#8cc8") translate([-70,15,-143]) rotate([0,0,45]) cube([210,250,2], true);
@@ -74,7 +76,7 @@ module receptacle()
     tetof = 58.5*sqrt(3); // Top point of tetraeder
     thi = 3;
 
-    cubebev = 6;
+    cubebev = 5*2/sqrt(3);
 
     pcof = 30+tetof; // 131
 
@@ -204,7 +206,7 @@ module receptacle()
         }
         holeof = 28;
         holedep = 38;
-        translate([tetx-holeof/sqrt(2),0,58.5*sqrt(3)-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
+        translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
             translate([0,0,-0.01]) cylinder(holedep + 0.01,20,20,$fn=48);
             translate([0,0,holedep-0.01]) cylinder(15,20,0,$fn=48);
         }
@@ -228,26 +230,77 @@ function interpoint(pt1, pt2, z) =
     ];
 
 
-module socket(cp=60)
+module socket(cp=48)
 {
     len1 = 24.8;
     len2 = 34;
+    lend = 15.5;
     nlen = 2.5;
     bwid = 30.6;
     nwid = 30.6;
     twid = 41.3;
     hei = 19;
     thi = 1.8;
+    dia = 10;
 
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+    holeof = 28;
+    holedep = 38;
 
+    tcp = cp+6;
 
-    polyhedron(convexity = 6,
-        points = concat(
-            
-        ), faces = concat(
-        )
-    );
+    translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
+        translate([0,0,12]) difference() {
+            polyhedron(convexity = 6,
+                points = concat(
+                    socket_outline(len2, twid, hei, dia, cp),
+                    socket_outline(   0, twid, hei, dia, cp),
+                    socket_outline(   0, twid-thi*2, hei-thi*2, dia-thi*2, cp),
+                    socket_outline(lend, twid-thi*2, hei-thi*2, dia-thi*2, cp),
+                    []
+                ), faces = concat(
+                    [[for (p=[0:tcp-1]) p]],
+                    [for (l=[0:2]) each nquads(tcp*l, tcp, tcp)],
+                    [[for (p=[tcp-1:-1:0]) p+3*tcp]],
+                    []
+                )
+            );
+
+            // Backside
+            translate([-hei/2-0.01,bwid/2,len1]) cube([hei+0.02, (twid-bwid)/2+0.01, len2-len1+0.01]);
+            mirror([0,1,0])
+            translate([-hei/2-0.01,bwid/2,len1]) cube([hei+0.02, (twid-bwid)/2+0.01, len2-len1+0.01]);
+
+            // plug holes
+            translate([0, 9,lend-0.01]) cylinder(len2-lend+0.02, 4.5/2, 4.5/2, $fn=30);
+            translate([0,-9,lend-0.01]) cylinder(len2-lend+0.02, 4.5/2, 4.5/2, $fn=30);
+        }
+    }
 }
+
+// Elongated hexagon with rounded corners
+function socket_outline(z, wid, hei, dia, cp) =
+    let (w = wid/2-dia/2,
+         h = hei/2-dia/2,
+         wh = w-h,
+         r = dia/2)
+    concat(
+        [for (an=[ 90:360/cp:135]) [ h+sin(an)*r,-wh+cos(an)*r, z]],
+        [for (an=[135:360/cp:225]) [ 0+sin(an)*r, -w+cos(an)*r, z]],
+        [for (an=[225:360/cp:270]) [-h+sin(an)*r,-wh+cos(an)*r, z]],
+        [for (an=[270:360/cp:315]) [-h+sin(an)*r, wh+cos(an)*r, z]],
+        [for (an=[315:360/cp:405]) [ 0+sin(an)*r,  w+cos(an)*r, z]],
+        [for (an=[405:360/cp:450]) [ h+sin(an)*r, wh+cos(an)*r, z]]
+    );
+
+function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
+    [s+(i+1)%n,s+i,s+(i+1)%n+o],
+    [s+(i+1)%n+o,s+i,s+i+o]
+]];
 
 module receptacle_model()
 {
