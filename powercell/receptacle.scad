@@ -3,21 +3,25 @@ doitem = "";
 s3 = sqrt(3);
 
 if (doitem == "") {
-    *color("#abd") translate([0,0,-5]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
+    *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
-    color("#653") translate([0,0,0]) render(convexity=8) socket();
+    *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
-    color("#ea86") socketclipplace();
+    *color("#ea86") socketclipplace();
     *color("#ade7") receptacle();
     *color("#ade") render(convexity=8) receptacle();
-    color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
-    color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
-    color("#ade7") render(convexity=8) receptacle();
-    // Rotate for printing ?
-    *color("#aae") rotate([0,90-asin(1/s3),0]) {
-        render(convexity=8) receptacle();
+    *color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
+    *color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
+    *color("#ade7") render(convexity=8) receptacle();
+    // test print socket bit
+    intersection() {
+        // Rotate for printing ?
+        color("#aae") rotate([0,90-asin(1/s3),45]) {
+            receptacle(cp=120);
+        }
+        translate([17,17,-143]) cylinder( 75, 36*sqrt(2), 36*sqrt(2), $fn=4);
     }
-    *color("#8cc8") translate([-70,15,-143]) rotate([0,0,45]) cube([210,250,2], true);
+    *color("#8cc8") translate([-40,-40,-143]) rotate([0,0,0]) cube([210,250,2], true);
 
     if (0) {
         // Check thicknesses
@@ -70,7 +74,7 @@ if (doitem == "") {
     }
 }
 
-module receptacle()
+module receptacle(cp=48)
 {
     cubesz = 130;
     cubethi = 5;
@@ -191,8 +195,8 @@ module receptacle()
             linear_extrude(height=thi) polygon([ [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz] ]);
 
             translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
-                cylinder(holedep,20+thi,20+thi,$fn=48);
-                socketholder(holedep, thi);
+                cylinder(holedep,20+thi,20+thi,$fn=cp);
+                socketholder(holedep, thi, cp=cp);
             }
         }
         translate([0,0,tetof-pcof]) {
@@ -215,8 +219,8 @@ module receptacle()
             );
         }
         translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
-            translate([0,0,-0.01]) cylinder(holedep + 0.02,20,20,$fn=48);
-            translate([0,0,holedep-0.01]) cylinder(15,20,0,$fn=48);
+            translate([0,0,-0.01]) cylinder(holedep + 0.02,20,20,$fn=cp);
+            translate([0,0,holedep-0.01]) cylinder(15,20,0,$fn=cp);
         }
     }
     *#translate([0,0,-30]) union() {
@@ -289,18 +293,26 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
                 []
             ));
             translate([0,0,len2+holedep+0.2]) cylinder(20, 20+thi, 20+thi, $fn=cp);
-            translate([-(hei/2+thi+tol), iwid/2+2.4, len3+leni/2+holedep])
-                rotate([0,90,0]) cylinder(thi, 5, 5, $fn=4);
-            translate([ hei/2+thi+tol, iwid/2+2.4, len3+leni/2+holedep])
-                rotate([0,-90,0]) cylinder(thi, 5, 5, $fn=4);
+            if (1) {
+                translate([-(hei/2+thi+tol), iwid/2+2, 0]) cube([thi, orx-(iwid/2+2), len2+holedep+10]);
+                translate([ (hei/2+tol), iwid/2+2, 0]) cube([thi, orx-(iwid/2+2), len2+holedep+10]);
+                translate([-(hei/2+thi/2+tol), iwid/2+2, len2+holedep+tol]) cube([hei+thi, orx-(iwid/2+2), 20]);
+                translate([-(hei/2+thi/2+tol), iwid/2+2, 0]) cube([hei+thi, orx-(iwid/2+2), holedep]);
+            } else {
+                translate([-(hei/2+thi+tol), iwid/2+2.4, len3+leni/2+holedep])
+                    rotate([0,90,0]) cylinder(thi, 5, 5, $fn=4);
+                translate([ hei/2+thi+tol, iwid/2+2.4, len3+leni/2+holedep])
+                    rotate([0,-90,0]) cylinder(thi, 5, 5, $fn=4);
+            }
+
             translate([-hei/2, -twid/2-tol, len1+holedep+0.2]) cube([hei,(twid-bwid)/2, len2-len1+0.2]);
         }
-        translate([0, 20+thi,len2+holedep+tol]) rotate([90,0,0])
-            linear_extrude(height=bwid+bwidof+tol) polygon([
+        translate([0, 20+thi+0.01,len2+holedep+tol]) rotate([90,0,0])
+            linear_extrude(height=bwid+bwidof+tol+0.01) polygon([
                 [-hei/2-tol,-0.01],[0,hei/2+tol],[hei/2+tol,-0.01]
             ]);
-        translate([0, 20+thi, holedep]) rotate([90,0,0])
-            linear_extrude(height=2*(20+thi)) polygon([
+        translate([0, 20+thi+0.01, holedep]) rotate([90,0,0])
+            linear_extrude(height=2*(20+thi)+0.02) polygon([
                 [-20-thi-0.01, thi-0.01],[-hei/2-thi-tol, thi+(20-hei/2)],
                 [-hei/2-thi-tol,len2+thi/sqrt(2)],
                 [-thi+10,len2+thi/sqrt(2)+hei/2+10],
@@ -308,9 +320,11 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
             ]);
         translate([-(hei/2+thi+tol+0.01), iwid/2+2.4, len3+leni/2+holedep]) rotate([0,90,0]) cylinder(thi+0.02, 1.5, 1.5, $fn=24);
         translate([ hei/2+thi+tol+2.01, iwid/2+2.4, len3+leni/2+holedep]) rotate([0,-90,0]) cylinder(thi+2.02, 1.5, 1.5, $fn=24);
-        mirror([0,1,0]) {
-            translate([-(hei-4)/2,iwid/2+tol,len3+holedep]) cube([hei-4, (twid-iwid)/2, leni]);
-        }
+        translate([-(hei-4)/2,-(twid/2+tol),len3+holedep]) cube([hei-4, (twid-iwid)/2, leni]);
+        translate([0, 0, len3+holedep+leni-0.01]) linear_extrude(height=0.21) polygon([
+            [-(hei/2+tol-2),-(bwid/2+tol)],[ (hei/2+tol-2),-(bwid/2+tol)],
+            [2, -twid/2-tol], [-2, -twid/2-tol]
+        ]);
     }
 }
 
@@ -328,11 +342,11 @@ module socketclipplace()
     holedep = 20;
 
     translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
-        translate([0,0,holedep]) socketclip(thi);
+        translate([0,0,holedep]) socketclip(thi, cp=120);
     }
 }
 
-module socketclip(thi=3, cp=48, tol=0.2)
+module socketclip(thi=3, cp=120, tol=0.2)
 {
     len1 = 24.8;
     len2 = 34;
@@ -363,11 +377,11 @@ module socketclip(thi=3, cp=48, tol=0.2)
             isan = ceil(san/can)*can;
             translate([0,0,tol])
             linear_extrude(height=len1+tol, convexity=5) polygon(concat(
-                [[ (hei/2-tol), ory ]],
-                [[-(hei/2-tol), ory ]],
-                [[-(hei/2-tol), bwid/2+tol], [-(hei/2-2+tol), bwid/2+tol]],
+                [[ (hei/2), ory ]],
+                [[-(hei/2), ory ]],
+                [[-(hei/2), bwid/2+tol], [-(hei/2-2+tol), bwid/2+tol]],
                 [for (an=[-45:can:45]) [ 0+sin(an)*r,   w+tol+cos(an)*r] ],
-                [[ (hei/2-2+tol), bwid/2+tol],[ (hei/2-tol), bwid/2+tol]],
+                [[ (hei/2-2+tol), bwid/2+tol],[ (hei/2), bwid/2+tol]],
                 []
             ));
             bhei = ory-bwid/2-tol;
@@ -382,6 +396,7 @@ module socketclip(thi=3, cp=48, tol=0.2)
         }
         translate([hei/2, iwid/2+2.4, len3+leni/2]) rotate([0,-90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
         translate([-hei/2, iwid/2+2.4, len3+leni/2]) rotate([0,90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
+        translate([0,0,tol-0.01]) cylinder(15, 20, 0, $fn=cp);
     }
 }
 
@@ -538,12 +553,12 @@ module receptacle_model()
         *for (an=[60:120:360-1]) rotate([0,0,an]) translate([50*sqrt(3)+5,0,-19])
             rotate([45,-asin(1/s3),0]) cube(12.4, true);
         *for (an=[00:120:360-1]) rotate([0,0,an]) translate([110,20,-30])
-            rotate([0,90,60]) cylinder(80,20,20,$fn=48);
+            rotate([0,90,60]) cylinder(80,20,20,$fn=cp);
         holeof = 28;
         holedep = 40;
         for (an=[00:120:360-1]) rotate([0,0,an]) translate([tetx-holeof/sqrt(2),0,58.5*sqrt(3)-tetz- holeof])
             rotate([0,-90+asin(1/s3),00])
-            translate([0,0,-0.01]) cylinder(holedep + 0.01,20,20,$fn=48);
+            translate([0,0,-0.01]) cylinder(holedep + 0.01,20,20,$fn=cp);
     }
 }
 
