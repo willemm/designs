@@ -5,24 +5,8 @@ s3 = sqrt(3);
 if (doitem == "") {
     *color("#abd") translate([0,0,-5]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
-    *if (1) {
-        // Cut one way
-        color("#ccc3") render(convexity=8) {receptacle_model();}
-        *color("#ccc8") intersection() {
-            render(convexity=8) {receptacle_model();}
-            translate([200,0,-130]) cylinder(180,200,200,$fn=6);
-        }
-        *color("#ccc8") rotate([0,0,30]) translate([50,-40,-130]) cube([210,250,2], true);
-    } else {
-
-        // Cut the other way
-        intersection() {
-            receptacle_model();
-            translate([-200,0,-130]) cylinder(180,200,200,$fn=6);
-        }
-        *color("#ccc8") rotate([0,0,-30]) translate([-50,-40,-130]) cube([210,250,2], true);
-    }
-    color("#653") socket();
+    color("#653") translate([0,00,0]) socket();
+    *color("#ade7") receptacle();
     color("#ade7") render(convexity=8) receptacle();
 
     *color("#ade") render(convexity=8) receptacle();
@@ -54,6 +38,23 @@ if (doitem == "") {
         *color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) rotate([0,0,0]) translate([-180,-20,-100/s3]) cube([40,40,2]);
     }
 
+    *if (1) {
+        // Cut one way
+        color("#ccc3") render(convexity=8) {receptacle_model();}
+        *color("#ccc8") intersection() {
+            render(convexity=8) {receptacle_model();}
+            translate([200,0,-130]) cylinder(180,200,200,$fn=6);
+        }
+        *color("#ccc8") rotate([0,0,30]) translate([50,-40,-130]) cube([210,250,2], true);
+    } else {
+
+        // Cut the other way
+        intersection() {
+            receptacle_model();
+            translate([-200,0,-130]) cylinder(180,200,200,$fn=6);
+        }
+        *color("#ccc8") rotate([0,0,-30]) translate([-50,-40,-130]) cube([210,250,2], true);
+    }
     *color("#ae8") difference() {
         tetsz = 170;
         tety = tetsz/sqrt(2);
@@ -75,6 +76,9 @@ module receptacle()
     tetsz = 200;
     tetof = 58.5*sqrt(3); // Top point of tetraeder
     thi = 3;
+
+    holeof = 58;
+    holedep = 20;
 
     cubebev = 5*2/sqrt(3);
 
@@ -184,6 +188,11 @@ module receptacle()
             translate([tetx/2,-tety,tetof-tetz*2])
             rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) 
             linear_extrude(height=thi) polygon([ [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz] ]);
+
+            translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
+                cylinder(holedep,20+thi,20+thi,$fn=48);
+                socketholder(holedep, thi);
+            }
         }
         translate([0,0,tetof-pcof]) {
             linear_extrude(height=200, convexity=6) polygon(
@@ -204,10 +213,8 @@ module receptacle()
                 )
             );
         }
-        holeof = 28;
-        holedep = 38;
         translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
-            translate([0,0,-0.01]) cylinder(holedep + 0.01,20,20,$fn=48);
+            translate([0,0,-0.01]) cylinder(holedep + 0.02,20,20,$fn=48);
             translate([0,0,holedep-0.01]) cylinder(15,20,0,$fn=48);
         }
     }
@@ -229,6 +236,74 @@ function interpoint(pt1, pt2, z) =
      z
     ];
 
+module socketholder(holedep, thi, cp=48, tol=0.2)
+{
+    len1 = 24.8;
+    len2 = 34;
+    lend = 15.5;
+    nlen = 2.5;
+    bwid = 30.6;
+    nwid = 30.6;
+    twid = 41.3;
+    hei = 19;
+    // thi = 1.8;
+    dia = 10;
+
+    leni = 6.3;
+    len3 = len1-1.5-leni;
+    iwid = 33.5;
+    ihei = 1.6;
+
+    w = twid/2 - dia/2;
+    h = hei/2 - dia/2;
+    wh = w-h;
+    r = dia/2+tol;
+    orx = 23;
+    ory = 23;
+
+    can = 360/cp;
+
+    // Open front
+    *linear_extrude(height=len1+holedep, convexity=5) polygon(concat(
+        [for (an=[180:-can: 0]) [ 0+sin(an)*orx, 0+cos(an)*ory ]],
+        [for (an=[  0:can: 45]) [ 0+sin(an)*r,   w+cos(an)*r ]],
+        [[ hei/2-2, bwid/2],[ hei/2, bwid/2],[ hei/2,-bwid/2],[ hei/2-2,-bwid/2]],
+        [for (an=[135:can:180]) [ 0+sin(an)*r,  -w+cos(an)*r ]],
+        []
+    ));
+    // Open side
+    san = asin((hei/2)/(20+thi));
+    isan = ceil(san/can)*can;
+    difference() {
+        bwidof = 20+thi - bwid/2;
+        union() {
+            linear_extrude(height=len2+holedep, convexity=5) polygon(concat(
+                [[ 0+sin(360-san)*orx, 0+cos(360-san)*ory ]],
+                [for (an=[360-isan:-can: isan]) [ 0+sin(an)*orx, 0+cos(an)*ory ]],
+                [[ 0+sin(san)*orx, 0+cos(san)*ory ]],
+                [[ hei/2+tol, bwid/2], [ hei/2+tol,-bwid/2], [ hei/2-2+tol,-bwid/2]],
+                [for (an=[135:can:225]) [ 0+sin(an)*r,  -w+cos(an)*r] ],
+                [[-hei/2+2-tol,-bwid/2],[-hei/2-tol,-bwid/2],[-hei/2-tol, bwid/2]],
+                //[for (an=[  0:can: 45]) [ 0+sin(an)*r,   w+cos(an)*r ]],
+                //[[ hei/2-2, bwid/2],[ hei/2, bwid/2],[ hei/2,-bwid/2],[ hei/2-2,-bwid/2]],
+                //[for (an=[135:can:180]) [ 0+sin(an)*r,  -w+cos(an)*r ]],
+                []
+            ));
+            translate([0,0,len2+holedep]) cylinder(20, 20+thi, 20+thi, $fn=cp);
+        }
+        translate([0, 20+thi,len2+holedep]) rotate([90,0,0])
+            linear_extrude(height=bwid+bwidof) polygon([
+                [-hei/2,-0.01],[0,hei/2],[hei/2,-0.01]
+            ]);
+        translate([0, 20+thi, holedep]) rotate([90,0,0])
+            linear_extrude(height=2*(20+thi)) polygon([
+                [-20-thi-0.01, thi-0.01],[-hei/2-thi, thi+(20-hei/2)],
+                [-hei/2-thi,len2+thi/sqrt(2)],
+                [-thi+10,len2+thi/sqrt(2)+hei/2+10],
+                [-thi,len2+30],[-20-thi-0.01,len2+30]
+            ]);
+    }
+}
 
 module socket(cp=48)
 {
@@ -243,32 +318,54 @@ module socket(cp=48)
     thi = 1.8;
     dia = 10;
 
+    leni = 6.3;
+    len3 = len1-1.5-leni;
+    iwid = 33.5;
+    ihei = 1.6;
+
     tetsz = 200;
     tetof = 58.5*sqrt(3); // Top point of tetraeder
     tety = tetsz/sqrt(2);
     tetx = tety*2/sqrt(3);
     tetz = tetsz/sqrt(3);
-    holeof = 28;
-    holedep = 38;
+    holeof = 58;
+    holedep = 20;
 
     tcp = cp+6;
 
     translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),00]) {
-        translate([0,0,12]) difference() {
-            polyhedron(convexity = 6,
-                points = concat(
-                    socket_outline(len2, twid, hei, dia, cp),
-                    socket_outline(   0, twid, hei, dia, cp),
-                    socket_outline(   0, twid-thi*2, hei-thi*2, dia-thi*2, cp),
-                    socket_outline(lend, twid-thi*2, hei-thi*2, dia-thi*2, cp),
-                    []
-                ), faces = concat(
-                    [[for (p=[0:tcp-1]) p]],
-                    [for (l=[0:2]) each nquads(tcp*l, tcp, tcp)],
-                    [[for (p=[tcp-1:-1:0]) p+3*tcp]],
-                    []
-                )
-            );
+        translate([0,0,holedep]) difference() {
+            union() {
+                polyhedron(convexity = 6,
+                    points = concat(
+                        socket_outline(len2, twid, hei, dia, cp),
+                        socket_outline(   0, twid, hei, dia, cp),
+                        socket_outline(   0, twid-thi*2, hei-thi*2, dia-thi*2, cp),
+                        socket_outline(lend, twid-thi*2, hei-thi*2, dia-thi*2, cp),
+                        []
+                    ), faces = concat(
+                        [[for (p=[0:tcp-1]) p]],
+                        [for (l=[0:2]) each nquads(tcp*l, tcp, tcp)],
+                        [[for (p=[tcp-1:-1:0]) p+3*tcp]],
+                        []
+                    )
+                );
+                // Notchy bits
+                linear_extrude(height=len1) polygon([
+                    [-hei/2,-bwid/2],[-hei/2,-bwid/2+dia/2],[-hei/2+dia/3,-bwid/2]
+                ]);
+                mirror([1,0,0]) linear_extrude(height=len1) polygon([
+                    [-hei/2,-bwid/2],[-hei/2,-bwid/2+dia/2],[-hei/2+dia/3,-bwid/2]
+                ]);
+                mirror([0,1,0]) {
+                    linear_extrude(height=len1) polygon([
+                        [-hei/2,-bwid/2],[-hei/2,-bwid/2+dia/2],[-hei/2+dia/3,-bwid/2]
+                    ]);
+                    mirror([1,0,0]) linear_extrude(height=len1) polygon([
+                        [-hei/2,-bwid/2],[-hei/2,-bwid/2+dia/2],[-hei/2+dia/3,-bwid/2]
+                    ]);
+                }
+            }
 
             // Backside
             translate([-hei/2-0.01,bwid/2,len1]) cube([hei+0.02, (twid-bwid)/2+0.01, len2-len1+0.01]);
@@ -278,6 +375,16 @@ module socket(cp=48)
             // plug holes
             translate([0, 9,lend-0.01]) cylinder(len2-lend+0.02, 4.5/2, 4.5/2, $fn=30);
             translate([0,-9,lend-0.01]) cylinder(len2-lend+0.02, 4.5/2, 4.5/2, $fn=30);
+
+            // Cutouts
+            translate([ihei/2,iwid/2,len3]) cube([(hei-ihei)/2+0.01, (twid-iwid)/2+0.01, leni]);
+            mirror([0,1,0])
+            translate([ihei/2,iwid/2,len3]) cube([(hei-ihei)/2+0.01, (twid-iwid)/2+0.01, leni]);
+            mirror([1,0,0]) {
+                translate([ihei/2,iwid/2,len3]) cube([(hei-ihei)/2+0.01, (twid-iwid)/2+0.01, leni]);
+                mirror([0,1,0])
+                translate([ihei/2,iwid/2,len3]) cube([(hei-ihei)/2+0.01, (twid-iwid)/2+0.01, leni]);
+            }
         }
     }
 }
