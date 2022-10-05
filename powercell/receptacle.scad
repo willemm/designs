@@ -5,13 +5,14 @@ s3 = sqrt(3);
 if (doitem == "") {
     *color("#abd") translate([0,0,-5]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
-    color("#653") translate([0,00,0]) socket();
-    *color("#ade7") receptacle();
-    color("#ade7") render(convexity=8) receptacle();
+    color("#653") translate([0,0,0]) render(convexity=8) socket();
 
+    color("#ea86") socketclipplace();
+    *color("#ade7") receptacle();
     *color("#ade") render(convexity=8) receptacle();
-    *rotate([0,0,120]) render(convexity=8) receptacle();
-    *rotate([0,0,240]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
+    color("#ade7") render(convexity=8) receptacle();
     // Rotate for printing ?
     *color("#aae") rotate([0,90-asin(1/s3),0]) {
         render(convexity=8) receptacle();
@@ -246,9 +247,7 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
     nwid = 30.6;
     twid = 41.3;
     hei = 19;
-    // thi = 1.8;
     dia = 10;
-
     leni = 6.3;
     len3 = len1-1.5-leni;
     iwid = 33.5;
@@ -258,8 +257,8 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
     h = hei/2 - dia/2;
     wh = w-h;
     r = dia/2+tol;
-    orx = 23;
-    ory = 23;
+    orx = 20+thi;
+    ory = 20+thi;
 
     can = 360/cp;
 
@@ -272,36 +271,117 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
         []
     ));
     // Open side
-    san = asin((hei/2)/(20+thi));
+    san = asin((hei/2+tol)/(20+thi));
     isan = ceil(san/can)*can;
     difference() {
         bwidof = 20+thi - bwid/2;
         union() {
-            linear_extrude(height=len2+holedep, convexity=5) polygon(concat(
+            linear_extrude(height=len2+holedep+0.2, convexity=5) polygon(concat(
                 [[ 0+sin(360-san)*orx, 0+cos(360-san)*ory ]],
                 [for (an=[360-isan:-can: isan]) [ 0+sin(an)*orx, 0+cos(an)*ory ]],
                 [[ 0+sin(san)*orx, 0+cos(san)*ory ]],
-                [[ hei/2+tol, bwid/2], [ hei/2+tol,-bwid/2], [ hei/2-2+tol,-bwid/2]],
+                [[ hei/2+tol,-bwid/2-tol], [ hei/2-2+tol,-bwid/2-tol]],
                 [for (an=[135:can:225]) [ 0+sin(an)*r,  -w+cos(an)*r] ],
-                [[-hei/2+2-tol,-bwid/2],[-hei/2-tol,-bwid/2],[-hei/2-tol, bwid/2]],
+                [[-hei/2+2-tol,-bwid/2-tol],[-hei/2-tol,-bwid/2-tol]],
                 //[for (an=[  0:can: 45]) [ 0+sin(an)*r,   w+cos(an)*r ]],
                 //[[ hei/2-2, bwid/2],[ hei/2, bwid/2],[ hei/2,-bwid/2],[ hei/2-2,-bwid/2]],
                 //[for (an=[135:can:180]) [ 0+sin(an)*r,  -w+cos(an)*r ]],
                 []
             ));
-            translate([0,0,len2+holedep]) cylinder(20, 20+thi, 20+thi, $fn=cp);
+            translate([0,0,len2+holedep+0.2]) cylinder(20, 20+thi, 20+thi, $fn=cp);
+            translate([-(hei/2+thi+tol), iwid/2+2.4, len3+leni/2+holedep])
+                rotate([0,90,0]) cylinder(thi, 5, 5, $fn=4);
+            translate([ hei/2+thi+tol, iwid/2+2.4, len3+leni/2+holedep])
+                rotate([0,-90,0]) cylinder(thi, 5, 5, $fn=4);
+            translate([-hei/2, -twid/2-tol, len1+holedep+0.2]) cube([hei,(twid-bwid)/2, len2-len1+0.2]);
         }
-        translate([0, 20+thi,len2+holedep]) rotate([90,0,0])
-            linear_extrude(height=bwid+bwidof) polygon([
-                [-hei/2,-0.01],[0,hei/2],[hei/2,-0.01]
+        translate([0, 20+thi,len2+holedep+tol]) rotate([90,0,0])
+            linear_extrude(height=bwid+bwidof+tol) polygon([
+                [-hei/2-tol,-0.01],[0,hei/2+tol],[hei/2+tol,-0.01]
             ]);
         translate([0, 20+thi, holedep]) rotate([90,0,0])
             linear_extrude(height=2*(20+thi)) polygon([
-                [-20-thi-0.01, thi-0.01],[-hei/2-thi, thi+(20-hei/2)],
-                [-hei/2-thi,len2+thi/sqrt(2)],
+                [-20-thi-0.01, thi-0.01],[-hei/2-thi-tol, thi+(20-hei/2)],
+                [-hei/2-thi-tol,len2+thi/sqrt(2)],
                 [-thi+10,len2+thi/sqrt(2)+hei/2+10],
                 [-thi,len2+30],[-20-thi-0.01,len2+30]
             ]);
+        translate([-(hei/2+thi+tol+0.01), iwid/2+2.4, len3+leni/2+holedep]) rotate([0,90,0]) cylinder(thi+0.02, 1.5, 1.5, $fn=24);
+        translate([ hei/2+thi+tol+2.01, iwid/2+2.4, len3+leni/2+holedep]) rotate([0,-90,0]) cylinder(thi+2.02, 1.5, 1.5, $fn=24);
+        mirror([0,1,0]) {
+            translate([-(hei-4)/2,iwid/2+tol,len3+holedep]) cube([hei-4, (twid-iwid)/2, leni]);
+        }
+    }
+}
+
+module socketclipplace()
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    holeof = 58;
+    holedep = 20;
+
+    translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
+        translate([0,0,holedep]) socketclip(thi);
+    }
+}
+
+module socketclip(thi=3, cp=48, tol=0.2)
+{
+    len1 = 24.8;
+    len2 = 34;
+    lend = 15.5;
+    nlen = 2.5;
+    bwid = 30.6;
+    nwid = 30.6;
+    twid = 41.3;
+    hei = 19;
+    dia = 10;
+    leni = 6.3;
+    len3 = len1-1.5-leni;
+    iwid = 33.5;
+    ihei = 1.6;
+
+    w = twid/2 - dia/2;
+    h = hei/2 - dia/2;
+    wh = w-h;
+    r = dia/2+tol;
+    orx = 20+thi;
+    ory = 20+thi;
+
+    can = 360/cp;
+
+    difference() {
+        union() {
+            san = asin((hei/2)/(20+thi));
+            isan = ceil(san/can)*can;
+            translate([0,0,tol])
+            linear_extrude(height=len1+tol, convexity=5) polygon(concat(
+                [[ (hei/2-tol), ory ]],
+                [[-(hei/2-tol), ory ]],
+                [[-(hei/2-tol), bwid/2+tol], [-(hei/2-2+tol), bwid/2+tol]],
+                [for (an=[-45:can:45]) [ 0+sin(an)*r,   w+tol+cos(an)*r] ],
+                [[ (hei/2-2+tol), bwid/2+tol],[ (hei/2-tol), bwid/2+tol]],
+                []
+            ));
+            bhei = ory-bwid/2-tol;
+            rotate([ 0,-90,90]) translate([0,0,-ory]) linear_extrude(height=bhei, convexity=5)
+                polygon([
+                    [len1+tol,-hei/2+tol],[len2-tol,-hei/2+tol],[len2-tol+hei/4,-hei/4],
+                    [len2,0],[len2-tol+hei/4,hei/4],[len2-tol,hei/2-tol],[len1+tol,hei/2-tol]
+                ]);
+            translate([ihei/2+tol,iwid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+            mirror([1,0,0])
+            translate([ihei/2+tol,iwid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+        }
+        translate([hei/2, iwid/2+2.4, len3+leni/2]) rotate([0,-90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
+        translate([-hei/2, iwid/2+2.4, len3+leni/2]) rotate([0,90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
     }
 }
 
