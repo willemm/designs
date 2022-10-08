@@ -20,10 +20,10 @@ if (doitem == "") {
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
     *color("#ea86") render(convexity=8) socketclipplace();
-    color("#ade7") receptacle();
+    *color("#ade7") receptacle();
     *color("#ade7") socketholder(20, 3, 48);
-    *color("#ade") render(convexity=8) receptacle();
-    *color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
+    color("#ade") render(convexity=8) receptacle();
+    color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
     *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
