@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "receptacle";
 
 s3 = sqrt(3);
 
@@ -15,15 +15,15 @@ if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
 if (doitem == "") {
-    *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
+    color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
     *color("#ea86") render(convexity=8) socketclipplace();
     *color("#ade7") receptacle();
-    color("#ade") render(convexity=8) receptacle();
+    color("#454") render(convexity=8) receptacle();
     color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
-    color("#345") rotate([0,0,240]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
     *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
@@ -248,13 +248,27 @@ module receptacle(cp=48)
             */
 
             translate([tetx/2,-tety,tetof-tetz*2])
-            rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) 
-            linear_extrude(height=thi) polygon([ [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz] ]);
+            rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) union() {
+                linear_extrude(height=thi) polygon([
+                    [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz]
+                ]);
+                for (n=[20,100]) translate([5-2/2,n,0]) rotate([0,90,0])
+                    linear_extrude(height=2) polygon([
+                        [0,-thi],[thi,0],[0,thi]
+                    ]);
+            }
 
             mirror([0,1,0])
             translate([tetx/2,-tety,tetof-tetz*2])
-            rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) 
-            linear_extrude(height=thi) polygon([ [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz] ]);
+            rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) difference() {
+                linear_extrude(height=thi) polygon([
+                    [0,thi],[10,thi+10/sqrt(2)],[10,tetsz],[0,tetsz]
+                ]);
+                for (n=[20,100]) translate([5-2.2/2,n,0]) rotate([0,90,0])
+                    linear_extrude(height=2.2) polygon([
+                        [0.01,-thi-0.01-0.2],[-thi-0.2,0],[0.01,thi+0.01+0.2]
+                    ]);
+            }
 
             translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
                 cylinder(holedep,20+thi,20+thi,$fn=cp);
