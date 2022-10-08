@@ -2,26 +2,39 @@ doitem = "";
 
 s3 = sqrt(3);
 
+if (doitem == "cubes") {
+    hei = 19;
+    ihei = 1.6;
+    twid = 41.3;
+    iwid = 33.5;
+    leni = 6.3;
+    rotate([-90,0,0]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+}
+if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
+if (doitem == "receptacle") {
+        rotate([0,90-asin(1/s3),45]) { receptacle(cp=120); }
+}
 if (doitem == "") {
     *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
-    *color("#ea86") socketclipplace();
-    *color("#ade7") receptacle();
+    *color("#ea86") render(convexity=8) socketclipplace();
+    color("#ade7") receptacle();
+    *color("#ade7") socketholder(20, 3, 48);
     *color("#ade") render(convexity=8) receptacle();
     *color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
     *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
-    intersection() {
+    *intersection() {
         // Rotate for printing ?
         color("#aae") rotate([0,90-asin(1/s3),45]) {
             receptacle(cp=120);
         }
         translate([17,17,-143]) cylinder( 75, 36*sqrt(2), 36*sqrt(2), $fn=4);
     }
-    *color("#8cc8") translate([-40,-40,-143]) rotate([0,0,0]) cube([210,250,2], true);
+    *color("#8cc8") translate([-30,-00,-143]) rotate([0,0,0]) cube([210,250,2], true);
 
     if (0) {
         // Check thicknesses
@@ -118,14 +131,17 @@ module receptacle(cp=48)
 
     cutsz = 50*sqrt(3);
     tol = 1;
+
+    btcut = 20;
+    btlip = 10;
+    btthi = 5;
+    btins = 5;
     difference() {
         union() {
-            pt5 = [0,0,0-td];
-            pt6 = [tetx-tb1,0,0-tetz-tb2];
-            pt7 = [tetx/2-tx,tety-ty,0-tetz*2+tu];
-            pt8 = [tetx/2-tx,-(tety-ty),0-tetz*2+tu];
+            pup = [[0,0,btins],[0,0,btthi+btins]];
 
-            pts = [
+            // Multiple steps to use previous points in calculation
+            pts1 = [
                     // Outside of tetraeder
                     // 0..4
                     [0,0,0],[tetx,0,0-tetz],
@@ -134,9 +150,8 @@ module receptacle(cp=48)
 
                     // Inside
                     // 5..9
-                    pt5,pt6,pt7,pt8,
-                    //[0,0,0-td],[tetx-tb1,0,0-tetz-tb2],
-                    //[tetx/2-tx,tety-ty,0-tetz*2+tu],[tetx/2-tx,-(tety-ty),0-tetz*2+tu],
+                    [0,0,0-td], [tetx-tb1,0,0-tetz-tb2],
+                    [tetx/2-tx,tety-ty,0-tetz*2+tu], [tetx/2-tx,-(tety-ty),0-tetz*2+tu],
                     [0,0,0-tetz*2+tu],
 
                     // Inside of cube
@@ -146,24 +161,56 @@ module receptacle(cp=48)
                     // 13..16
                     [0,0,cto],[ctx,0,-ctz+cto],
                     [ctx/2,cty,-ctz*2+cto],[ctx/2,-cty,-ctz*2+cto],
-
+                ];
+            pts = concat(pts1, [
                     // Flat bit, bottom of battery
                     // 17..21
                     [0,0,-inz],
-                    interpoint(pt5, pt7, -inz),
-                    interpoint(pt5, pt8, -inz),
-                    interpoint(pt6, pt7, -inz),
-                    interpoint(pt6, pt8, -inz),
+                    interpointz(pts1[5], pts1[7], -inz),
+                    interpointz(pts1[5], pts1[8], -inz),
+                    interpointz(pts1[6], pts1[7], -inz),
+                    interpointz(pts1[6], pts1[8], -inz),
 
-                ];
+                    // Extra points for bottom cut
+                    // 22..25
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut),
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut),
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut)+pup[0],
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut)+pup[0],
+
+                    // Lip for bottom plate
+                    // 26..33
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut-btlip)+pup[0],
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip)+pup[0],
+                    interpointx(pts1[4], pts1[2], tetx/2-btcut-btlip)+pup[1],
+                    interpointx(pts1[4], pts1[3], tetx/2-btcut-btlip)+pup[1],
+                    interpointx(pts1[4], pts1[2], tetx/2-btcut)+pup[1],
+                    interpointx(pts1[4], pts1[3], tetx/2-btcut)+pup[1],
+                    interpointx(pts1[9], pts1[7], tetx/2-btcut+btthi*2),
+                    interpointx(pts1[9], pts1[8], tetx/2-btcut+btthi*2),
+                ]);
 
             fcs = [
                     [10,11,2],[10,2,1],[12,10,1],[12,1,3],
-                    [1,2,3],[2,4,3],
-                    [18,20,7],[21,19,8],[20,21,8],[20,8,7],[7,8,9],
+                    [1,2,3],
+                    //[2,4,3],
+                    [2,22,23,3],
+                    [18,20,7],[21,19,8],[20,21,8],[20,8,7],
+                    //[7,8,9],
+                    [7,8,33,32],
                     [17,18,5],[19,17,5],
                     [2,11,0,5,18,7],
-                    [4,2,7],[4,7,9],[3,4,9],[3,9,8],
+                    //[4,2,7],[4,7,9],[3,4,9],[3,9,8],
+                    [22,24,25,23],
+                    //[22,2,7],[22,7,24],[3,23,25],[3,25,8],
+                    [22,2,7],[22,7,32],[22,32,24],
+                    [23,8,3],[23,33,8],[23,25,33],
+                    // Bottom lip
+                    [26,28,29,27],[28,26,24,30],[27,29,31,25],
+                    [30,31,29,28],[26,27,25,24],
+                    [30,24,32],[25,31,33],
+                    [32,33,31,30],
+
                     [0,12,3,8,19,5],
 
                     [13,15,14],[13,14,16],
@@ -234,12 +281,20 @@ module receptacle(cp=48)
 // Intersect line from point p1 to point p2 with plane z=-inz
 // zf (0 at point p1, 1 at point p2), x = p1.x*zf + p2.x*(1-zf)
 // zf = (z-p1.z)/(p2.z-p1.z)
-function interpoint(pt1, pt2, z) =
+function interpointz(pt1, pt2, z) =
     let (zf = (z-pt1.z)/(pt2.z-pt1.z)) [
      pt1.x + (pt2.x-pt1.x)*zf,
      pt1.y + (pt2.y-pt1.y)*zf,
      z
     ];
+
+function interpointx(pt1, pt2, x) =
+    let (xf = (x-pt1.x)/(pt2.x-pt1.x)) [
+     x,
+     pt1.y + (pt2.y-pt1.y)*xf,
+     pt1.z + (pt2.z-pt1.z)*xf,
+    ];
+
 
 module socketholder(holedep, thi, cp=48, tol=0.2)
 {
@@ -306,6 +361,30 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
             }
 
             translate([-hei/2, -twid/2-tol, len1+holedep+0.2]) cube([hei,(twid-bwid)/2, len2-len1+0.2]);
+
+            // Cubes for in socket cutouts
+            *#translate([ihei/2+tol,-(twid/2+tol),len3+holedep]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+            skx = (hei-ihei)/2-3;
+            sky = (twid-iwid)/2+1;
+            skz = leni;
+            translate([ihei/2+tol,-(twid/2+tol+1),len3+holedep]) polyhedron(convexity=3,
+                points=[
+                    [0,0,0],[skx,0,0],[0,sky,sky],[skx,sky,0],
+                    [0,0,skz],[skx,0,skz],[0,sky,skz],[skx,sky,skz]
+                ], faces=[
+                    [0,1,3],[0,3,2],[1,0,4],[1,4,5],[3,1,5],[3,5,7],
+                    [2,3,7],[2,7,6],[0,2,6],[0,6,4],[6,7,5],[6,5,4]
+                ]);
+            mirror([1,0,0])
+            translate([ihei/2+tol,-(twid/2+tol+1),len3+holedep]) polyhedron(convexity=3,
+                points=[
+                    [0,0,0],[skx,0,0],[0,sky,sky],[skx,sky,0],
+                    [0,0,skz],[skx,0,skz],[0,sky,skz],[skx,sky,skz]
+                ], faces=[
+                    [0,1,3],[0,3,2],[1,0,4],[1,4,5],[3,1,5],[3,5,7],
+                    [2,3,7],[2,7,6],[0,2,6],[0,6,4],[6,7,5],[6,5,4]
+                ]);
+            *translate([ihei/2+tol,-(twid/2+tol),len3+holedep]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
         }
         translate([0, 20+thi+0.01,len2+holedep+tol]) rotate([90,0,0])
             linear_extrude(height=bwid+bwidof+tol+0.01) polygon([
@@ -320,8 +399,8 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
             ]);
         translate([-(hei/2+thi+tol+0.01), iwid/2+2.4, len3+leni/2+holedep]) rotate([0,90,0]) cylinder(thi+0.02, 1.5, 1.5, $fn=24);
         translate([ hei/2+thi+tol+2.01, iwid/2+2.4, len3+leni/2+holedep]) rotate([0,-90,0]) cylinder(thi+2.02, 1.5, 1.5, $fn=24);
-        translate([-(hei-4)/2,-(twid/2+tol),len3+holedep]) cube([hei-4, (twid-iwid)/2, leni]);
-        translate([0, 0, len3+holedep+leni-0.01]) linear_extrude(height=0.21) polygon([
+        *translate([-(hei-4)/2,-(twid/2+tol),len3+holedep]) cube([hei-4, (twid-iwid)/2, leni]);
+        *translate([0, 0, len3+holedep+leni-0.01]) linear_extrude(height=0.21) polygon([
             [-(hei/2+tol-2),-(bwid/2+tol)],[ (hei/2+tol-2),-(bwid/2+tol)],
             [2, -twid/2-tol], [-2, -twid/2-tol]
         ]);
@@ -387,15 +466,15 @@ module socketclip(thi=3, cp=120, tol=0.2)
             bhei = ory-bwid/2-tol;
             rotate([ 0,-90,90]) translate([0,0,-ory]) linear_extrude(height=bhei, convexity=5)
                 polygon([
-                    [len1+tol,-hei/2+tol],[len2-tol,-hei/2+tol],[len2-tol+hei/4,-hei/4],
-                    [len2,0],[len2-tol+hei/4,hei/4],[len2-tol,hei/2-tol],[len1+tol,hei/2-tol]
+                    [len1+tol,-hei/2],[len2-tol,-hei/2],[len2-tol+hei/4,-hei/4],
+                    [len2,0],[len2-tol+hei/4,hei/4],[len2-tol,hei/2],[len1+tol,hei/2]
                 ]);
             translate([ihei/2+tol,iwid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
             mirror([1,0,0])
             translate([ihei/2+tol,iwid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
         }
-        translate([hei/2, iwid/2+2.4, len3+leni/2]) rotate([0,-90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
-        translate([-hei/2, iwid/2+2.4, len3+leni/2]) rotate([0,90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
+        translate([hei/2+0.01, iwid/2+2.4, len3+leni/2]) rotate([0,-90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
+        translate([-hei/2-0.01, iwid/2+2.4, len3+leni/2]) rotate([0,90,0]) cylinder(hei/2, 1.2, 1.2, $fn=24);
         translate([0,0,tol-0.01]) cylinder(15, 20, 0, $fn=cp);
     }
 }
