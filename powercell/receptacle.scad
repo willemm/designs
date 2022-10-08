@@ -12,7 +12,7 @@ if (doitem == "cubes") {
 }
 if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
 if (doitem == "receptacle") {
-        rotate([0,90-asin(1/s3),45]) { receptacle(cp=120); }
+        rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
 if (doitem == "") {
     *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
@@ -21,10 +21,9 @@ if (doitem == "") {
 
     *color("#ea86") render(convexity=8) socketclipplace();
     *color("#ade7") receptacle();
-    *color("#ade7") socketholder(20, 3, 48);
     color("#ade") render(convexity=8) receptacle();
     color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
-    *color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
+    color("#345") rotate([0,0,240]) render(convexity=8) receptacle();
     *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
@@ -132,6 +131,9 @@ module receptacle(cp=48)
     cutsz = 50*sqrt(3);
     tol = 1;
 
+    ribthi = 15;
+    ribof = 8;
+
     btcut = 20;
     btlip = 10;
     btthi = 5;
@@ -173,10 +175,10 @@ module receptacle(cp=48)
 
                     // Extra points for bottom cut
                     // 22..25
-                    interpointx(pts1[4],pts1[2], tetx/2-btcut),
-                    interpointx(pts1[4],pts1[3], tetx/2-btcut),
-                    interpointx(pts1[4],pts1[2], tetx/2-btcut)+pup[0],
-                    interpointx(pts1[4],pts1[3], tetx/2-btcut)+pup[0],
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut-btlip+1),
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip+1),
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut-btlip+1)+pup[0],
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip+1)+pup[0],
 
                     // Lip for bottom plate
                     // 26..33
@@ -188,20 +190,31 @@ module receptacle(cp=48)
                     interpointx(pts1[4], pts1[3], tetx/2-btcut)+pup[1],
                     interpointx(pts1[9], pts1[7], tetx/2-btcut+btthi*2),
                     interpointx(pts1[9], pts1[8], tetx/2-btcut+btthi*2),
+
+                    // Inset from lip
+                    // 34..37
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut-btlip+1)+[btlip-1,-(btlip-1)/sqrt(3),0],
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip+1)+[btlip-1, (btlip-1)/sqrt(3),0],
+                    interpointx(pts1[4],pts1[2], tetx/2-btcut-btlip+1)+[btlip-1,-(btlip-1)/sqrt(3),0]+pup[0],
+                    interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip+1)+[btlip-1, (btlip-1)/sqrt(3),0]+pup[0],
                 ]);
 
             fcs = [
                     [10,11,2],[10,2,1],[12,10,1],[12,1,3],
                     [1,2,3],
                     //[2,4,3],
-                    [2,22,23,3],
+                    //[2,22,23,3],
+                    [2,22,34,35,23,3],
                     [18,20,7],[21,19,8],[20,21,8],[20,8,7],
                     //[7,8,9],
                     [7,8,33,32],
                     [17,18,5],[19,17,5],
                     [2,11,0,5,18,7],
                     //[4,2,7],[4,7,9],[3,4,9],[3,9,8],
-                    [22,24,25,23],
+                    //[22,24,25,23],
+                    [34,36,37,35],
+                    [22,24,36,34],[25,23,35,37],
+                    [24,25,37,36],
                     //[22,2,7],[22,7,24],[3,23,25],[3,25,8],
                     [22,2,7],[22,7,32],[22,32,24],
                     [23,8,3],[23,33,8],[23,25,33],
@@ -226,11 +239,13 @@ module receptacle(cp=48)
                 faces=fcs
                 );
 
+            /*
             *#translate([0,0,tetof-tetsz*sqrt(3)/2])
             rotate([-45,asin(1/s3),0])
             translate([-tetsz/2, -tetsz/2, -tetsz/2])
             rotate([0,0,0]) 
             cube([tetsz,tetsz,tetsz]);
+            */
 
             translate([tetx/2,-tety,tetof-tetz*2])
             rotate([90-asin(1/s3),0,30]) rotate([0,90,0]) 
@@ -245,6 +260,27 @@ module receptacle(cp=48)
                 cylinder(holedep,20+thi,20+thi,$fn=cp);
                 socketholder(holedep, thi, cp=cp);
             }
+
+            // Ribs for top plane
+            rotate([0,0, 30]) translate([0,-35,tetof-pcof-thi])
+                rotate([-90,0,0]) linear_extrude(height=thi) difference() {
+                    polygon([
+                    [-ribof,1],[-ribof+1,0],[58,0],[60,ribthi],[-ribof+ribthi/2,ribthi],[-ribof,ribthi/2]
+                    ]);
+                    translate([0,ribthi/2]) circle(1.5, $fn=24);
+                }
+            rotate([0,0,-30]) translate([0, 35,tetof-pcof-thi])
+                rotate([-90,0,0]) linear_extrude(height=thi) difference() {
+                    polygon([
+                    [-ribof,1],[-ribof+1,0],[58,0],[60,ribthi],[-ribof+ribthi/2,ribthi],[-ribof,ribthi/2]
+                    ]);
+                    translate([0,ribthi/2]) circle(1.5, $fn=24);
+                }
+            // Rib for center
+            translate([tetx/2,0,tetof-tetz*2]) rotate([90,-90+asin(1/s3),0]) translate([0,thi,-thi/2])
+                linear_extrude(height=thi) polygon([
+                    [0,0],[51-thi,0],[51-thi,20],[-thi*s3,20]
+                ]);
         }
         translate([0,0,tetof-pcof]) {
             linear_extrude(height=200, convexity=6) polygon(
@@ -269,6 +305,15 @@ module receptacle(cp=48)
             translate([0,0,-0.01]) cylinder(holedep + 0.02,20,20,$fn=cp);
             translate([0,0,holedep-0.01]) cylinder(15,20,0,$fn=cp);
         }
+        // Holes for bottom lip
+        for (y=[-80,80]) {
+            translate([tetx/2-btcut-btlip/2, y, tetof-tetz*2+btins]) {
+                translate([-3/2,0,btthi/2]) cube([5.5+3,5.5,2.6], true);
+                translate([0,0,-0.01]) cylinder(btthi+0.02, 1.5, 1.5, $fn=24); 
+            }
+        }
+        // Hole in middle of top
+        translate([0,0,tetof-pcof-thi-0.01]) cylinder(thi+0.02, 20, 20, $fn=cp);
     }
     *#translate([0,0,-30]) union() {
         cylinder(200, cutsz+tol*s3, cutsz+tol*s3, $fn=6);
