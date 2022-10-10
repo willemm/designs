@@ -1,8 +1,11 @@
-doitem = "";
+doitem = "receptacle";
 
 s3 = sqrt(3);
 
 if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
+if (doitem == "bottomplate") {
+    rotate([180,0,0]) bottomplate();
+}
 if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
@@ -12,11 +15,14 @@ if (doitem == "") {
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
     *color("#ea86") render(convexity=8) socketclipplace();
+    color("#686") bottomplate();
+
+    gap = 0.0;
     *color("#ade") receptacle();
-    color("#454") render(convexity=8) receptacle();
-    color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
-    color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
-    *color("#ade7") render(convexity=8) receptacle();
+    *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
+    color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
         // Rotate for printing ?
@@ -77,6 +83,65 @@ if (doitem == "") {
             faces=[[0,1,2],[0,3,1],[0,2,3],[1,3,2]]
             );
         translate([0,0,-20]) cylinder(200, 60, 60, $fn=6);
+    }
+}
+
+module bottomplate()
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+
+    btcut = 20;
+    btlip = 10;
+    btthi = 5;
+    btins = 5;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    gap = btcut-2;
+
+    ty = btcut*sqrt(3);
+    tyg =2*gap/sqrt(3);
+    tx = btcut*2;
+    txg = gap;
+    difference() {
+        translate([0,0,tetof-tetz*2]) linear_extrude(height=btins) {
+            polygon([
+                [-(tetx-tx-txg),gap/sqrt(3)], [-(tetx-tx-txg),-gap/sqrt(3)],
+                [tetx/2-btcut-txg,-(tety-ty-tyg/2)], [tetx/2-btcut,-(tety-ty-tyg)],
+                [tetx/2-btcut,(tety-ty-tyg)], [tetx/2-btcut-txg,(tety-ty-tyg/2)],
+            ]);
+        }
+        // Holes for bottom lip
+        for (an=[0,120,240], y=[-80,80]) {
+            rotate([0,0,an]) translate([tetx/2-btcut-btlip/2, y, tetof-tetz*2]) {
+                translate([0,0,-0.01]) cylinder(btthi+0.02, 1.5, 1.5, $fn=24); 
+                translate([0,0,-0.01]) cylinder(2+0.01, 3, 3, $fn=24); 
+            }
+        }
+        // Weight cutouts
+        translate([0,0,tetof-tetz*2-0.01]) linear_extrude(height=btins-2+0.01) {
+            sierpinski(tetx-tx-txg-4);
+        }
+    }
+}
+
+module sierpinski(dia, thi = 0.8)
+{
+    d2 = dia/2-thi;
+    dx = dia/4+thi/2;
+    dy = dx*sqrt(3);
+    
+    if (dia > 2) {
+        polygon([[ d2, 0], [-d2/2, d2*sqrt(3)/2], [-d2/2, -d2*sqrt(3)/2]]);
+        translate([-dx*2, 0]) sierpinski(d2);
+        translate([ dx,  dy]) sierpinski(d2);
+        translate([ dx, -dy]) sierpinski(d2);
+    } else {
+        polygon([[-dia, 0], [ dia/2, dia*sqrt(3)/2], [ dia/2, -dia*sqrt(3)/2]]);
     }
 }
 
@@ -198,7 +263,7 @@ module receptacle(cp=48)
 
                     // Tweak for bottom thickness
                     // 38..39
-                    pts1[7]+[2,-1,0], pts1[8]+[1.34,0.77,0],
+                    pts1[7]+[1.34,-0.77,0], pts1[8]+[1.34,0.77,0],
                 ]);
 
             fcs = [
