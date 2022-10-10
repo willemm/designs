@@ -12,10 +12,10 @@ if (doitem == "") {
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
     *color("#ea86") render(convexity=8) socketclipplace();
-    color("#ade") receptacle();
-    *color("#454") render(convexity=8) receptacle();
-    *color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
-    *color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
+    *color("#ade") receptacle();
+    color("#454") render(convexity=8) receptacle();
+    color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
     *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
@@ -27,7 +27,7 @@ if (doitem == "") {
     }
     *color("#8cc8") translate([-30,-00,-143]) rotate([0,0,0]) cube([210,250,2], true);
 
-    *if (1) {
+    if (0) {
         // Check thicknesses
         *color("#aac6") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([0,0,100-3/2]) cube([200,200,3], true);
         *color("#aac6") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([0,0,100-3/2]) cube([200,200,3], true);
@@ -331,6 +331,28 @@ module receptacle(cp=48)
         }
         // Hole in middle of top
         translate([0,0,tetof-pcof-thi-0.01]) cylinder(thi+0.02, 20, 20, $fn=cp);
+
+        // texture
+        for (n=[0:1/40:1]) {
+            translate([tetx/2+(tetx/2)*n, tety*(1-n), tetof-tetz*2+tetz*n]) {
+                rotate([0,-asin(1/s3),60]) {
+                    translate([0,0,-1.4]) cylinder(100, 0.4, 0.4, $fn=4);
+                    translate([0,0,100-1.4]) cylinder(0.4, 0.4, 0.0, $fn=4);
+                }
+            }
+            mirror([0,1,0])
+            translate([tetx/2+(tetx/2)*n, tety*(1-n), tetof-tetz*2+tetz*n]) {
+                rotate([0,-asin(1/s3),60]) {
+                    translate([0,0,-1.4]) cylinder(100, 0.4, 0.4, $fn=4);
+                    translate([0,0,100-1.4]) cylinder(0.4, 0.4, 0.0, $fn=4);
+                }
+            }
+            translate([tetx/2+(tetx/2)*n, tety*(1-n), tetof-tetz*2+tetz*n]) {
+                rotate([90,asin(1/s3),0]) {
+                    translate([0,0,-0.4]) cylinder(200*sqrt(2)*(1-n)+0.8, 0.4, 0.4, $fn=4);
+                }
+            }
+        }
     }
     *#translate([0,0,-30]) union() {
         cylinder(200, cutsz+tol*s3, cutsz+tol*s3, $fn=6);
