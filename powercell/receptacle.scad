@@ -1,29 +1,21 @@
-doitem = "receptacle";
+doitem = "";
 
 s3 = sqrt(3);
 
-if (doitem == "cubes") {
-    hei = 19;
-    ihei = 1.6;
-    twid = 41.3;
-    iwid = 33.5;
-    leni = 6.3;
-    rotate([-90,0,0]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
-}
 if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
 if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
 if (doitem == "") {
-    color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
+    *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
     *color("#ea86") render(convexity=8) socketclipplace();
-    *color("#ade7") receptacle();
-    color("#454") render(convexity=8) receptacle();
-    color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
-    color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
+    color("#ade") receptacle();
+    *color("#454") render(convexity=8) receptacle();
+    *color("#454") rotate([0,0,120]) render(convexity=8) receptacle();
+    *color("#454") rotate([0,0,240]) render(convexity=8) receptacle();
     *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
@@ -35,13 +27,13 @@ if (doitem == "") {
     }
     *color("#8cc8") translate([-30,-00,-143]) rotate([0,0,0]) cube([210,250,2], true);
 
-    if (0) {
+    *if (1) {
         // Check thicknesses
-        *color("#aac6") translate([0,0,(58.5-100)*s3]) rotate([45,asin(1/s3),0]) translate([0,0,100-2/2]) cube([200,200,2], true);
-        *color("#aac6") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([0,0,100-2/2]) cube([200,200,2], true);
-        color("#ada") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([-100+2/2,-100+2/2,100-2/2]) cube([2,2,2], true);
-        color("#ada") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([100-2/2,-100+2/2,100-2/2]) cube([2,2,2], true);
-        color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) rotate([45,asin(1/s3),0]) translate([-100,-100,-100]) cube([2,s3+1,s3+1]);
+        *color("#aac6") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([0,0,100-3/2]) cube([200,200,3], true);
+        *color("#aac6") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([0,0,100-3/2]) cube([200,200,3], true);
+        *color("#ada") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([-100+3/2,-100+3/2,100-3/2]) cube([3,3,3], true);
+        *color("#ada") translate([0,0,(58.5-100)*s3]) rotate([-45,asin(1/s3),0]) translate([100-3/2,-100+3/2,100-3/2]) cube([3,3,3], true);
+        *color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) rotate([45,asin(1/s3),0]) translate([-100,-100,-100]) cube([3,s3+1,s3+1]);
 
         // sqrt(2^2 + X^2 + Y^2) = sqrt(2^2 + (s3+1)^2 + (s3+1)^2)
         // X = Y/sqrt(3)
@@ -52,7 +44,9 @@ if (doitem == "") {
         // 4/3 Y^2 = 2*(s3+1)^2
         // Y^2 = 2*(3/4) * (s3+1)^2 = 3/2 * (s3+1)^2
 
-        *color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) rotate([0,0,0]) translate([-180,-20,-100/s3]) cube([40,40,2]);
+        *color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) translate([-165,-00,-100/s3]) rotate([0,0,-30]) cube([10,10,3]);
+        color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) rotate([45,asin(1/s3),0]) translate([-100,-100,-100]) cube([3,5,15]);
+        color("#ada6") rotate([0,0,120]) translate([0,0,(58.5-100)*s3]) rotate([45,asin(1/s3),0]) translate([-100,-100,-100]) rotate([0,0,-90]) translate([-3,0,0]) cube([3,5,15]);
     }
 
     *if (1) {
@@ -117,8 +111,12 @@ module receptacle(cp=48)
 
     tu = thi; // Straight up from bottom
     td = thi*s3; // Straight down from tip: Right angle xy
-    ty = sqrt(1.5 * (s3+1) * (s3+1));
+
+    tz = thi;
+    // TODO: Trial-and-error factor
+    ty = thi*(sqrt(3)-0.0591);
     tx = ty/sqrt(3);
+
     tb2 = thi * 1/sqrt(3);
     // sqrt(3)^2 = tb1^2 + tb2^2
     // 3 = tb1^2 + (1/s3)^2 = tb1^2 + 1/3
@@ -153,8 +151,8 @@ module receptacle(cp=48)
                     // Inside
                     // 5..9
                     [0,0,0-td], [tetx-tb1,0,0-tetz-tb2],
-                    [tetx/2-tx,tety-ty,0-tetz*2+tu], [tetx/2-tx,-(tety-ty),0-tetz*2+tu],
-                    [0,0,0-tetz*2+tu],
+                    [tetx/2-tx,tety-ty,0-tetz*2+tz], [tetx/2-tx,-(tety-ty),0-tetz*2+tz],
+                    [0,0,0-tetz*2+tz],
 
                     // Inside of cube
                     // 10..12
@@ -197,25 +195,30 @@ module receptacle(cp=48)
                     interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip+1)+[btlip-1, (btlip-1)/sqrt(3),0],
                     interpointx(pts1[4],pts1[2], tetx/2-btcut-btlip+1)+[btlip-1,-(btlip-1)/sqrt(3),0]+pup[0],
                     interpointx(pts1[4],pts1[3], tetx/2-btcut-btlip+1)+[btlip-1, (btlip-1)/sqrt(3),0]+pup[0],
+
+                    // Tweak for bottom thickness
+                    // 38..39
+                    pts1[7]+[2,-1,0], pts1[8]+[1.34,0.77,0],
                 ]);
 
             fcs = [
                     [10,11,2],[10,2,1],[12,10,1],[12,1,3],
                     [1,2,3],
-                    //[2,4,3],
-                    //[2,22,23,3],
+
                     [2,22,34,35,23,3],
-                    [18,20,7],[21,19,8],[20,21,8],[20,8,7],
-                    //[7,8,9],
+                    [18,20,38],[18,38,7],
+                    [21,19,39],[19,8,39],
+                    [20,39,38],[20,21,39],
+                    [38,39,8],[38,8,7],
+
                     [7,8,33,32],
                     [17,18,5],[19,17,5],
                     [2,11,0,5,18,7],
-                    //[4,2,7],[4,7,9],[3,4,9],[3,9,8],
-                    //[22,24,25,23],
+
                     [34,36,37,35],
                     [22,24,36,34],[25,23,35,37],
                     [24,25,37,36],
-                    //[22,2,7],[22,7,24],[3,23,25],[3,25,8],
+
                     [22,2,7],[22,7,32],[22,32,24],
                     [23,8,3],[23,33,8],[23,25,33],
                     // Bottom lip
@@ -293,7 +296,7 @@ module receptacle(cp=48)
             // Rib for center
             translate([tetx/2,0,tetof-tetz*2]) rotate([90,-90+asin(1/s3),0]) translate([0,thi,-thi/2])
                 linear_extrude(height=thi) polygon([
-                    [0,0],[51-thi,0],[51-thi,20],[-thi*s3,20]
+                    [-thi*s3,7],[0,0],[51-thi,0],[51-thi,20],[-thi*s3,20]
                 ]);
         }
         translate([0,0,tetof-pcof]) {
