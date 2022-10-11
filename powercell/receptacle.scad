@@ -1,11 +1,11 @@
-doitem = "receptacle";
+doitem = "";
 
 s3 = sqrt(3);
 
 if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
-if (doitem == "bottomplate") {
-    rotate([180,0,0]) bottomplate();
-}
+if (doitem == "bottomplate") { rotate([180,0,0]) bottomplate(); }
+if (doitem == "topplatebot") { topplatebot(cp=240); }
+if (doitem == "topplatetop") { rotate([180,0,0]) topplatetop(cp=240); }
 if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
@@ -15,13 +15,16 @@ if (doitem == "") {
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
 
     *color("#ea86") render(convexity=8) socketclipplace();
-    color("#686") bottomplate();
+    *color("#686") bottomplate();
+    color("#686") topplatetop();
+    color("#797") topplatebot();
+    color("#a926") magnetic_connector();
 
     gap = 0.0;
     *color("#ade") receptacle();
     *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
-    color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
-    color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
+    *color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
+    *color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
     color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
@@ -83,6 +86,159 @@ if (doitem == "") {
             faces=[[0,1,2],[0,3,1],[0,2,3],[1,3,2]]
             );
         translate([0,0,-20]) cylinder(200, 60, 60, $fn=6);
+    }
+}
+
+module topplatetop(cp=48)
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+    pcof = 30+tetof; // 131
+
+    inr = 20;
+    plr = 32;
+
+    condia = 7;
+
+    thi2 = 11;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    px = plr/2;
+    py = px*sqrt(3);
+
+    poy = 5;
+    pox = poy*sqrt(3);
+
+    translate([0,0,tetof-pcof]) 
+    difference() {
+        union() {
+            translate([0,0,-thi]) cylinder(thi, inr, inr, $fn=cp);
+            for (an=[0,120,240]) rotate([0,0,an]) {
+                translate([15,0,-thi-10]) cylinder(10, 4-0.2, 4-0.2, $fn=cp);
+            }
+        }
+        translate([0,0,-thi-0.01]) cylinder(thi+0.02, condia/2, condia/2, $fn=cp);
+        for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([15,0,-thi-10.01]) cylinder(10.01, 1.2,1.2, $fn=cp);
+        }
+    }
+}
+
+module topplatebot(cp=48)
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+    pcof = 30+tetof; // 131
+
+    inr = 20;
+    plr = 32;
+
+    holed = 15/2;
+    thi2 = 12;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    px = plr/2;
+    py = px*sqrt(3);
+
+    poy = 5;
+    pox = poy*sqrt(3);
+
+    cndp = 1.8;
+    cnwid = 8.6;
+    cnlen = 20;
+
+    translate([0,0,tetof-pcof]) 
+    difference() {
+        union() {
+            translate([0,0,-thi-thi2]) linear_extrude(height=thi2) polygon([
+                [-px*2,-poy*2],[-px*2,poy*2],
+                [px-pox,py+poy],[px+pox,py-poy],
+                [px+pox,-py+poy],[px-pox,-py-poy],
+            ]);
+        }
+        for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([-px*2,0,-thi-holed]) rotate([0,90,0])
+                translate([0,0,-0.01]) cylinder(22.01, 1.2, 1.2, $fn=cp);
+        }
+        for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([15,0,-thi-10]) cylinder(10.01, 4, 4, $fn=cp);
+        }
+        for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([15,0,-thi-thi2-0.01]) cylinder(thi2-10+0.02, 1.5, 1.5, $fn=cp);
+        }
+        translate([0,0,-thi-thi2/2]) cube([cnwid, 12, thi2+0.02], true);
+        translate([0,0,-thi-cndp/2+0.01]) cube([cnwid, cnlen, cndp+0.02], true);
+    }
+}
+
+module magnetic_connector(cp=48)
+{
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+    pcof = 30+tetof; // 131
+
+    bthi = 1.2;
+    bwid = 8.25;
+    blen = 18;
+    bof = 4;
+    bd = (blen-bof*2)/2;
+
+    translate([0,0,tetof-pcof-thi-0.5]) {
+        cylinder(3.5, 6.8/2, 6.8/2, $fn=48);
+        san = asin(bwid/(blen-bof*2));
+        translate([0,0,-bthi]) linear_extrude(height=bthi) polygon(concat(
+            [for (an=[-san:san/cp:san]) [sin(an)*bd, bof+cos(an)*bd]],
+            [for (an=[180-san:san/cp:180+san]) [sin(an)*bd, -bof+cos(an)*bd]]
+        ));
+        *#translate([0,0,-bthi]) cube([bwid,blen,bthi], true);
+    }
+}
+
+module topplate(cp=48)
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+    pcof = 30+tetof; // 131
+
+    inr = 20;
+    plr = 32;
+
+    holed = 15/2;
+    thi2 = 11;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    px = plr/2;
+    py = px*sqrt(3);
+
+    poy = 5;
+    pox = poy*sqrt(3);
+
+    translate([0,0,tetof-pcof]) 
+    difference() {
+        union() {
+            translate([0,0,-thi]) cylinder(thi, inr, inr, $fn=cp);
+            translate([0,0,-thi-thi2]) linear_extrude(height=thi2) polygon([
+                [-px*2,-poy*2],[-px*2,poy*2],
+                [px-pox,py+poy],[px+pox,py-poy],
+                [px+pox,-py+poy],[px-pox,-py-poy],
+            ]);
+        }
+        for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([-px*2,0,-thi-holed]) rotate([0,90,0])
+                translate([0,0,-0.01]) cylinder(20.01, 1.2, 1.2, $fn=48);
+        }
     }
 }
 
