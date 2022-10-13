@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "connector_holder";
 
 
 flmd = 2;
@@ -36,10 +36,12 @@ if (doitem == "wire_guide") { wire_guide(); }
 if (doitem == "try") { cover_holder(159.6, 19); }
 if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "receiver_jig") { receiver_jig(); }
+if (doitem == "outerlid") { outer_lid(); }
+if (doitem == "connector_holder") { mc_holder(); }
 if (doitem == "") {
 
 
-    if (1) {
+    if (0) {
         hexbase_top();
         *receiver_jig();
         *translate([0,0,13.5]) cover_top();
@@ -52,7 +54,12 @@ if (doitem == "") {
         *attiny_board();
         *receiver();
     } else {
-        hexbase_bot();
+        *color("#abd") translate([0,0,33.0]) rotate([0,0,0]) import("deksel.stl", convexity=6);
+        color("#bda") translate([0,0,33.0]) outer_lid();
+        color("#ac8") translate([0,0,33.0]) mc_holder();
+        color("#a926") translate([0,0,33.0]) magnetic_connector();
+
+        *hexbase_bot();
         *translate([0,0,14]) cover_bot();
         *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
@@ -65,6 +72,115 @@ if (doitem == "") {
 
     *house();
     *translate([2,0,0]) slider();
+}
+
+module mc_holder(cp=24)
+{
+    bthi = 0.6;
+    bwid = 9;
+    blen = 19;
+    bof = 4;
+    bd = (blen-bof*2)/2;
+
+    exthi = 0.4;
+    exhei = 8;
+    exwid = 3;
+    tol = 0.1;
+    exex = 1;
+
+    hthi = 2+exthi;
+
+    bev = hthi;
+
+    union() {
+        translate([0,0,-hthi]) linear_extrude(height=hthi-exthi, convexity=5) polygon([
+            [-bd-2, -bof-bd+tol], [-bd-2, bof+bd-tol], [ bd+2, bof+bd-tol], [ bd+2, -bof-bd+tol],
+            [-2.5, -bof-bd+exwid], [-2.5, bof+bd-exwid], [ 2.5, bof+bd-exwid], [ 2.5, -bof-bd+exwid],
+        ], [[0,1,2,3],[4,5,6,7]]);
+
+        translate([0, -bof-bd-exex+tol, 0]) rotate([-90,0,0])
+            linear_extrude(height=exex+exwid-tol, convexity=5) difference() {
+                polygon([
+                    [-bd-2, exthi],[-bd-2, bev], [-bd-2+exhei-bev, exhei],
+                    [ bd+2-exhei+bev, exhei], [bd+2, bev], [bd+2, exthi]
+                ]);
+                translate([0, 4]) circle(1.2, $fn=48);
+        }
+        translate([0, bof+bd+exex-tol, 0]) rotate([-90,0,180])
+            linear_extrude(height=exex+exwid-tol, convexity=5) difference() {
+                polygon([
+                    [-bd-2, exthi],[-bd-2, bev], [-bd-2+exhei-bev, exhei],
+                    [ bd+2-exhei+bev, exhei], [bd+2, bev], [bd+2, exthi]
+                ]);
+                translate([0, 4]) circle(1.2, $fn=48);
+        }
+    }
+}
+
+module outer_lid(cp=24)
+{
+    thi = 4.0;
+    dia = 150;
+    exdia = 10*sqrt(3);
+    rd = dia/sqrt(3);
+    erd = exdia/sqrt(3);
+
+    hdia = 4;
+    hhdia = 7.8;
+    hhthi = 1.4;
+    hhins = 1.6;
+
+    bthi = 0.6;
+    bwid = 9;
+    blen = 19;
+    bof = 4;
+    bd = (blen-bof*2)/2;
+
+    exthi = 0.4;
+    exhei = 8;
+    exwid = 4;
+    exex = 1;
+    bev = 2.4;
+
+    difference() {
+        union() {
+            linear_extrude(height=thi, convexity=5) polygon(
+                [for (a1=[0:60:360-60], a2=[-120:60:120])
+                    [sin(a1)*rd+sin(a1+a2)*erd, cos(a1)*rd+cos(a1+a2)*erd]
+                ]
+            );
+            translate([0,0,-exthi]) linear_extrude(height=exthi+0.01) polygon([
+                [-bd-2, -bof-bd-2], [-bd-2, bof+bd+2], [ bd+2, bof+bd+2], [ bd+2, -bof-bd-2],
+            ]);
+
+            translate([0, -bof-bd-exex, 0]) rotate([-90,0,180])
+                linear_extrude(height=exwid, convexity=5) difference() {
+                    polygon([
+                        [-bd-2, 0],[-bd-2, bev], [-bd-2+exhei-bev, exhei],
+                        [ bd+2-exhei+bev, exhei], [bd+2, bev], [bd+2, 0]
+                    ]);
+                    translate([0, 4]) circle(1.5, $fn=48);
+            }
+            translate([0, bof+bd+exex, 0]) rotate([-90,0,0])
+                linear_extrude(height=exwid, convexity=5) difference() {
+                    polygon([
+                        [-bd-2, 0],[-bd-2, bev], [-bd-2+exhei-bev, exhei],
+                        [ bd+2-exhei+bev, exhei], [bd+2, bev], [bd+2, 0]
+                    ]);
+                    translate([0, 4]) circle(1.5, $fn=48);
+            }
+        }
+        for (an=[0:60:360-60]) rotate([0,0,an]) {
+            translate([0,rd,-0.01]) cylinder(thi+0.02, hdia/2, hdia/2, $fn=cp);
+            translate([0,rd, hhthi]) cylinder(thi-hhthi+0.01, hhdia/2, hhdia/2, $fn=cp);
+        }
+        translate([0,0,-exthi-0.01]) cylinder(exthi+thi+0.02, 4, 4, $fn=cp);
+        san = asin(bwid/(blen-bof*2));
+        translate([0,0,-exthi-0.01]) linear_extrude(height=exthi+hhins+0.01) polygon(concat(
+            [for (an=[-san:san/cp:san]) [sin(an)*bd, bof+cos(an)*bd]],
+            [for (an=[180-san:san/cp:180+san]) [sin(an)*bd, -bof+cos(an)*bd]]
+        ));
+    }
 }
 
 module cover_bot()
@@ -1094,3 +1210,24 @@ module nut()
 {
     color("#777") translate([offset2+1.2+2.6/2,0,0]) cube([2.3, 5.5, 5.5], true);
 }
+
+module magnetic_connector(cp=48)
+{
+    //bthi = 1.2;
+    bthi = 0.6;
+    bwid = 8.25;
+    blen = 18;
+    bof = 4;
+    bd = (blen-bof*2)/2;
+
+    translate([0,0,0.2]) {
+        cylinder(3.5, 6.8/2, 6.8/2, $fn=48);
+        san = asin(bwid/(blen-bof*2));
+        translate([0,0,-bthi]) linear_extrude(height=bthi) polygon(concat(
+            [for (an=[-san:san/cp:san]) [sin(an)*bd, bof+cos(an)*bd]],
+            [for (an=[180-san:san/cp:180+san]) [sin(an)*bd, -bof+cos(an)*bd]]
+        ));
+        *#translate([0,0,-bthi]) cube([bwid,blen,bthi], true);
+    }
+}
+
