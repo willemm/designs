@@ -1,4 +1,4 @@
-doitem = "connector_holder";
+doitem = "outerlid";
 
 
 flmd = 2;
@@ -36,8 +36,8 @@ if (doitem == "wire_guide") { wire_guide(); }
 if (doitem == "try") { cover_holder(159.6, 19); }
 if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "receiver_jig") { receiver_jig(); }
-if (doitem == "outerlid") { outer_lid(); }
-if (doitem == "connector_holder") { mc_holder(); }
+if (doitem == "outerlid") { rotate([180,0,0]) outer_lid(); }
+if (doitem == "connector_holder") { rotate([180,0,0]) mc_holder(); }
 if (doitem == "") {
 
 
@@ -180,6 +180,10 @@ module outer_lid(cp=24)
             [for (an=[-san:san/cp:san]) [sin(an)*bd, bof+cos(an)*bd]],
             [for (an=[180-san:san/cp:180+san]) [sin(an)*bd, -bof+cos(an)*bd]]
         ));
+    }
+    // Sacrificial hole layers
+    #for (an=[0:60:360-60]) rotate([0,0,an]) {
+        translate([0, rd, hhthi-0.2]) cylinder(0.2, hhdia/2, hhdia/2, $fn=cp);
     }
 }
 
