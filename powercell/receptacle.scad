@@ -1,4 +1,4 @@
-doitem = "plugclipb";
+doitem = "tubeend";
 
 s3 = sqrt(3);
 
@@ -1074,7 +1074,7 @@ module tubeendplace()
     holedep = 20;
 
     translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
-        translate([0,0,0]) tubeend(cp=120);
+        translate([0,0,0]) tubeend(cp=48);
     }
 }
 
@@ -1082,8 +1082,8 @@ module tubeend(cp=48)
 {
     holedep = 20;
     holedia = 40;
-    tubedia = 31;
-    tubethi = 1;
+    tubedia = 31.4;
+    tubethi = 0.8;
     tol = 0.6;
     enddia1 = holedia - tol*2;
     enddia2 = tubedia + tubethi*2;
@@ -1098,7 +1098,7 @@ module tubeend(cp=48)
     cdia = (enddia1-enddia2)/4;
 
     bev = 0.4;
-    outie = 10;
+    outie = 15;
 
     union() {
         rotate_extrude(convexity = 5, $fn=cp) {
@@ -1115,8 +1115,8 @@ module tubeend(cp=48)
         for (an=[0:30:360-30]) rotate([0,0,an]) {
             difference() {
                 intersection() {
-                    translate([enddia2/2-7.3, 0, -outie]) rotate([0,30,0]) cylinder(40, 4, 4, $fn=cp);
-                    translate([0,0,-outie]) cylinder(outie+0.01, enddia1/2, enddia1/2, $fn=cp);
+                    translate([enddia2/2-5.5, 0, -outie]) rotate([0,17,0]) cylinder(40, 4, 4, $fn=cp);
+                    translate([0,0,-outie+6.4]) cylinder(outie-6.4+0.01, enddia1/2, enddia1/2, $fn=cp);
                 }
                 translate([0,0,-outie-0.01]) cylinder(outie+0.03, enddia2/2+0.4, enddia2/2, $fn=cp);
             }
