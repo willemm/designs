@@ -1,7 +1,8 @@
-doitem = "";
+doitem = "tubeend";
 
 s3 = sqrt(3);
 
+if (doitem == "tubeend") { rotate([180,0,0]) tubeend(cp=240); }
 if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
 if (doitem == "plugclipt") { rotate([0,90,0]) plugclipt(cp=240); }
 if (doitem == "plugclipb") { rotate([0,-90,0]) plugclipb(cp=240); }
@@ -16,7 +17,9 @@ if (doitem == "") {
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
     *color("#653") translate([0,0,0]) render(convexity=8) powerplug_f();
-    color("#ea86") plugclipplace();
+    *color("#ea86") plugclipplace();
+
+    color("#646") tubeendplace();
 
     *color("#ea86") render(convexity=8) socketclipplace();
     *color("#686") bottomplate();
@@ -1054,6 +1057,69 @@ module plugclip(thi, cp=48, tol=0.2)
                 cube([0.001, 8, 0.001], true);
             }
             translate([0,0,11+4.2/2]) cube([15+tol,35+tol,4.2+tol], true);
+        }
+    }
+}
+
+module tubeendplace()
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    holeof = 58;
+    holedep = 20;
+
+    translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
+        translate([0,0,0]) tubeend(cp=120);
+    }
+}
+
+module tubeend(cp=48)
+{
+    holedep = 20;
+    holedia = 40;
+    tubedia = 32;
+    tubethi = 0.4;
+    tol = 0.6;
+    enddia1 = holedia - tol*2;
+    enddia2 = tubedia + tubethi*2;
+
+    exdia = 36;
+    exins = 6;
+
+    thi = 6;
+    inthi = 1.2;
+
+    ccen = (enddia1+enddia2)/4;
+    cdia = (enddia1-enddia2)/4;
+
+    bev = 0.4;
+    outie = 10;
+
+    union() {
+        rotate_extrude(convexity = 5, $fn=cp) {
+            polygon([
+                [ enddia1/2, 0], [ enddia2/2,0],
+                [ enddia2/2, holedep-thi ], [tubedia/2, holedep-thi],
+                [ tubedia/2, -outie+bev], [ tubedia/2-bev, -outie],
+                [ tubedia/2-inthi+0.2, -outie], [ tubedia/2-inthi, -outie+0.2],
+                [ tubedia/2-inthi, holedep-exins],
+                [ exdia/2, holedep], [enddia1/2-bev, holedep],
+                [ enddia1/2, holedep-bev]
+            ]);
+        }
+        for (an=[0:30:360-30]) rotate([0,0,an]) {
+            difference() {
+                intersection() {
+                    translate([enddia2/2-7.3, 0, -outie]) rotate([0,30,0]) cylinder(40, 4, 4, $fn=cp);
+                    translate([0,0,-outie]) cylinder(outie+0.01, enddia1/2, enddia1/2, $fn=cp);
+                }
+                translate([0,0,-outie-0.01]) cylinder(outie+0.03, enddia2/2, enddia2/2, $fn=cp);
+            }
         }
     }
 }
