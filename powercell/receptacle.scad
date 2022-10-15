@@ -1,4 +1,4 @@
-doitem = "tubeend";
+doitem = "plugclipb";
 
 s3 = sqrt(3);
 
@@ -17,9 +17,9 @@ if (doitem == "") {
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
     *color("#653") translate([0,0,0]) render(convexity=8) powerplug_f();
-    *color("#ea86") plugclipplace();
+    color("#ea86") plugclipplace();
 
-    color("#646") tubeendplace();
+    *color("#646") tubeendplace();
 
     *color("#ea86") render(convexity=8) socketclipplace();
     *color("#686") bottomplate();
@@ -976,7 +976,7 @@ module plugclipt(thi=3, cp=48, tol=0.2)
 {
     union() {
         intersection() {
-            render(convexity=8) plugclip(thi, cp, tol);
+            plugclip(thi, cp, tol);
             translate([0,-30,0]) cube([10, 60, 40]);
         }
         translate([ 0.01,-17, 7]) rotate([0,-90,0]) cylinder(2.01, 2, 1.8, $fn=cp);
@@ -990,7 +990,7 @@ module plugclipb(thi=3, cp=48, tol=0.2)
 {
     difference() {
         intersection() {
-            render(convexity=8) plugclip(thi, cp, tol);
+            plugclip(thi, cp, tol);
             translate([-10,-30,0]) cube([10, 60, 40]);
         }
         translate([ 0.01,-17, 7]) rotate([0,-90,0]) cylinder(2.01, 2.1, 2.1, $fn=cp);
@@ -1045,9 +1045,9 @@ module plugclip(thi, cp=48, tol=0.2)
                     [len2,0],[len2-tol+hei/4,hei/4],[len2-tol,hei/2],[len1-tol,hei/2]
                 ]);
         }
-        translate([ihei/2+tol,-twid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+        translate([ihei/2+tol,-twid/2-tol,len3-tol/2]) cube([(hei-ihei)/2-2, (twid-iwid)/2+tol*3, leni+tol]);
         mirror([1,0,0])
-        translate([ihei/2+tol,-twid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+        translate([ihei/2+tol,-twid/2-tol,len3-tol/2]) cube([(hei-ihei)/2-2, (twid-iwid)/2+tol*3, leni+tol]);
         translate([hei/2+0.01, iwid/2+2.4, len3+leni/2]) rotate([0,-90,0]) cylinder(hei+0.02, 1.2, 1.2, $fn=24);
         translate([0,0,tol-0.01]) cylinder(15, 20, 0, $fn=cp);
 
@@ -1082,8 +1082,8 @@ module tubeend(cp=48)
 {
     holedep = 20;
     holedia = 40;
-    tubedia = 32;
-    tubethi = 0.4;
+    tubedia = 31;
+    tubethi = 1;
     tol = 0.6;
     enddia1 = holedia - tol*2;
     enddia2 = tubedia + tubethi*2;
@@ -1118,7 +1118,7 @@ module tubeend(cp=48)
                     translate([enddia2/2-7.3, 0, -outie]) rotate([0,30,0]) cylinder(40, 4, 4, $fn=cp);
                     translate([0,0,-outie]) cylinder(outie+0.01, enddia1/2, enddia1/2, $fn=cp);
                 }
-                translate([0,0,-outie-0.01]) cylinder(outie+0.03, enddia2/2, enddia2/2, $fn=cp);
+                translate([0,0,-outie-0.01]) cylinder(outie+0.03, enddia2/2+0.4, enddia2/2, $fn=cp);
             }
         }
     }
