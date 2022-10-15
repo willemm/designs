@@ -127,7 +127,7 @@ module outer_lid(cp=24)
 
     hdia = 4;
     hhdia = 7.8;
-    hhthi = 1.4;
+    hhthi = 1.2;
     hhins = 1.6;
 
     bthi = 0.6;
@@ -141,6 +141,8 @@ module outer_lid(cp=24)
     exwid = 4;
     exex = 1;
     bev = 2.4;
+
+    mcdia = 7.2;
 
     difference() {
         union() {
@@ -174,7 +176,7 @@ module outer_lid(cp=24)
             translate([0,rd,-0.01]) cylinder(thi+0.02, hdia/2, hdia/2, $fn=cp);
             translate([0,rd, hhthi]) cylinder(thi-hhthi+0.01, hhdia/2, hhdia/2, $fn=cp);
         }
-        translate([0,0,-exthi-0.01]) cylinder(exthi+thi+0.02, 4, 4, $fn=cp);
+        translate([0,0,-exthi-0.01]) cylinder(exthi+thi+0.02, mcdia/2, mcdia/2, $fn=cp);
         san = asin(bwid/(blen-bof*2));
         translate([0,0,-exthi-0.01]) linear_extrude(height=exthi+hhins+0.01) polygon(concat(
             [for (an=[-san:san/cp:san]) [sin(an)*bd, bof+cos(an)*bd]],

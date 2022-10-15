@@ -3,6 +3,8 @@ doitem = "";
 s3 = sqrt(3);
 
 if (doitem == "socketclip") { rotate([-90,0,0]) socketclip(cp=240); }
+if (doitem == "plugclipt") { rotate([0,90,0]) plugclipt(cp=240); }
+if (doitem == "plugclipb") { rotate([0,-90,0]) plugclipb(cp=240); }
 if (doitem == "bottomplate") { rotate([180,0,0]) bottomplate(); }
 if (doitem == "topplatebot") { topplatebot(cp=240); }
 if (doitem == "topplatetop") { rotate([180,0,0]) topplatetop(cp=240); }
@@ -13,19 +15,21 @@ if (doitem == "") {
     *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
+    *color("#653") translate([0,0,0]) render(convexity=8) powerplug_f();
+    color("#ea86") plugclipplace();
 
     *color("#ea86") render(convexity=8) socketclipplace();
     *color("#686") bottomplate();
-    color("#686") topplatetop();
-    color("#797") topplatebot();
-    color("#a926") magnetic_connector();
+    *color("#686") topplatetop();
+    *color("#797") topplatebot();
+    *color("#a926") magnetic_connector();
 
     gap = 0.0;
     *color("#ade") receptacle();
     *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
-    color("#ade7") render(convexity=8) receptacle();
+    *color("#ade7") render(convexity=8) receptacle();
     // test print socket bit
     *intersection() {
         // Rotate for printing ?
@@ -943,6 +947,150 @@ module receptacle_model()
         for (an=[00:120:360-1]) rotate([0,0,an]) translate([tetx-holeof/sqrt(2),0,58.5*sqrt(3)-tetz- holeof])
             rotate([0,-90+asin(1/s3),00])
             translate([0,0,-0.01]) cylinder(holedep + 0.01,20,20,$fn=cp);
+    }
+}
+
+module plugclipplace()
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    holeof = 58;
+    holedep = 20;
+
+    translate([tetx-holeof/sqrt(2),0,tetof-tetz- holeof]) rotate([0,-90+asin(1/s3),0]) {
+        translate([0,0,holedep]) plugclipt(thi, cp=120);
+        translate([0,0,holedep]) plugclipb(thi, cp=120);
+    }
+}
+
+module plugclipt(thi=3, cp=48, tol=0.2)
+{
+    union() {
+        intersection() {
+            render(convexity=8) plugclip(thi, cp, tol);
+            translate([0,-30,0]) cube([10, 60, 40]);
+        }
+        translate([ 0.01,-17, 7]) rotate([0,-90,0]) cylinder(2.01, 2, 1.8, $fn=cp);
+        translate([ 0.01,-12,20]) rotate([0,-90,0]) cylinder(2.01, 2, 1.8, $fn=cp);
+        translate([ 0.01, 17, 7]) rotate([0,-90,0]) cylinder(2.01, 2, 1.8, $fn=cp);
+        translate([ 0.01, 15,20]) rotate([0,-90,0]) cylinder(2.01, 2, 1.8, $fn=cp);
+    }
+}
+
+module plugclipb(thi=3, cp=48, tol=0.2)
+{
+    difference() {
+        intersection() {
+            render(convexity=8) plugclip(thi, cp, tol);
+            translate([-10,-30,0]) cube([10, 60, 40]);
+        }
+        translate([ 0.01,-17, 7]) rotate([0,-90,0]) cylinder(2.01, 2.1, 2.1, $fn=cp);
+        translate([ 0.01,-12,20]) rotate([0,-90,0]) cylinder(2.01, 2.1, 2.1, $fn=cp);
+        translate([ 0.01, 17, 7]) rotate([0,-90,0]) cylinder(2.01, 2.1, 2.1, $fn=cp);
+        translate([ 0.01, 15,20]) rotate([0,-90,0]) cylinder(2.01, 2.1, 2.1, $fn=cp);
+    }
+}
+
+module plugclip(thi, cp=48, tol=0.2)
+{
+    len1 = 24.8;
+    len2 = 34;
+    lend = 15.5;
+    nlen = 2.5;
+    bwid = 30.6;
+    nwid = 30.6;
+    twid = 41.3;
+    hei = 19;
+    dia = 10;
+    leni = 6.3;
+    len3 = len1-1.5-leni;
+    iwid = 33.5;
+    ihei = 1.6;
+
+    w = twid/2 - dia/2;
+    h = hei/2 - dia/2;
+    wh = w-h;
+    r = dia/2+tol;
+    orx = 20+thi;
+    ory = 20+thi;
+
+    can = 360/cp;
+
+    difference() {
+        union() {
+            san = asin((hei/2)/(20+thi));
+            isan = ceil(san/can)*can;
+            translate([0,0,tol])
+            linear_extrude(height=len1-tol, convexity=5) polygon(concat(
+                [[ (hei/2), ory ]],
+                [[-(hei/2), ory ]],
+                [[-(hei/2), -bwid/2+tol], [-(hei/2-2+tol), -bwid/2+tol]],
+                [for (an=[-45:can:45]) [ 0+sin(an)*r, -w+tol-cos(an)*r] ],
+                [[ (hei/2-2+tol), -bwid/2+tol],[ (hei/2), -bwid/2+tol]],
+                []
+            ));
+            bhei = ory-bwid/2-tol;
+            rotate([ 0,-90,90]) translate([0,0,-ory]) linear_extrude(height=bhei, convexity=5)
+                polygon([
+                    [len1-tol,-hei/2],[len2-tol,-hei/2],[len2-tol+hei/4,-hei/4],
+                    [len2,0],[len2-tol+hei/4,hei/4],[len2-tol,hei/2],[len1-tol,hei/2]
+                ]);
+        }
+        translate([ihei/2+tol,-twid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+        mirror([1,0,0])
+        translate([ihei/2+tol,-twid/2+tol,len3]) cube([(hei-ihei)/2-1, (twid-iwid)/2, leni]);
+        translate([hei/2+0.01, iwid/2+2.4, len3+leni/2]) rotate([0,-90,0]) cylinder(hei+0.02, 1.2, 1.2, $fn=24);
+        translate([0,0,tol-0.01]) cylinder(15, 20, 0, $fn=cp);
+
+        translate([0,2,0.01]) {
+            minkowski() {
+                cylinder(len1+0.02, 12.5/2+tol, 12.5/2+tol, $fn=cp);
+                cube([0.001, 8, 0.001], true);
+            }
+            translate([0,0,11+4.2/2]) cube([15+tol,35+tol,4.2+tol], true);
+        }
+    }
+}
+
+module powerplug_f()
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+    holeof = 58;
+    holedep = 20;
+    translate([tetx-holeof/sqrt(2),0,tetof-tetz-holeof]) rotate([0,asin(1/s3)-90,0])
+        translate([0,2,holedep+11]) rotate([0,0,90]) {
+        color("#543") difference() {
+            translate([0,0,4.2/2]) cube([35, 15, 4.2], true);
+            translate([ 14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
+            translate([-14, 0, -0.01]) cylinder(4.22, 1.5, 1.5, $fn=24);
+        }
+        color("#543") translate([0,0,-0.9]) {
+            minkowski() {
+                cylinder(14.6, 12.5/2, 12.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+        }
+        color("#cce") translate([ 4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
+        color("#cce") translate([-4.2, 2.7, 17.7]) cube([3.3, 0.7, 8], true);
+
+        pluglen = 32.5;
+        *color("#975") translate([0, 0, -pluglen]) {
+            minkowski() {
+                cylinder(pluglen, 10.5/2, 10.5/2, $fn=48);
+                cube([8, 0.001, 0.001], true);
+            }
+            *translate([0, -4, 7.5]) rotate([90,0,0]) cylinder(20, 7.5, 5, $fn=48);
+        }
     }
 }
 
