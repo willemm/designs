@@ -1115,8 +1115,8 @@ module tubeend(cp=48)
         for (an=[0:30:360-30]) rotate([0,0,an]) {
             difference() {
                 intersection() {
-                    translate([enddia2/2-5.5, 0, -outie]) rotate([0,17,0]) cylinder(40, 4, 4, $fn=cp);
-                    translate([0,0,-outie+6.4]) cylinder(outie-6.4+0.01, enddia1/2, enddia1/2, $fn=cp);
+                    translate([enddia2/2-5.2, 0, -outie]) rotate([0,17,0]) cylinder(40, 4, 4, $fn=cp);
+                    translate([0,0,-outie+6.4]) cylinder(outie-6.4+0.01, enddia1/2+6, enddia1/2, $fn=cp);
                 }
                 translate([0,0,-outie-0.01]) cylinder(outie+0.03, enddia2/2+0.4, enddia2/2, $fn=cp);
             }

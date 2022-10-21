@@ -1,4 +1,4 @@
-doitem = "outerlid";
+doitem = "helix_top";
 
 
 flmd = 2;
@@ -38,6 +38,7 @@ if (doitem == "batterybox") { batterybox(); *batteries(); }
 if (doitem == "receiver_jig") { receiver_jig(); }
 if (doitem == "outerlid") { rotate([180,0,0]) outer_lid(); }
 if (doitem == "connector_holder") { rotate([180,0,0]) mc_holder(); }
+if (doitem == "helix_top") { rotate([180,0,0]) helix_top(); }
 if (doitem == "") {
 
 
@@ -55,9 +56,14 @@ if (doitem == "") {
         *receiver();
     } else {
         *color("#abd") translate([0,0,33.0]) rotate([0,0,0]) import("deksel.stl", convexity=6);
-        color("#bda") translate([0,0,33.0]) outer_lid();
-        color("#ac8") translate([0,0,33.0]) mc_holder();
-        color("#a926") translate([0,0,33.0]) magnetic_connector();
+        *color("#bda") translate([0,0,33.0]) outer_lid();
+        *color("#ac8") translate([0,0,33.0]) mc_holder();
+        *color("#a926") translate([0,0,33.0]) magnetic_connector();
+
+        color("#abd") translate([0,0,38.0]) helix_top();
+        *color("#abd8") translate([0,0,38.0]) rotate([0,0,0]) import("triple helix_top.stl", convexity=6);
+
+        color("#acc") translate([0,0,-125.4]) rotate([0,0,0]) import("behuizing met staanders.stl", convexity=6);
 
         *hexbase_bot();
         *translate([0,0,14]) cover_bot();
@@ -72,6 +78,35 @@ if (doitem == "") {
 
     *house();
     *translate([2,0,0]) slider();
+}
+
+module helix_top()
+{
+    // hdia = 123;
+    hwid = 107;
+    hr = hwid/sqrt(3);
+
+    ph = 3;
+    pb = 4;
+    pa = 3;
+    po = 6;
+    union() {
+        import("triple helix_top.stl", convexity=6);
+        for (an=[30:60:360-30]) rotate([0,0,an]) {
+            polyhedron(convexity=4,
+                points = [
+                    [hr, 0, 0], [hr-8/s3, -8, 0], [hr-14/s3, -6, 0], [hr-14/s3, 6, 0], [hr-8/s3, 8, 0],
+                    [hr, 0,-ph], [hr-8/s3, -8,-ph], [hr-14/s3, -6,-ph], [hr-14/s3, 6,-ph], [hr-8/s3, 8,-ph],
+                    [hr-pa, 0,-ph-pb], [hr-pa-po/s3, -po, -ph-pb], [hr-pa-po/s3, po, -ph-pb],
+                ], faces = [
+                    [0,1,2,3,4],
+                    [1,0,5,6],[2,1,6,7],[3,2,7,8],[4,3,8,9],[0,4,9,5],
+                    //[9,8,7,6,5],
+                    [6,5,10,11],[7,6,11],[8,7,11,12],[9,8,12],[5,9,12,10],
+                    [12,11,10],
+                ]);
+        }
+    }
 }
 
 module mc_holder(cp=24)

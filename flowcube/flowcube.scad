@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "poleshell";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -77,6 +77,7 @@ if (doitem == "footblob5") { footblob(seed=stalkseed[3], conn=connpos[4], cp=480
 if (doitem == "footmid")   { footmid(cp=480); }
 if (doitem == "footdisc")  { footmiddisc(cp=480); }
 if (doitem == "footconn")  { footconnector(); }
+if (doitem == "poleshell") { poleshell(cp=480); }
 if (doitem == "test")  { stalks(seed=252, conn=0, cp=480); }
 if (doitem == "") {
 
@@ -176,6 +177,8 @@ color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
 *rotate([0,0,20]) translate([190-28,0,-botoffset+fplughi]) powerplug_f();
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
+
+color("#444") translate([0,0,-botoffset+208]) poleshell();
 
 color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
 
@@ -3130,6 +3133,27 @@ function footblobarc(z, sa=45, ex=0.75) = (
     (z > ex) ? -1 : 
     (2/(cos(sa)+1))*(((1-cos(sa))/2)+cos(sa+(z/ex)*(180-sa)))
     );
+
+module poleshell(dia=126, hei=190.4, cp=120)
+{
+    br = dia/2;
+    th = 1.2;
+    tly = 3;
+    polyhedron(convexity=5,
+        points = concat(
+            zbcircle(0,0,0,br+th,360/cp),
+            zbcircle(0,0,0,br,360/cp),
+            zbcircle(0,0,hei,br,360/cp),
+            zbcircle(0,0,hei,br+th,360/cp),
+            []
+        ),
+        faces = concat(
+            [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
+            nquads(tly*cp, cp, -tly*cp),
+            []
+        )
+    );
+}
 
 module standpole(dia=126, hei=558, cp=60)
 {
