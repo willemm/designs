@@ -748,26 +748,99 @@ static void disconnect_chain(int idx)
     }
 }
 
-static void press_key(int key)
+static void connect_two_chains(const int key, const int fnd, const int line, const neighbours_t neighbours)
+{
+    // Disconnect pressed chain end
+    int nxt = neighbours.neighbour[GET_FIELD(key).next];
+    debugD("Connect to chain at %d, disconnect %d", key, nxt);
+    disconnect_chain(nxt);
+    int idx = neighbours.neighbour[fnd];
+    // Connect pressed chain to other chain (use next because we invert later)
+    GET_FIELD(key).next = fnd;
+    GET_FIELD(idx).next = invert_dir(key, idx, fnd);
+    debugD("Connect %d to %d and %d to %d", key, GET_FIELD(key).next, idx, GET_FIELD(idx).next);
+    // Reverse other chain to beginning
+    int dist;
+    if (GET_FIELD(idx).line == line) {
+        nxt = idx;
+        dist = GET_FIELD(key).dist;
+    } else {
+        nxt = key;
+        dist = GET_FIELD(idx).dist;
+    }
+    while (nxt >= 0) {
+        debugD("Reverse %d<-%d<-%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
+        GET_FIELD(nxt).line = selected;
+        GET_FIELD(nxt).dist = ++dist;
+
+        int nn = GET_FIELD(nxt).prev;
+        GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
+        GET_FIELD(nxt).next = nn;
+        nxt = field_neighbour(nxt, nn);
+    }
+    field_endpoints[line^1].status = EP_CONNECTED;
+    field_endpoints[line].status = EP_OTHEREND;
+}
+
+static int find_matching_neighbour(const neighbours_t neighbours, const int selected)
+{
+    int fnd = -1;
+    int mindist = 1000;
+    // Loop through neighbours to see if any is of the selected line
+    for (int n = 0; n < 4; n++) {
+        int nb = neighbours.neighbour[n];
+        if (nb < 0) continue;
+        debugD("Check field #%d = %d, line %d, dist %d", n, nb, GET_FIELD(nb).line, GET_FIELD(nb).dist);
+        // If more than one neighbour is the line, take the one that is closest to its origin
+        if ((GET_FIELD(nb).line == selected) && (GET_FIELD(nb).dist < mindist)) {
+            debugD("Got field #%d = %d, line %d, dist %d < %d", n, nb, GET_FIELD(nb).line, GET_FIELD(nb).dist, mindist);
+            fnd = n;
+            mindist = GET_FIELD(nb).dist;
+        }
+    }
+    return fnd;
+}
+
+void disconnect_or_cut_chain(const int idx, const int key)
+{
+    int nxt = idx;
+    while (nxt >= 0) {
+        // Find end of chain
+        if (GET_FIELD(nxt).is_endpoint) { break; }
+        nxt = field_neighbour(nxt, GET_FIELD(nxt).next);
+    }
+    if (nxt < 0) {
+        // No endpoint, kill chain
+        debugD("Disconnect chain %d", idx);
+        disconnect_chain(idx);
+    } else {
+        // Reverse chain
+        int dist = 0;
+        int dline = GET_FIELD(nxt).line ^ 1;
+        while (nxt != key) {
+            debugD("Reverse %d<-%d<-%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
+            GET_FIELD(nxt).line = dline;
+            GET_FIELD(nxt).dist = ++dist;
+
+            int nn = GET_FIELD(nxt).prev;
+            GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
+            GET_FIELD(nxt).next = nn;
+            nxt = field_neighbour(nxt, nn);
+        }
+        debugD("Disconnect second end %d", idx);
+        GET_FIELD(idx).next = 4;
+        GET_FIELD(key).next = 4;
+    }
+}
+
+static void press_key(const int key)
 {
     long now = millis();
     int line = GET_FIELD(key).line;
     if (selected >= 0) {
         debugI("Press key %d, check for neighbour with selected line %d", key, selected);
-        int fnd = -1;
-        int mindist = 1000;
-        neighbours_t neighbours = field_neighbours(key);
-        for (int n = 0; n < 4; n++) {
-            int nb = neighbours.neighbour[n];
-            if (nb >= 0) {
-                debugD("Check field #%d = %d, line %d, dist %d", n, nb, GET_FIELD(nb).line, GET_FIELD(nb).dist);
-            }
-            if ((nb >= 0) && (GET_FIELD(nb).line == selected) && (GET_FIELD(nb).dist < mindist)) {
-                debugD("Got field #%d = %d, line %d, dist %d < %d", n, nb, GET_FIELD(nb).line, GET_FIELD(nb).dist, mindist);
-                fnd = n;
-                mindist = GET_FIELD(nb).dist;
-            }
-        }
+        const neighbours_t neighbours = field_neighbours(key);
+        int fnd = find_matching_neighbour(neighbours, selected);
         if (fnd < 0) {
             // Pressed key was not next to selected chain, so deselect
             // TODO: Some kind of distance/straight line stuff maybe?
@@ -780,84 +853,35 @@ static void press_key(int key)
                 // Nothing, maybe deselect further bit of chain?
             } else if (line == (selected ^ 1)) {
                 debugI("Press key %d, matching line %d, connect", key, line);
-                // Disconnect pressed chain end
-                int nxt = neighbours.neighbour[GET_FIELD(key).next];
-                debugD("Connect to chain at %d, disconnect %d", key, nxt);
-                disconnect_chain(nxt);
-                int idx = neighbours.neighbour[fnd];
-                // Connect pressed chain to other chain (use next because we invert later)
-                GET_FIELD(key).next = fnd;
-                GET_FIELD(idx).next = invert_dir(key, idx, fnd);
-                debugD("Connect %d to %d and %d to %d", key, GET_FIELD(key).next, idx, GET_FIELD(idx).next);
-                // Reverse other chain to beginning
-                nxt = key;
-                int dist = GET_FIELD(idx).dist;
-                while (nxt >= 0) {
-                    debugD("Reverse %d<-%d<-%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
-                    GET_FIELD(nxt).line = selected;
-                    GET_FIELD(nxt).dist = ++dist;
-
-                    int nn = GET_FIELD(nxt).prev;
-                    GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
-                    GET_FIELD(nxt).next = nn;
-                    nxt = field_neighbour(nxt, nn);
-                }
-                field_endpoints[selected].status = EP_CONNECTED;
-                field_endpoints[line].status = EP_OTHEREND;
+                connect_two_chains(key, fnd, line, neighbours);
                 line = selected;  // Make sure the loose line doesn't get selected
-                selected = -1;
-            } else if (line >= 0) {
-                if (GET_FIELD(key).is_endpoint) {
-                    // Endpoints cannot be pushed through
-                    selected = -1;
-                } else {
-                    debugI("Press key %d, different line %d, push through, todo", key, line);
-                    // Disconnect pushed-through chain
-                    //  disconnect next-direction
-                    int nxt = neighbours.neighbour[GET_FIELD(key).next];
-                    while (nxt >= 0) {
-                        int dist = 0;
-                        // Find end of chain
-                        if (GET_FIELD(nxt).is_endpoint) {
-                            // Reverse chain
-                            dist = 0;
-                            int dline = line ^ 1;
-                            while (nxt != key) {
-                                debugD("Reverse %d<-%d<-%d", GET_FIELD(nxt).prev, nxt, GET_FIELD(nxt).next);
-                                GET_FIELD(nxt).line = dline;
-                                GET_FIELD(nxt).dist = ++dist;
-
-                                int nn = GET_FIELD(nxt).prev;
-                                GET_FIELD(nxt).prev = GET_FIELD(nxt).next;
-                                GET_FIELD(nxt).next = nn;
-                                nxt = field_neighbour(nxt, nn);
-                            }
-                            break;
-                        }
-                        nxt = field_neighbour(nxt, GET_FIELD(nxt).next);
-                    }
-                    if (nxt < 0) {
-                        // No endpoint, kill chain
-                        nxt = neighbours.neighbour[GET_FIELD(key).next];
-                        debugD("Disconnect chain %d", nxt);
-                        disconnect_chain(nxt);
+                selected = -1;    // Connecting is final, line gets deselected
+            } else {
+                if (line >= 0) {
+                    // If the pushed button is a different line,
+                    // that will be disconnected so it can be connected to the selected line
+                    if (GET_FIELD(key).is_endpoint) {
+                        // Except endpoints, which cannot be pushed through
+                        selected = -1;
                     } else {
-                        nxt = neighbours.neighbour[GET_FIELD(key).next];
-                        debugD("Disconnect second end %d", nxt);
-                        GET_FIELD(nxt).next = 4;
-                        GET_FIELD(key).next = 4;
-                    }
-                    int prv = neighbours.neighbour[GET_FIELD(key).prev];
-                    debugD("Disconnect end %d", prv);
-                    GET_FIELD(prv).next = 4;
-                    GET_FIELD(key).prev = 4;
-                    field_endpoints[line].status = EP_NORMAL;
-                    field_endpoints[line^1].status = EP_NORMAL;
+                        debugI("Press key %d, different line %d, push through, todo", key, line);
+                        // Disconnect pushed-through chain
+                        //  disconnect next-direction
+                        disconnect_or_cut_chain(neighbours.neighbour[GET_FIELD(key).next], key);
 
+                        int prv = neighbours.neighbour[GET_FIELD(key).prev];
+                        debugD("Disconnect end %d", prv);
+                        GET_FIELD(prv).next = 4;
+                        GET_FIELD(key).prev = 4;
+                        field_endpoints[line].status = EP_NORMAL;
+                        field_endpoints[line^1].status = EP_NORMAL;
+                    }
+                }
+                if (selected >= 0) {
                     // Extend chain
                     debugI("Press key %d, no line %d, extend chain", key, line);
                     int idx = neighbours.neighbour[fnd];
-                    nxt = field_neighbour(idx, GET_FIELD(idx).next);
+                    int nxt = field_neighbour(idx, GET_FIELD(idx).next);
                     debugD("Connect to chain at %d, disconnect %d", idx, nxt);
                     // Disconnect other chain
                     disconnect_chain(nxt);
@@ -865,19 +889,17 @@ static void press_key(int key)
                     GET_FIELD(key).dist = GET_FIELD(idx).dist + 1;
                     GET_FIELD(key).prev = fnd;
                     GET_FIELD(idx).next = invert_dir(key, idx, fnd);
+
+                    // Touching but not connected chains are a bit weird
+                    // So try to connect two chains from here
+                    int nfnd = find_matching_neighbour(neighbours, selected^1);
+                    if (nfnd >= 0) {
+                        debugI("Touching line %d, connect", selected^1);
+                        connect_two_chains(key, nfnd, selected^1, neighbours);
+                        line = selected;  // Make sure the loose line doesn't get selected
+                        selected = -1;    // Connecting is final, line gets deselected
+                    }
                 }
-            } else {
-                // Extend chain
-                debugI("Press key %d, no line %d, extend chain", key, line);
-                int idx = neighbours.neighbour[fnd];
-                int nxt = field_neighbour(idx, GET_FIELD(idx).next);
-                debugD("Connect to chain at %d, disconnect %d", idx, nxt);
-                // Disconnect other chain
-                disconnect_chain(nxt);
-                GET_FIELD(key).line = GET_FIELD(idx).line;
-                GET_FIELD(key).dist = GET_FIELD(idx).dist + 1;
-                GET_FIELD(key).prev = fnd;
-                GET_FIELD(idx).next = invert_dir(key, idx, fnd);
             }
         }
     }
@@ -985,7 +1007,7 @@ void field_debug_dump()
     }
     for (int line = 0; field_endpoints[line].idx >= 0; line++) {
         int idx = field_endpoints[line].idx;
-        Debug.printf("Line %d : %d", line, idx);
+        Debug.printf("Line %d (%x) : %d", line, field_endpoints[line].status, idx);
         while (idx >= 0) {
             int8_t nd = GET_FIELD(idx).next;
             idx = field_neighbour(idx, nd);
