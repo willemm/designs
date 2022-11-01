@@ -1,4 +1,4 @@
-doitem = "tubeend";
+doitem = "psuholder";
 
 s3 = sqrt(3);
 
@@ -9,6 +9,7 @@ if (doitem == "plugclipb") { rotate([0,-90,0]) plugclipb(cp=240); }
 if (doitem == "bottomplate") { rotate([180,0,0]) bottomplate(); }
 if (doitem == "topplatebot") { topplatebot(cp=240); }
 if (doitem == "topplatetop") { rotate([180,0,0]) topplatetop(cp=240); }
+if (doitem == "psuholder") { psuholder(cp=240); }
 if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
@@ -17,7 +18,7 @@ if (doitem == "") {
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
     *color("#653") translate([0,0,0]) render(convexity=8) powerplug_f();
-    color("#ea86") plugclipplace();
+    *color("#ea86") plugclipplace();
 
     *color("#646") tubeendplace();
 
@@ -27,12 +28,19 @@ if (doitem == "") {
     *color("#797") topplatebot();
     *color("#a926") magnetic_connector();
 
+    rotate([0,0,0]) {
+    color("#a926") smallpsu();
+    color("#8a26") digispark();
+    color("#6a68") psuholder();
+    }
+
     gap = 0.0;
     *color("#ade") receptacle();
     *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
-    *color("#ade7") render(convexity=8) receptacle();
+    color("#ade7") render(convexity=8) receptacle();
+
     // test print socket bit
     *intersection() {
         // Rotate for printing ?
@@ -1157,6 +1165,95 @@ module powerplug_f()
             }
             *translate([0, -4, 7.5]) rotate([90,0,0]) cylinder(20, 7.5, 5, $fn=48);
         }
+    }
+}
+
+module psuholder(cp=48)
+{
+    ethi = 1.6;
+    wid = 32.5+ethi*2;
+    len = 65+ethi*2;
+    l = len/2;
+    w = wid/2;
+    e = ethi;
+    translate([len/2-32 - 0,0,-50])
+    difference() {
+        union() {
+            translate([0, 0, -26]) linear_extrude(height=26, convexity=5) polygon([
+                [-l, -w], [l, -w], [l, w], [-l, w],
+                [-l+e, -w+e], [l-e, -w+e], [l-e, w-e], [-l+e, w-e],
+            ], [[0,1,2,3],[4,5,6,7]]);
+            translate([0, 0, -26+e/2]) cube([len, wid, e], true);
+
+            swx = 7.5;
+            swy = 8;
+            sh = 20;
+
+            for (x=[-1,1], y=[-1,1]) translate([x*(l-swx/2), y*(w-swy/2), -26+sh/2])
+                cube([swx, swy, sh], true);
+
+            translate([len/2+1/2, 0, -26+24/2]) cube([1, 26, 24], true);
+            translate([len/2+7/2, 0, -26+6.8/2]) cube([7, 30, 6.8], true);
+            translate([len/2+3/2, -15+2/2, -26+26/2]) cube([3, 2, 26], true);
+            translate([len/2+7/2,  15-2/2, -26+26/2]) cube([7, 2, 26], true);
+            translate([len/2+7-1.6/2, 6/2, -26+22/2]) cube([1.6, 30-6, 22], true);
+            translate([len/2+7-2/2, -2, -26+22/2]) cube([2, 14, 22], true);
+        }
+        xho = (62.0+55.7)/4;
+        yho = (28.3+22.0)/4;
+        hdi = 1.2;
+        for (x=[-1,1], y=[-1,1]) translate([x*xho, y*yho, -2]) rotate([180,0,0])
+            cylinder(22, hdi, hdi, $fn=24);
+        // 3.5*5.7
+        translate([-21,-wid/2+3.6/2+ethi+0.001,-26-0.01]) linear_extrude(height=2.02) hull() {
+            translate([-1.1,0]) circle(3.6/2, $fn=cp);
+            translate([ 1.1,0]) circle(3.6/2, $fn=cp);
+        }
+        // *translate([len/2-ethi/2, -1.2, -0.8+0.01]) cube([ethi+0.02, 4, 1.6+0.02], true);
+        translate([len/2-ethi/2, -1.2, -8/2+0.01]) cube([ethi+0.02, 4, 8+0.02], true);
+    }
+}
+
+module smallpsu()
+{
+    len = 65;
+    wid = 32.5;
+    thi = 1.5;
+    ethi = 2.5;
+    cthi = 2;
+
+    bxwid = 32.5+3.2;
+    bxlen = 65+3.2;
+
+    translate([bxlen/2-32 - 0, 0, -cthi-ethi-1.5-50]) rotate([180,0,0])
+    difference() {
+        union() {
+            translate([0,0,-thi/2]) cube([len, wid, thi], true);
+            translate([0,0,-thi]) mirror([0,0,1]) linear_extrude(height=ethi, scale=0.8) {
+                square([len-12, wid-2], true);
+                square([len-2, wid-12], true);
+            }
+            translate([0, -10, 0]) cube([12.5, 20, 18]);
+            translate([-30, -4, 0]) cube([16, 11, 16]);
+            translate([-26, 10, 0]) cube([10, 6, 9]);
+        }
+        hdi = (28.3-22.0)/4;
+        xho = (62.0+55.7)/4;
+        yho = (28.3+22.0)/4;
+        for (x=[-1,1], y=[-1,1]) translate([x*xho, y*yho, -thi-0.01])
+            cylinder(thi+0.02, hdi, hdi, $fn=24);
+    }
+}
+
+module digispark()
+{
+    bxwid = 32.5+3.2;
+    bxlen = 65+3.2;
+
+    translate([bxlen/2-32 - 0 + bxlen/2+1,0,-59.5]) rotate([0,-90,0]) rotate([0,0,90])
+    union() {
+        translate([0, 0, -1.5/2]) cube([25, 19, 1.5], true);
+        translate([25/2-5.5/2, 0, -4/2]) cube([5.5, 7.5, 4], true);
     }
 }
 
