@@ -1,4 +1,4 @@
-doitem = "psuholder";
+doitem = "topplatebot";
 
 s3 = sqrt(3);
 
@@ -10,6 +10,7 @@ if (doitem == "bottomplate") { rotate([180,0,0]) bottomplate(); }
 if (doitem == "topplatebot") { topplatebot(cp=240); }
 if (doitem == "topplatetop") { rotate([180,0,0]) topplatetop(cp=240); }
 if (doitem == "psuholder") { psuholder(cp=240); }
+if (doitem == "psucover") { rotate([180,0,0]) psucover(cp=240); }
 if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
@@ -25,21 +26,20 @@ if (doitem == "") {
     *color("#ea86") render(convexity=8) socketclipplace();
     *color("#686") bottomplate();
     *color("#686") topplatetop();
-    *color("#797") topplatebot();
     *color("#a926") magnetic_connector();
 
-    rotate([0,0,0]) {
-    color("#a926") smallpsu();
+    *color("#a926") smallpsu();
     color("#8a26") digispark();
-    color("#6a68") psuholder();
-    }
+    *color("#6a68") psuholder();
+    *color("#595") psucover();
+    color("#7976") topplatebot();
 
     gap = 0.0;
     *color("#ade") receptacle();
     *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
-    color("#ade7") render(convexity=8) receptacle();
+    *color("#ade7") render(convexity=8) receptacle();
 
     // test print socket bit
     *intersection() {
@@ -181,7 +181,7 @@ module topplatebot(cp=48)
         }
         for (an=[0,120,240]) rotate([0,0,an]) {
             translate([-px*2,0,-thi-holed]) rotate([0,90,0])
-                translate([0,0,-0.01]) cylinder(22.01, 1.2, 1.2, $fn=cp);
+                translate([0,0,-0.01]) cylinder(28.01, 1.2, 1.2, $fn=cp);
         }
         for (an=[0,120,240]) rotate([0,0,an]) {
             translate([15,0,-thi-10]) cylinder(10.01, 4, 4, $fn=cp);
@@ -191,6 +191,14 @@ module topplatebot(cp=48)
         }
         translate([0,0,-thi-thi2/2]) cube([cnwid, 12, thi2+0.02], true);
         translate([0,0,-thi-cndp/2+0.01]) cube([cnwid, cnlen, cndp+0.02], true);
+
+        // Slot for wires to connector
+        rotate([0,0,-30]) translate([3, -3.1, -thi-thi2-0.01]) cube([30, 4, 1.41]);
+
+        // holes for psu holder
+        for (y=[0,1]) mirror([0,y,0]) translate([2, 22, tetof-pcof+thi-thi2]) {
+            translate([0, 0, thi2*2-0.01]) cylinder(thi2+0.02, 1.2, 1.2, $fn=cp);
+        }
     }
 }
 
@@ -1212,6 +1220,89 @@ module psuholder(cp=48)
         // *translate([len/2-ethi/2, -1.2, -0.8+0.01]) cube([ethi+0.02, 4, 1.6+0.02], true);
         translate([len/2-ethi/2, -1.2, -8/2+0.01]) cube([ethi+0.02, 4, 8+0.02], true);
     }
+}
+
+module psucover(cp=48)
+{
+    tetsz = 200;
+    tetof = 58.5*sqrt(3); // Top point of tetraeder
+    thi = 3+12;
+    pcof = 30+tetof; // 131
+
+    inr = 20;
+    plr = 32;
+
+    holed = 15/2;
+    thi2 = 5;
+
+    tety = tetsz/sqrt(2);
+    tetx = tety*2/sqrt(3);
+    tetz = tetsz/sqrt(3);
+
+    px = plr/2;
+    py = px*sqrt(3);
+
+    poy = 5;
+    pox = poy*sqrt(3);
+
+    cndp = 1.8;
+    cnwid = 8.6;
+    cnlen = 20;
+
+    exof = 7.85;
+    exof2 = 10;
+
+    translate([0,0,tetof-pcof]) 
+    difference() {
+        union() {
+            translate([0,0,-thi-thi2]) linear_extrude(height=thi2, convexity=6) polygon([
+                [-px*2+exof*s3,-poy*2-exof],
+                [-px*2,-poy*2-exof],[-px*2,poy*2+exof],
+                [-px*2+exof*s3,poy*2+exof],
+                [px-pox,py+poy],
+                [px+pox+exof2*s3,py-poy-exof2],
+                [px+pox+exof2*s3,-py+poy+exof2],
+                [px-pox,-py-poy],
+            ]);
+            /*
+            *for (x=[-1,1], y=[-1,1]) translate([x*(65/2-6.6/2)+2, y*(32.5/2-6.8/2), tetof-pcof+thi-9.4/2])
+                cube([6.4, 6.4, 9.4], true);
+            */
+
+            translate([2,0,0]) for (x=[0,1], y=[0,1]) mirror([x,0,0]) mirror([0,y,0])
+                translate([-(65/2), -(32.5/2), tetof-pcof+thi])
+                polyhedron(points=[
+                    [0.2, 0.2,-5.0], [0.2, 8.4,-5.0], [8.4, 8.4,-5.0], [8.4, 0.2,-5.0],
+                    [0.2, 0.2,-9.4], [0.2, 6.4,-9.4], [6.4, 6.4,-9.4], [6.4, 0.2,-9.4],
+                ], faces=[
+                    [0,1,2,3],
+                    [4,5,1,0],[5,6,2,1],[6,7,3,2],[7,4,0,3],
+                    [7,6,5,4],
+                ]);
+
+        }
+        xho = (62.0+55.7)/4;
+        yho = (28.3+22.0)/4;
+        hdi = 1.5;
+        for (x=[-1,1], y=[-1,1]) translate([x*xho+2, y*yho, tetof-pcof+thi-thi2-4.5]) {
+            translate([0,0,-0.01]) cylinder(thi2+4.5+0.02, hdi, hdi, $fn=cp);
+            translate([0, 0, thi2+4.5-3.6]) cylinder(3.61, 3.0, 3.0, $fn=cp);
+        }
+        for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([15,0,tetof-pcof+thi-3]) cylinder(3.01, 4, 4, $fn=cp);
+        }
+        for (y=[0,1]) mirror([0,y,0]) translate([2, 22, tetof-pcof+thi-thi2]) {
+            translate([0, 0, -0.01]) cylinder(thi2+0.02, 1.5, 1.5, $fn=cp);
+            translate([0, 0, -0.01]) cylinder(3+0.01, 3, 3, $fn=cp);
+        }
+        /*
+        rotate([0,0,-40]) translate([0, -2, tetof-pcof+thi-1.4]) cube([40, 4, 1.41]);
+        translate([0, 0, tetof-pcof+thi-1.4]) cylinder(1.41, 2, 2, $fn=cp);
+        */
+    }
+    // Sacrificial layer
+    #for (x=[-1,1], y=[-1,1]) translate([x*(65/2-6/2)+2, y*(32.5/2-7.2/2), -48.8])
+        cylinder(0.2, 2, 2, $fn=16);
 }
 
 module smallpsu()
