@@ -32,7 +32,9 @@ void leds_init()
 
 void leds_test()
 {
-    for(unsigned int rgb=0; rgb < sizeof(colors)/sizeof(colors[0]); rgb++) {
+    // Wait for power tube signal to get here
+    delay(1400);
+    for (unsigned int rgb=0; rgb < sizeof(colors)/sizeof(colors[0]); rgb++) {
         //keys_scan();
         delay(100);
 

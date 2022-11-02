@@ -1,4 +1,4 @@
-doitem = "topplatebot";
+doitem = "psuholder";
 
 s3 = sqrt(3);
 
@@ -30,7 +30,7 @@ if (doitem == "") {
 
     *color("#a926") smallpsu();
     color("#8a26") digispark();
-    *color("#6a68") psuholder();
+    color("#6a68") psuholder();
     *color("#595") psucover();
     color("#7976") topplatebot();
 
@@ -1184,6 +1184,9 @@ module psuholder(cp=48)
     l = len/2;
     w = wid/2;
     e = ethi;
+
+    l2 = 20.4+ethi;
+    w2 = (30.4+ethi*2)/2;
     translate([len/2-32 - 0,0,-50])
     difference() {
         union() {
@@ -1200,16 +1203,21 @@ module psuholder(cp=48)
             for (x=[-1,1], y=[-1,1]) translate([x*(l-swx/2), y*(w-swy/2), -26+sh/2])
                 cube([swx, swy, sh], true);
 
-            translate([len/2+1/2, 0, -26+24/2]) cube([1, 26, 24], true);
+            translate([len/2+1/2, 2, -26+24/2]) cube([1, 26-4, 24], true);
             translate([len/2+7/2, 0, -26+6.8/2]) cube([7, 30, 6.8], true);
             translate([len/2+3/2, -15+2/2, -26+26/2]) cube([3, 2, 26], true);
             translate([len/2+7/2,  15-2/2, -26+26/2]) cube([7, 2, 26], true);
             translate([len/2+7-1.6/2, 6/2, -26+22/2]) cube([1.6, 30-6, 22], true);
             translate([len/2+7-2/2, -2, -26+22/2]) cube([2, 14, 22], true);
+
+            translate([0, 0, -26]) linear_extrude(height=26, convexity=5) polygon([
+                [-l+e, -w2], [-l-l2, -w2], [-l-l2, w2], [-l+e, w2],
+                [-l, -w2+e], [-l-l2+e, -w2+e], [-l-l2+e, w2-e], [-l, w2-e],
+            ], [[0,1,2,3],[4,5,6,7]]);
         }
         xho = (62.0+55.7)/4;
         yho = (28.3+22.0)/4;
-        hdi = 1.2;
+        hdi = 1.2 + 0.2;
         for (x=[-1,1], y=[-1,1]) translate([x*xho, y*yho, -2]) rotate([180,0,0])
             cylinder(22, hdi, hdi, $fn=24);
         // 3.5*5.7

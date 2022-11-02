@@ -22,3 +22,6 @@ update:
 
 disassemble:
 	c:\users\wille\.platformio\packages\toolchain-atmelavr\bin\avr-objdump.exe -d .pio\build\attiny\firmware.elf > firmware.s
+
+bootloader:
+	c:\users\wille\.platformio\packages\tool-micronucleus\micronucleus.exe --run --timeout 60 micronucleus-1.11-entry-jumper-pb0-upgrade.hex
