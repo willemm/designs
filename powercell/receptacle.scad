@@ -1,4 +1,4 @@
-doitem = "psuholder";
+doitem = "";
 
 s3 = sqrt(3);
 
@@ -15,7 +15,7 @@ if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
 if (doitem == "") {
-    *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
+    color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
     *color("#653") translate([0,0,0]) render(convexity=8) powerplug_f();
@@ -35,11 +35,11 @@ if (doitem == "") {
     color("#7976") topplatebot();
 
     gap = 0.0;
-    *color("#ade") receptacle();
+    *color("#ade") receptacle(cp=24);
     *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
-    *color("#ade7") render(convexity=8) receptacle();
+    color("#ade7") render(convexity=8) receptacle();
 
     // test print socket bit
     *intersection() {
@@ -371,7 +371,7 @@ module receptacle(cp=48)
     inz = pcof+thi;
 
     cutsz = 50*sqrt(3);
-    tol = 1;
+    tol = 0.1;
 
     ribthi = 15;
     ribof = 8;
@@ -540,7 +540,7 @@ module receptacle(cp=48)
             // Rib for center
             translate([tetx/2,0,tetof-tetz*2]) rotate([90,-90+asin(1/s3),0]) translate([0,thi,-thi/2])
                 linear_extrude(height=thi) polygon([
-                    [-thi*s3,7],[0,0],[51-thi,0],[51-thi,20],[-thi*s3,20]
+                    [-thi*s3,7],[0,0],[50.8-thi,0],[50.8-thi,20],[-thi*s3,20]
                 ]);
         }
         translate([0,0,tetof-pcof]) {
@@ -732,6 +732,7 @@ module socketholder(holedep, thi, cp=48, tol=0.2)
             [-(hei/2+tol-2),-(bwid/2+tol)],[ (hei/2+tol-2),-(bwid/2+tol)],
             [2, -twid/2-tol], [-2, -twid/2-tol]
         ]);
+        translate([0,0,9]) rotate([0,-45,0]) translate([0,0,19]) scale([0.5,1,1]) cylinder(8, 6,6, $fn=cp);
     }
 }
 
