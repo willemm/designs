@@ -15,7 +15,7 @@ if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
 if (doitem == "") {
-    color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
+    *color("#abd") translate([0,0,-9]) rotate([0,0,90]) import("behuizing met staanders.stl", convexity=6);
     
     *color("#653") translate([0,0,0]) render(convexity=8) socket();
     *color("#653") translate([0,0,0]) render(convexity=8) powerplug_f();
@@ -29,16 +29,16 @@ if (doitem == "") {
     *color("#a926") magnetic_connector();
 
     *color("#a926") smallpsu();
-    color("#8a26") digispark();
-    color("#6a68") psuholder();
+    *color("#8a26") digispark();
+    *color("#6a68") psuholder();
     *color("#595") psucover();
-    color("#7976") topplatebot();
+    color("#797") topplatebot();
 
     gap = 0.0;
     *color("#ade") receptacle(cp=24);
     *color("#454") translate([gap,0,0]) render(convexity=8) receptacle();
     *color("#454") rotate([0,0,120]) translate([gap,0,0]) render(convexity=8) receptacle();
-    *color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
+    color("#454") rotate([0,0,240]) translate([gap,0,0]) render(convexity=8) receptacle();
     color("#ade7") render(convexity=8) receptacle();
 
     // test print socket bit
@@ -179,14 +179,26 @@ module topplatebot(cp=48)
                 [px+pox,-py+poy],[px-pox,-py-poy],
             ]);
         }
-        for (an=[0,120,240]) rotate([0,0,an]) {
+        // Side screw holes
+        *for (an=[0,120,240]) rotate([0,0,an]) {
             translate([-px*2,0,-thi-holed]) rotate([0,90,0])
                 translate([0,0,-0.01]) cylinder(28.01, 1.2, 1.2, $fn=cp);
         }
         for (an=[0,120,240]) rotate([0,0,an]) {
-            translate([15,0,-thi-10]) cylinder(10.01, 4, 4, $fn=cp);
+            translate([-px*2,0,-thi-holed]) rotate([0,90,0])
+                translate([0,0,-0.01]) cylinder(5.02, 1.6, 1.6, $fn=cp);
+            translate([-px*2,0,-thi-holed]) rotate([0,90,0])
+                translate([0,0,5]) cylinder(14.01, 3, 3, $fn=cp);
+            translate([-px*2,0,-thi-holed]) rotate([0,90,0])
+                translate([0,0,19]) cylinder(3, 3, 0, $fn=cp);
+            translate([-px*2+3/2-0.01,0,-thi-holed]) cube([3+0.02,5.5,5.5], true);
+            translate([-px*2+3+2+14/2,0,-thi-holed+4]) cube([14,7,8], true);
+            translate([-px*2+3+2+14,0,-thi-holed+4-8/2]) cylinder(8, 3.5, 3.5, $fn=4);
+            translate([-px*2+3+2+24/2,0,-thi-holed+4]) cube([24,4,8], true);
         }
+        // Holes for top
         for (an=[0,120,240]) rotate([0,0,an]) {
+            translate([15,0,-thi-10]) cylinder(10.01, 4, 4, $fn=cp);
             translate([15,0,-thi-thi2-0.01]) cylinder(thi2-10+0.02, 1.5, 1.5, $fn=cp);
         }
         translate([0,0,-thi-thi2/2]) cube([cnwid, 12, thi2+0.02], true);
