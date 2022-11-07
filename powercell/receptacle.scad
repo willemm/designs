@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "topplatebot";
 
 s3 = sqrt(3);
 
@@ -170,6 +170,10 @@ module topplatebot(cp=48)
     cnwid = 8.6;
     cnlen = 20;
 
+    shnthi = 2.4;
+    shwthi = 1.4;
+    shtthi = shnthi+shwthi;
+
     translate([0,0,tetof-pcof]) 
     difference() {
         union() {
@@ -188,13 +192,13 @@ module topplatebot(cp=48)
             translate([-px*2,0,-thi-holed]) rotate([0,90,0])
                 translate([0,0,-0.01]) cylinder(5.02, 1.6, 1.6, $fn=cp);
             translate([-px*2,0,-thi-holed]) rotate([0,90,0])
-                translate([0,0,5]) cylinder(14.01, 3, 3, $fn=cp);
+                translate([0,0,shtthi]) cylinder(14.01, 3, 3, $fn=cp);
             translate([-px*2,0,-thi-holed]) rotate([0,90,0])
-                translate([0,0,19]) cylinder(3, 3, 0, $fn=cp);
-            translate([-px*2+3/2-0.01,0,-thi-holed]) cube([3+0.02,5.5,5.5], true);
-            translate([-px*2+3+2+14/2,0,-thi-holed+4]) cube([14,7,8], true);
-            translate([-px*2+3+2+14,0,-thi-holed+4-8/2]) cylinder(8, 3.5, 3.5, $fn=4);
-            translate([-px*2+3+2+24/2,0,-thi-holed+4]) cube([24,4,8], true);
+                translate([0,0,shtthi+14]) cylinder(3, 3, 0, $fn=cp);
+            translate([-px*2+shnthi/2-0.01,0,-thi-holed]) cube([shnthi+0.02,5.5,5.5], true);
+            translate([-px*2+shnthi+shwthi+14/2,0,-thi-holed+4]) cube([14,7,8], true);
+            translate([-px*2+shnthi+shwthi+14,0,-thi-holed+4-8/2]) cylinder(8, 3.5, 3.5, $fn=4);
+            translate([-px*2+shnthi+shwthi+24/2,0,-thi-holed+4]) cube([24,4,8], true);
         }
         // Holes for top
         for (an=[0,120,240]) rotate([0,0,an]) {
