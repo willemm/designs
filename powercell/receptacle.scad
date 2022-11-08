@@ -1,4 +1,4 @@
-doitem = "topplatebot";
+doitem = "";
 
 s3 = sqrt(3);
 

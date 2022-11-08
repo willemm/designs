@@ -1,4 +1,4 @@
-doitem = "helix_top";
+doitem = "hexbase_bot";
 
 
 flmd = 2;
@@ -607,7 +607,7 @@ module hexbase_bot(battery = false)
         }
     }
 
-    for (an=[0:60:240]) rotate([0,0,an]) {
+    for (an=[0:60:300]) rotate([0,0,an]) {
         translate([cx, 0, 1]) rotate([0,-90,0]) linear_extrude(height=2) polygon([
             [0, -cy+7], [12, -cy+19], [12, cy-19], [0, cy-7],
         ]);
