@@ -73,7 +73,6 @@ uint16_t check_vcc(void)
 
 color_t turnoff(color_t col, uint8_t pl)
 {
-    if (pl > 5) pl = 10 - pl;
     // Blue goes off first
     if (pl > 1) { col.b = 0; }
     else if (pl > 0) { col.b >>= 1; }
@@ -114,153 +113,107 @@ int main(void)
     radio_setup();
     i2c_setup();
     i2c_print("Setting up, start off");
-    uint8_t mode = 16;
+    uint8_t mode = 1;
     int16_t anim = 0;
     uint8_t tiltcount = 0;
     uint16_t ccnt = 1000;
     uint8_t bounce = 0;
     uint8_t pl = 0;
+    uint8_t mcp = 0;
     while (1) {
-        if (mode < 16) {
+        if (pl < 6) {
+            if (!mcp) {
+                mcp_start();
+                i2c_print("Starting up");
+                mcp = 1;
+            }
             ccnt++;
             if (ccnt > 1024) {
+                i2c_printf("Mode %d, pl %d");
                 ccnt = 0;
                 uint16_t vcc = check_vcc();
                 // Decivolts
                 // When lower than 3.3 volts, switch off
                 if (vcc < 34) {
                     i2c_printf("Low power %d, turn off", vcc);
-                    mode = 16;
-                    anim = 0;
+                    if (pl < 6) { pl++; }
                 } else {
                     i2c_printf("Vcc: %d dV", vcc);
                 }
             }
-        }
-        switch (mode) {
-          case 1:
-            neopixel_send(turnoff(colori(anim, 128, 64), pl));
-            if ((anim % 36) == 0) {
+            switch (mode) {
+                case 1: // Normal mode
+                    neopixel_send(turnoff(mcp_read_color(1), pl));
+                    break;
+                case 2: // Pulsing mode
+                    anim = (anim + 11) % 360;
+                    neopixel_send(turnoff(pulse(mcp_read_color(1), anim), pl));
+                    break;
+            }
+        } else {
+            if (mcp) {
                 mcp_stop();
-                i2c_printf("Angle step %d", anim);
-                check_vcc();
+                mcp = 0;
+                i2c_print("Shutting down");
             }
-            anim = (anim + 1) % 360;
-            break;
-          case 2:
-            anim = (anim + 11) % 360;
-            neopixel_send(turnoff(pulse(mcp_read_color(1), anim), pl));
-            break;
-          case 3:
-            neopixel_send(turnoff(mcp_read_color(1), pl));
-            break;
-            /*
-          case 3:
-            if ((anim % 64) == 0) {
-                if ((anim / 64)) {
-                    i2c_printf("Blink off");
-                    neopixel_send((color_t) { 0, 0, 0 });
-                } else {
-                    i2c_printf("Blink on");
-                    neopixel_send((color_t) { 0, 96, 0 });
-                }
-            }
-            anim = (anim + 1) % 192;
-            break;
-            */
-          case 16:
-            anim++;
-            switch (anim % 16) {
-              case 0:
-                neopixel_send((color_t) {64, 0, 0} );
-                break;
-              case 5:
-                neopixel_send((color_t) {0, 64, 0} );
-                break;
-              case 10:
-                neopixel_send((color_t) {0, 0, 64} );
-                break;
-              case 1:
-              case 6:
-              case 11:
-                neopixel_send((color_t) {0, 0, 0} );
-                break;
-              default:
-                if (anim >= 64) {
-                    // Off.
-                    neopixel_send((color_t) {0, 0, 0} );
-                    mode = 17;
-                }
-            }
+            // Power off
+            neopixel_send((color_t) {0, 0, 0} );
             // Extra slow
             delay(225);
-            break;
-          default:
-            delay(1000);
-            break;
         }
         delay(25);
         uint8_t newmode = mode;
         uint32_t rd = radio_read();
         if (!bounce) {
-            switch (rd & 0x0F) {
-              case 0x08:
-                pl++;
+            if (rd != 0) {
+                i2c_printf("Radio code %lx, command %x", rd & 0xFFFFF0, rd & 0x0F);
+            }
+            if ((rd & 0xFFFFF0) == RADIO_CODE) switch (rd & 0x0F) {
+              case 0x08: // A
+                // Power level up
+                if (pl > 0) {
+                    ccnt = 1000;
+                    pl--;
+                }
+                bounce = 10;
+                break;
+              case 0x04: // B
+                // Power level down
+                if (pl < 6) {
+                    ccnt = 1000;
+                    pl++;
+                }
+                bounce = 10;
+                break;
+              case 0x02: // C
+                // Normal mode
                 newmode = 1;
-                bounce = 20;
                 break;
-              case 0x04:
-                pl++;
+              case 0x01: // D
                 newmode = 2;
-                bounce = 20;
-                break;
-              case 0x02:
-                pl++;
-                newmode = 3;
-                bounce = 20;
-                break;
-              case 0x01:
-                newmode = 16;
-                bounce = 20;
                 break;
             }
-            if (pl >= 10) pl = 0;
         } else {
             bounce--;
         }
         if (tiltcount > 40) {
-            newmode = 16;
+            if (pl < 6) {
+                i2c_printf("Tilt!  Lowering pl to %d", pl);
+                pl++;
+            }
             tiltcount = 0;
         }
         if (newmode != mode) {
-            pl = 0;
             ccnt = 1000;
             mode = newmode;
             anim = 0;
             tiltcount = 0;
             switch(mode) {
               case 1:
-                mcp_stop();
-                i2c_print("Slow cycle");
-                break;
-                /*
-              case 2:
-                mcp_start();
-                i2c_print("Sensitive");
-                break;
-                */
-              case 2:
-                mcp_start();
-                i2c_print("Sensitive pulse");
-                break;
-              case 3:
-                mcp_start();
                 i2c_print("Sensitive flicker");
                 break;
-              case 16:
-                mcp_stop();
-                i2c_print("Turn off");
-                neopixel_send((color_t) { 0, 0, 0 });
+              case 2:
+                i2c_print("Sensitive pulse");
                 break;
             }
         }
