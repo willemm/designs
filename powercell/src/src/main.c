@@ -108,11 +108,12 @@ int main(void)
 {
     ADCSRA = (1 << ADEN) | (5 << ADPS0); // Prescale 101 = 1/32 = 125Khz
     ADMUX = (1 << ADLAR) | (1 << MUX0);  // 
-    mcp_init();
     neopixel_setup();
     radio_setup();
     i2c_setup();
-    i2c_print("Setting up, start off");
+    mcp_init();
+    delay(25);
+    i2c_print("Setting up, start on");
     uint8_t mode = 1;
     int16_t anim = 0;
     uint8_t tiltcount = 0;
@@ -123,9 +124,14 @@ int main(void)
     while (1) {
         if (pl < 6) {
             if (!mcp) {
-                mcp_start();
-                i2c_print("Starting up");
-                mcp = 1;
+                if (mcp_start() == 0) {
+                    mcp = 1;
+                } else {
+                    delay(100);
+                    mcp_init();
+                    delay(100);
+                    i2c_print("I2C error on mcp");
+                }
             }
             ccnt++;
             if (ccnt > 1024) {
@@ -152,9 +158,14 @@ int main(void)
             }
         } else {
             if (mcp) {
-                mcp_stop();
-                mcp = 0;
-                i2c_print("Shutting down");
+                if (mcp_stop() == 0) {
+                    mcp = 0;
+                } else {
+                    delay(100);
+                    mcp_init();
+                    delay(100);
+                    i2c_print("I2C error on mcp");
+                }
             }
             // Power off
             neopixel_send((color_t) {0, 0, 0} );

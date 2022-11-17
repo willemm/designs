@@ -1,4 +1,4 @@
-doitem = "poleshell";
+doitem = "";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -172,17 +172,17 @@ color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalks
 
 color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
 
-*color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
+color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
 *rotate([0,0,20]) translate([190-28,0,-botoffset+fplughi]) powerplug_f();
 
 *color("#9554") rotate([0,0,90]) translate([60, -98,-848]) cube([250,200,2],true);
 
-color("#444") translate([0,0,-botoffset+208]) poleshell();
+*color("#444") translate([0,0,-botoffset+208]) poleshell();
 
 color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
 
-*translate([0,0,-botoffset]) brakedisc();
+translate([0,0,-botoffset]) brakedisc();
 
 
 *psu();

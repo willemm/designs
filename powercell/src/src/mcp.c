@@ -16,24 +16,26 @@ static int8_t lastx;
 static int8_t lasty;
 static int8_t lastz;
 
-void mcp_init(void)
+char mcp_init(void)
 {
-    i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b10000000);  // Reset
+    return i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b10000000);  // Reset
 }
 
 // Setup MCP, wake from sleep etc
-void mcp_start(void)
+char mcp_start(void)
 {
-    i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b00101000);  // Accelerometer only low power mode
-    i2c_write_reg_u8(MCP, PWR_MGMT_2, 0b11000111);  // 40Hz, AX,AY,AZ
+    char err;
+    err = i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b00101000);  // Accelerometer only low power mode
+    if (!err) err = i2c_write_reg_u8(MCP, PWR_MGMT_2, 0b11000111);  // 40Hz, AX,AY,AZ
     instability = 0;
     instanim = 0;
+    return err;
 }
 
 // Put MCP to sleep
-void mcp_stop(void)
+char mcp_stop(void)
 {
-    i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b01101000);  // Sleep
+    return i2c_write_reg_u8(MCP, PWR_MGMT_1, 0b01101000);  // Sleep
 }
 
 #define PIXELCOLOR(r,g,b) ((color_t){ (uint8_t)(r), (uint8_t)(g), (uint8_t)(b) })

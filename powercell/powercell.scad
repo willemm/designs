@@ -1,4 +1,4 @@
-doitem = "hexbase_bot";
+doitem = "battery_retainer";
 
 
 flmd = 2;
@@ -39,17 +39,22 @@ if (doitem == "receiver_jig") { receiver_jig(); }
 if (doitem == "outerlid") { rotate([180,0,0]) outer_lid(); }
 if (doitem == "connector_holder") { rotate([180,0,0]) mc_holder(); }
 if (doitem == "helix_top") { rotate([180,0,0]) helix_top(); }
+if (doitem == "battery_retainer") { rotate([180,0,0]) battery_retainer(); }
 if (doitem == "") {
 
 
-    if (0) {
+    if (1) {
+        color("#acc") translate([0,0,12.5]) rotate([180,0,0]) import("behuizing met staanders.stl", convexity=6);
+
         hexbase_top();
+
+        color("#8ad") battery_retainer();
         *receiver_jig();
         *translate([0,0,13.5]) cover_top();
         *translate([0, -109.6/2+3.7, 1.1]) rotate([90,0,0]) wire_guide();
         *translate([0, -159.6/2, 14+19-2.5-2.1]) cover_pin();
 
-        *rotate([0,0,batteryan]) batteries();
+        rotate([0,0,batteryan]) batteries();
         *ws2811();
         *digispark();
         *attiny_board();
@@ -948,9 +953,13 @@ module hexbase_top(battery = true)
                 ]);
             }
 
+            // filament screwdowns
             for (an=[0:120:240]) rotate([0,0,an]) {
                 translate([cx-6/2 -shox, cy-9.6/2 -shoy, 4]) rotate([0,90,0]) house();
             }
+
+
+            // Battery holder
             if (battery) {
                 rotate([0,0,batteryan]) batterybox();
             }
@@ -969,6 +978,33 @@ module hexbase_top(battery = true)
         color("#b83") rotate([0,0,240]) translate([wspos.x, wspos.y, 0]) {
             translate([-1/2, 4.5-2/2, 4+1/2]) cube([1, 2, 1.1], true);
         }
+    }
+}
+
+module battery_retainer(num = numbatteries, bo = batteryoffset, thi = 1.2, bof=1.6-14.6)
+{
+    x1 = -batty/2-2.6;
+    x2 =  batty/2-2.6;
+    yo = num/2*bo;
+    xo = 15/2+2;
+
+    tol = -0.2;
+
+    bhdi = (14.5+0.5)/2;
+
+    hw1 = 10;
+    hw2 = 7;
+    ht = 1.2;
+
+    hi = 17.4;
+
+    rotate([0,0,batteryan])
+    translate(battof+[-x2-0.1, 0, 1.6+hi]) rotate([0,90,0]) linear_extrude(height=x2-x1+0.2, convexity=6) {
+        polygon(concat(
+            [[xo-sin(30)*bhdi,yo+tol], [bof, yo+tol], [bof,-yo-tol], [xo-sin(150)*bhdi,-yo-tol]],
+            [for (y=[-(num-1)/2:(num-1)/2], an=[30:5:150]) [xo-sin(an)*bhdi, y*bo-cos(an)*bhdi]],
+            []
+        ));
     }
 }
 
