@@ -39,7 +39,7 @@ if (doitem == "receiver_jig") { receiver_jig(); }
 if (doitem == "outerlid") { rotate([180,0,0]) outer_lid(); }
 if (doitem == "connector_holder") { rotate([180,0,0]) mc_holder(); }
 if (doitem == "helix_top") { rotate([180,0,0]) helix_top(); }
-if (doitem == "battery_retainer") { rotate([180,0,0]) battery_retainer(); }
+if (doitem == "battery_retainer") { rotate([180,0,30]) battery_retainer(); }
 if (doitem == "") {
 
 
