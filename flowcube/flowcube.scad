@@ -62,6 +62,9 @@ if (doitem == "bottomplate2")   { rotate([0, 0, 90]) bottomplate2(); }
 if (doitem == "bottomplate3")   { bottomplate3(); }
 if (doitem == "plugcase")       { rotate([0, 90, 0]) plugcase(); }
 if (doitem == "bottomfoot")     { rotate([180,0,0]) bottomfoot(); }
+if (doitem == "stickdisc")      { footstickdisc(cp=240); }
+if (doitem == "stickfoot")      { rotate([90,0,0]) rotate([0,0,45]) footstickfoot(cp=240); }
+if (doitem == "brakesub")       { brakediscsub(cp=240); }
 if (doitem == "strip")          { cube([75,8,1]); }
 
 // TODO: Do this differently
@@ -170,9 +173,9 @@ botoffset = 860;
 
 *color("#4dd") translate([0,0,-botoffset]) footconnector();
 
-color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
+*color("#ad3") translate([0,0,-botoffset+0.1]) footmid();
 
-color("#cf3") translate([0,0,-botoffset+0.1]) footstickdisc();
+*color("#cf3") translate([0,0,-botoffset+0.1]) footstickdisc();
 
 color("#fc3") translate([0,0,-botoffset+0.1]) footstickfoot();
 
@@ -186,7 +189,9 @@ color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
 *color("#888") translate([0,0,-botoffset+59+0.2]) standpole();
 
-translate([0,0,-botoffset]) brakedisc();
+*translate([0,0,-botoffset]) brakedisc();
+
+translate([0,0,-botoffset]) brakediscsub();
 
 
 *psu();
@@ -2818,12 +2823,14 @@ module footstickfoot(cdia=68, hei=42, pts=4, cp=60)
             [for (an=[0:360/cp:360/pts]) [cr*sin(an), cr*cos(an)]],
             [[co*sin(360/pts), co*cos(360/pts)],[co*sin(0), co*cos(0)]]
         ));
-        m6rd = (10*2/sqrt(3))/2;
+        m6rd = (10.1*2/sqrt(3))/2;
         rotate([0,0,-180/pts]) translate([0, cr-7, -0.01]) cylinder(hei+0.02, 3, 3, $fn=cp);
         rotate([0,0,-180/pts]) translate([0, cr-7, -0.01]) cylinder(hei-10+0.01, m6rd, m6rd, $fn=6);
     }
+    /*
     #rotate([0,0,-180/pts]) translate([0, cr-7, 20]) cylinder(70, 3, 3, $fn=cp);
     #rotate([0,0,-180/pts]) translate([0, cr-7, -1]) cube([30, 20, 2], true);
+    */
 }
 
 module footstickdisc(pdia=126, idia=40, cdia=68, pts=4, cp=60)
@@ -3215,6 +3222,51 @@ module standpole(dia=126, hei=558, cp=60)
             []
         )
     );
+}
+
+module brakediscsub(cp = 60)
+{
+    odia = 295;
+    idia = 155;
+    cdia = 68;
+    hdia = 178;
+    oth = 25.5;
+    ith = 18.5;
+    hth = 7;
+    ndia = 12.8;
+
+    translate([0, 0, hth]) {
+        linear_extrude(height=2, convexity=4) difference() {
+            circle(idia/2, $fn=cp);
+            circle(cdia/2, $fn=cp);
+            for (an=[0:360/5:360-360/5]) rotate([0,0,an]) {
+                translate([0, (cdia+idia)/4, 0]) circle(ndia/2, $fn=30);
+            }
+        }
+        linear_extrude(height=oth-hth+ith, convexity=4) union() {
+            difference() {
+                circle(cdia/2+2, $fn=cp);
+                circle(cdia/2, $fn=cp);
+            }
+            difference() {
+                circle(idia/2, $fn=cp);
+                circle(idia/2-2, $fn=cp);
+            }
+            for (an=[0:360/5:360-360/5]) rotate([0,0,an]) {
+                translate([0, (cdia+idia)/4, 0]) difference() {
+                    circle(ndia/2+2, $fn=30);
+                    circle(ndia/2, $fn=30);
+                }
+                *translate([-1, cdia/2+1, 0]) square([2,14]);
+                *translate([-1, idia/2-14-1, 0]) square([2,14]);
+                translate([0, (cdia+idia)/4, 0]) {
+                    rotate([0,0,180]) translate([-1,ndia/2+1,0]) square([2,14]);
+                    rotate([0,0, 45]) translate([-1,ndia/2+1,0]) square([2,18.2]);
+                    rotate([0,0,-45]) translate([-1,ndia/2+1,0]) square([2,18.2]);
+                }
+            }
+        }
+    }
 }
 
 module brakedisc(cp = 60)
