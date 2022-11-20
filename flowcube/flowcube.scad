@@ -62,9 +62,6 @@ if (doitem == "bottomplate2")   { rotate([0, 0, 90]) bottomplate2(); }
 if (doitem == "bottomplate3")   { bottomplate3(); }
 if (doitem == "plugcase")       { rotate([0, 90, 0]) plugcase(); }
 if (doitem == "bottomfoot")     { rotate([180,0,0]) bottomfoot(); }
-if (doitem == "stickdisc")      { footstickdisc(cp=240); }
-if (doitem == "stickfoot")      { rotate([90,0,0]) rotate([0,0,45]) footstickfoot(cp=240); }
-if (doitem == "brakesub")       { brakediscsub(cp=240); }
 if (doitem == "strip")          { cube([75,8,1]); }
 
 // TODO: Do this differently
@@ -72,15 +69,19 @@ if (doitem == "strip")          { cube([75,8,1]); }
 if (doitem == "bottomblob")  { rotate([180,0,60]) bottomblob(); }
 if (doitem == "pipeholetpl")    { rotate([180,0,0]) pipeholetpl(); }
 
-if (doitem == "footblob1") { footblob(seed=stalkseed[0], conn=connpos[0], cp=480); }
-if (doitem == "footblob2") { footblob(seed=stalkseed[1], conn=connpos[1], cp=480); }
-if (doitem == "footblob3") { footblob(seed=stalkseed[2], conn=connpos[2], cp=480); }
-if (doitem == "footblob4") { footblob(seed=stalkseed[3], conn=connpos[3], cp=480); }
-if (doitem == "footblob5") { footblob(seed=stalkseed[3], conn=connpos[4], cp=480); }
-if (doitem == "footmid")   { footmid(cp=480); }
-if (doitem == "footdisc")  { footmiddisc(cp=480); }
-if (doitem == "footconn")  { footconnector(); }
-if (doitem == "poleshell") { poleshell(cp=480); }
+if (doitem == "footblob1")  { footblob(seed=stalkseed[0], conn=connpos[0], cp=480); }
+if (doitem == "footblob2")  { footblob(seed=stalkseed[1], conn=connpos[1], cp=480); }
+if (doitem == "footblob3")  { footblob(seed=stalkseed[2], conn=connpos[2], cp=480); }
+if (doitem == "footblob4")  { footblob(seed=stalkseed[3], conn=connpos[3], cp=480); }
+if (doitem == "footblob5")  { footblob(seed=stalkseed[3], conn=connpos[4], cp=480); }
+if (doitem == "footmid")    { footmidtwo(cp=480); }
+if (doitem == "foothandle") { rotate([0,90,0]) foothandle(cp=480, an=0); }
+if (doitem == "footdisc")   { footmiddisc(cp=480); }
+if (doitem == "footconn")   { footconnector(); }
+if (doitem == "poleshell")  { poleshell(cp=480); }
+// if (doitem == "stickdisc")  { footstickdisc(cp=240); }
+if (doitem == "stickfoot")  { rotate([90,0,0]) footstickfoot(cp=240); }
+if (doitem == "brakesub")   { brakediscsub(cp=240); }
 if (doitem == "test")  { stalks(seed=252, conn=0, cp=480); }
 if (doitem == "") {
 
@@ -166,10 +167,10 @@ intersection() {
 
 botoffset = 860;
 
-*color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connpos[0]);
-*color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
-*color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
-*color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
+color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connpos[0]);
+color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
+color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
+color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
 
 *color("#4dd") translate([0,0,-botoffset]) footconnector();
 
@@ -179,7 +180,11 @@ botoffset = 860;
 
 color("#fc3") translate([0,0,-botoffset+0.1]) footstickfoot();
 
-color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
+*color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
+
+color("#fc3") translate([0,0,-botoffset+0.1]) foothandle();
+color("#ae3") translate([0,0,-botoffset+0.1]) footmidtwo();
+
 
 *rotate([0,0,20]) translate([190-28,0,-botoffset+fplughi]) powerplug_f();
 
@@ -191,7 +196,7 @@ color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
 *translate([0,0,-botoffset]) brakedisc();
 
-translate([0,0,-botoffset]) brakediscsub();
+*translate([0,0,-botoffset]) brakediscsub();
 
 
 *psu();
@@ -2814,15 +2819,24 @@ module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, 
     }
 }
 
-module footstickfoot(cdia=68, hei=42, pts=4, cp=60)
+module footstickfoot(cdia=68, hei=42, pts=5, cp=60)
 {
     cr = cdia/2;
     co = cr-9;
-    difference() {
-        linear_extrude(height=hei, convexity=5) polygon(concat(
-            [for (an=[0:360/cp:360/pts]) [cr*sin(an), cr*cos(an)]],
-            [[co*sin(360/pts), co*cos(360/pts)],[co*sin(0), co*cos(0)]]
-        ));
+    cr2 = cdia/2 + 5;
+    translate([0,0,2]) rotate([0,0,180/pts]) difference() {
+        union() {
+            linear_extrude(height=hei, convexity=5) polygon(concat(
+                [for (an=[0:360/cp:360/pts]) [cr*sin(an), cr*cos(an)]],
+                [[co*sin(360/pts), co*cos(360/pts)],[co*sin(0), co*cos(0)]]
+            ));
+            linear_extrude(height=5, convexity=5) polygon(concat(
+                [[cr*sin(0), cr*cos(0)]],
+                [for (an=[6:360/cp:360/pts-6]) [cr2*sin(an), cr2*cos(an)]],
+                [[cr*sin(360/pts), cr*cos(360/pts)]],
+                [[co*sin(360/pts), co*cos(360/pts)],[co*sin(0), co*cos(0)]]
+            ));
+        }
         m6rd = (10.1*2/sqrt(3))/2;
         rotate([0,0,-180/pts]) translate([0, cr-7, -0.01]) cylinder(hei+0.02, 3, 3, $fn=cp);
         rotate([0,0,-180/pts]) translate([0, cr-7, -0.01]) cylinder(hei-10+0.01, m6rd, m6rd, $fn=6);
@@ -2850,6 +2864,130 @@ module footstickdisc(pdia=126, idia=40, cdia=68, pts=4, cp=60)
             translate([0, cr-7, -0.01]) cylinder(20.02, 3.1, 3.1, $fn=cp);
             *translate([0, cr-7, 14]) cylinder(10.02, 3.5, 3.5, $fn=cp);
         }
+    }
+}
+
+module footmidtwo(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, bot=44, cdia=68, idia2=40, cp=60)
+{
+    inr = (pdia/2)-3.6;
+    holr1 = inr-8;
+    holr2 = idia2/2;
+    cr = cdia/2;
+    pts = 5;
+
+    idia3 = holr1*2;
+
+    ibot = 44;
+    ihei = 65;
+
+    difference() {
+        union() {
+            footmid(idia, pdia, dia, hei, ehei, ethi, bthi, bot, cp);
+            translate([0,0,ibot]) {
+                intersection() {
+                    difference() {
+                        union() {
+                            linear_extrude(height=ihei, convexity=5) difference() {
+                                circle(inr, $fn=cp);
+                                circle(holr1, $fn=cp);
+                            }
+                            for (an=[0:90:360-90]) rotate([0,0,an]) {
+                                translate([0, pdia/2, bthi]) rotate([90,0,0]) cylinder(10, 10, 10, $fn=4);
+                            }
+                        }
+                        for (an=[0:72:360-72]) rotate([0,0,an]) {
+                            translate([0, holr1+9.4, bthi]) rotate([90,0,0])
+                                linear_extrude(height=15) scale([15,25]) circle(1, $fn=6);
+                        }
+                    }
+                    cylinder(ihei, (inr-4)+(ihei*4/6), inr-4, $fn=cp);
+                }
+                san=8;
+                san2=18;
+                linear_extrude(height=bthi, convexity=5) union() {
+                    for (an=[0:72:360-72]) rotate([0,0,an+36]) {
+                        polygon(concat(
+                            [[holr2*sin(72-san2), holr2*cos(72-san2)],
+                             [holr2*sin(san2), holr2*cos(san2)]],
+                            [for (an=[san:(72-2*san)/10:72-san]) [(idia/2+1)*sin(an), (idia/2+1)*cos(an)]]
+                        ));
+                    }
+                }
+                hwid=30;
+                hthi=10;
+                hhei=72;
+                hbot=50;
+                //cylinder(ihei-6, inr, inr, $fn=cp);
+                //translate([0,0,ihei-6]) cylinder(6, inr, inr-4, $fn=cp);
+                //#translate([-15, inr-12, 50]) cube([30, 10, 200]);
+                rotate([0,0,36]) translate([0, inr, 0]) midhandle(hwid, hthi, hhei, hbot);
+                rotate([0,0,180+36]) translate([0, inr, 0]) midhandle(hwid, hthi, hhei, hbot);
+            }
+        }
+        // Handle holes
+        rotate([0,0,36]) {
+            translate([-26/2, inr-10, ibot+52]) cube([26, 6, 22.02]);
+            translate([0, inr-12-0.01, ibot+62]) rotate([-90,0,0]) cylinder(12.01, 2, 2, $fn=48);
+        }
+        rotate([0,0,180+36]) {
+            translate([-26/2, inr-10, ibot+52]) cube([26, 6, 22.02]);
+            translate([0, inr-12-0.01, ibot+62]) rotate([-90,0,0]) cylinder(12.01, 2, 2, $fn=48);
+        }
+
+        // Sticky feet holes
+        translate([0,0,ibot]) {
+            //translate([0,0,10]) cylinder(ihei-10+0.01, holr1, holr1, $fn=cp);
+            //translate([0,0,-0.01]) cylinder(10.02, holr2, holr2, $fn=cp);
+            for (an=[0/pts:360/pts:360-180/pts]) rotate([0,0,an]) {
+                translate([0, cr-7, -0.01]) cylinder(bthi+0.02, 3.1, 3.1, $fn=cp);
+            }
+        }
+        // Cable throughholes
+        for (an=[0:72:360-72]) rotate([0,0,an+36]) {
+            translate([0, idia3/2-1.5, bot+6]) rotate([-90,0,0]) cylinder((dia-idia3)/2+2, 6, 6, $fn=48);
+            translate([-12/2, idia3/2-1.5, bot-0.01]) cube([12, (dia-idia2)/2+2, 6.01]);
+            //translate([-12/2, idia2/2-1.5, bot-0.01]) cube([12, (idia3-idia2)/2+1.2, 10.02]);
+        }
+    }
+}
+
+module midhandle(hwid, hthi, hhei, hbot)
+{
+    x1 = -2;
+    x2 = -hthi-2;
+    x3 = -7;
+    z1 = hbot-(x3-x2)*1;
+
+    polyhedron(points=[
+            [-hwid/2, x1, z1  ], [ hwid/2, x1, z1],
+            [ hwid/2, x3, z1  ], [-hwid/2, x3, z1],
+            [-hwid/2, x1, hbot], [ hwid/2, x1, hbot],
+            [ hwid/2, x2, hbot], [-hwid/2, x2, hbot],
+            [-hwid/2, x1, hhei], [ hwid/2, x1, hhei],
+            [ hwid/2, x2, hhei], [-hwid/2, x2, hhei],
+            [-hwid/2+1.2, x1-1.2, hhei+2], [ hwid/2-1.2, x1-1.2, hhei+2],
+            [ hwid/2-1.2, x2+1.2, hhei+2], [-hwid/2+1.2, x2+1.2, hhei+2],
+        ], faces = [
+            [3,2,1,0],
+            [0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],
+            [4,5,9,8],[5,6,10,9],[6,7,11,10],[7,4,8,11],
+            [8,9,13,12],[9,10,14,13],[10,11,15,14],[11,8,12,15],
+            [12,13,14,15],
+        ]);
+}
+
+module foothandle(cp=60, pdia=126, an=36)
+{
+    inr = (pdia/2)-3.6;
+    hei = 150;
+    translate([0,0,52+44]) rotate([0,0,an]) difference() {
+        union() {
+            translate([-26/2, inr-10, 0]) cube([26, 6, hei]);
+            rotate([0,0,180]) translate([-26/2, inr-10, 0]) cube([26, 6, hei]);
+            translate([0, -inr+4, hei]) rotate([-90,0,0]) cylinder(inr*2-8, 26/2, 26/2, $fn=cp);
+        }
+        translate([-7.2/2, inr-10.01, 10-7/2]) cube([7.2, 6.02, 7]);
+        rotate([0,0,180]) translate([-7.2/2, inr-10.01, 10-7/2]) cube([7.2, 6.02, 7]);
     }
 }
 
@@ -3206,7 +3344,7 @@ module poleshell(dia=126, hei=190.4, cp=120)
 module standpole(dia=126, hei=558, cp=60)
 {
     br = dia/2;
-    th = 4;
+    th = 3.6;
     tly = 3;
     polyhedron(convexity=5,
         points = concat(
