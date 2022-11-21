@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="290mm" height="200mm" viewBox="0 0 200 290" xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <!-- small radius 52mm
+         x = 26
+         y1 = 15 (.0111)
+         y2 = 30 (.0222)
+      -->
+    <defs>
+        <polygon id="hexagon" points="
+            0 30, 26 15, 26 -15, 0 -30, -26 -15, -26, 15
+        "/>
+        <clipPath id="hexclip">
+            <use href="#hexagon"/>
+        </clipPath>
+        <image id="face" href="clipboard.jpg" x="-35" y="-30" width="70" clip-path="url(#hexclip)" />
+    </defs>
+    <use href="#hexagon" fill="#fff" stroke="#000" x="40" y="100" stroke-width="0.2"/>
+    <use href="#face" x="92" y="100"/>
+    <use href="#face" x="144" y="100"/>
+    <use href="#hexagon" fill="#fff" stroke="#000" x="196" y="100" stroke-width="0.2"/>
+
+    <rect x="10" y="10" width="112" height="26" stroke="#000" stroke-width="0.2" fill="#335"/>
+    <rect x="10" y="36" width="112" height="26" stroke="#000" stroke-width="0.2" fill="#335"/>
+    <rect x="122" y="10" width="112" height="26" stroke="#000" stroke-width="0.2" fill="#fff"/>
+    <rect x="122" y="36" width="112" height="26" stroke="#000" stroke-width="0.2" fill="#fff"/>
+
+    <text id="callsign" fill="#db3" font-family="varino,black marker,chopsic,pasti,arial" font-weight="bold" letter-spacing="0" word-spacing="15" x="14" y="28" font-size="14">
+        CLIPBOARD
+    </text>
+    <use href="#callsign" transform="rotate(180)" x="-132" y="-72" />
+
+</svg>
