@@ -28,6 +28,8 @@ if (doitem == "") {
         hexlabelbot();
         *color("#6af") translate([0,0,thick+0.1]) rotate([180,0,0]) hexlabeltop();
 
+        //#translate([hexdia/2-hexin+labelside, -24.8/2, thick/2-0.2]) cube([114,24.8,0.4]);
+
         /*
         translate([labelw+hexdia+1,hexdia*sqrt(3)/3+1,thick]) rotate([0,180,0]) {
             hexlabelbot();
