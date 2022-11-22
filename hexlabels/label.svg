@@ -12,24 +12,25 @@
         <clipPath id="hexclip">
             <use href="#hexagon"/>
         </clipPath>
-        <!--<image id="face" href="clipboard.jpg" x="-35" y="-30" width="70" clip-path="url(#hexclip)" />-->
-        <!--<image id="face" href="sigma.jpg" x="-27" y="-28" width="56" clip-path="url(#hexclip)" />-->
-        <image id="face" href="nagi.png" x="-30" y="-28" width="64" clip-path="url(#hexclip)" />
+        <image id="face" href="../images/{{ image }}" x="{{ imagex }}" y="{{ imagey }}" width="{{ imagew }}" clip-path="url(#hexclip)" />
     </defs>
-    <use href="#hexagon" fill="#fff" stroke="#000" x="40" y="100" stroke-width="0.2"/>
-    <use href="#face" x="92" y="100"/>
-    <use href="#face" x="144" y="100"/>
-    <use href="#hexagon" fill="#fff" stroke="#000" x="196" y="100" stroke-width="0.2"/>
+    <use href="#hexagon" fill="#fff" stroke="#000" x="40" y="140" stroke-width="1"/>
+    <use href="#hexagon" fill="#fff" stroke="#000" x="92" y="140" stroke-width="1"/>
+    <use href="#hexagon" fill="#fff" stroke="#000" x="144" y="140" stroke-width="1"/>
+    <use href="#hexagon" fill="#fff" stroke="#000" x="196" y="140" stroke-width="1"/>
+    <use href="#face" x="92" y="140"/>
+    <use href="#face" x="144" y="140"/>
 
-    <rect x="10" y="10" width="114" height="24.8" stroke="#000" stroke-width="0.2" fill="#335"/>
-    <rect x="10" y="34.8" width="114" height="24.8" stroke="#000" stroke-width="0.2" fill="#335"/>
-    <rect x="124" y="10" width="114" height="24.8" stroke="#000" stroke-width="0.2" fill="#fff"/>
-    <rect x="124" y="34.8" width="114" height="24.8" stroke="#000" stroke-width="0.2" fill="#fff"/>
+    <rect x="10" y="06" width="114" height="24" stroke="#000" stroke-width="1" fill="#fff"/>
+    <rect x="10" y="30" width="114" height="24" stroke="#000" stroke-width="1" fill="{{ textbg }}"/>
+    <rect x="10" y="54" width="114" height="24" stroke="#000" stroke-width="1" fill="{{ textbg }}"/>
+    <rect x="10" y="78" width="114" height="24" stroke="#000" stroke-width="1" fill="#fff"/>
 
-    <text id="callsign" fill="#db3" font-family="varino,black marker,chopsic,pasti,arial"
-        font-weight="bold" letter-spacing="0" word-spacing="15" x="39" y="29" font-size="18">
-        NAGI
+    <text id="callsign" fill="{{ textfg }}" font-family="varino,black marker,chopsic,pasti,arial"
+        font-weight="bold" letter-spacing="0" word-spacing="15" x="67" y="{{ texty }}" font-size="{{ textsz }}"
+        text-anchor="middle" dominant-baseline="central">
+        {{ callsign }}
     </text>
-    <use href="#callsign" transform="rotate(180)" x="-134" y="-70.0" />
+    <use href="#callsign" transform="rotate(180)" x="-134" y="-108" />
 
 </svg>
