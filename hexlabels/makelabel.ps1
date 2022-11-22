@@ -1,9 +1,16 @@
 $ErrorAction = 'Stop'
 
 $settings = @{
-    'nagi'      = 18, 40, '#cde', '#353', 'nagi.png',      -30, -28, 64
-    'sigma'     = 18, 40, '#db3', '#335', 'sigma.jpg',     -27, -28, 56
-    'clipboard' = 14, 41, '#db3', '#335', 'clipboard.jpg', -35, -30, 70
+    'nagi'      = 18, 40, '#cde', '#353', 'nagi.png',      -30, -26, 64
+    'burns'     = 18, 40, '#cde', '#353', 'burns.png',     -43, -28, 88
+    'sparks'    = 18, 40, '#cde', '#353', 'sparks.png',    -30, -27, 60
+    'sparkle'   = 16, 40, '#cde', '#353', 'sparkle.jpg',   -23, -28.5, 46
+
+    'sigma'     = 18, 40, '#db3', '#435', 'sigma.jpg',     -27, -28, 56
+    'clipboard' = 14, 41, '#db3', '#435', 'clipboard.jpg', -35, -30, 70
+    'strix'     = 18, 40, '#db3', '#435', 'strix.jpg',     -28, -28, 56
+    'odin'      = 18, 40, '#db3', '#435', 'odin.jpg',      -23, -28, 48
+    'seraphim'  = 14, 41, '#db3', '#435', 'seraphim.jpg',  -27, -28.5, 57
 }
 
 foreach ($itm in $settings.keys) {

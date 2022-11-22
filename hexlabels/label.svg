@@ -6,18 +6,34 @@
          y2 = 30 (.0222)
       -->
     <defs>
-        <polygon id="hexagon" points="
-            0 30, 26 15, 26 -15, 0 -30, -26 -15, -26, 15
-        "/>
-        <clipPath id="hexclip">
-            <use href="#hexagon"/>
+        <polygon id="hexagon" points=" 0 30, 26 15, 26 -15, 0 -30, -26 -15, -26, 15 "/>
+        <clipPath id="hexclip"> <use href="#hexagon"/> </clipPath>
+        <clipPath id="hexleft">
+            <polygon points=" -13 22.5, -13 -22.5, -26 -15, -26, 15 "/>
+        </clipPath>
+        <clipPath id="hexright">
+            <polygon points="  13 22.5,  13 -22.5,  26 -15,  26, 15 "/>
+        </clipPath>
+        <clipPath id="hextop">
+            <polygon points=" 0 30, 26 15, -26 15 "/>
+        </clipPath>
+        <clipPath id="hexbot">
+            <polygon points=" 0 -30, 26 -15, -26 -15 "/>
         </clipPath>
         <image id="face" href="../images/{{ image }}" x="{{ imagex }}" y="{{ imagey }}" width="{{ imagew }}" clip-path="url(#hexclip)" />
+        <g id="facebg">
+            <image href="../images/{{ image }}" x="-50" y="-70" height="100" clip-path="url(#hextop)" />
+            <image href="../images/{{ image }}" x="-50" y="-30" height="100" clip-path="url(#hexbot)" />
+            <image href="../images/{{ image }}" x="-26" y="-30" width="100" clip-path="url(#hexleft)" />
+            <image href="../images/{{ image }}" x="-74" y="-30" width="100" clip-path="url(#hexright)" />
+        </g>
     </defs>
     <use href="#hexagon" fill="#fff" stroke="#000" x="40" y="140" stroke-width="1"/>
     <use href="#hexagon" fill="#fff" stroke="#000" x="92" y="140" stroke-width="1"/>
     <use href="#hexagon" fill="#fff" stroke="#000" x="144" y="140" stroke-width="1"/>
     <use href="#hexagon" fill="#fff" stroke="#000" x="196" y="140" stroke-width="1"/>
+    <use href="#facebg" x="92" y="140"/>
+    <use href="#facebg" x="144" y="140"/>
     <use href="#face" x="92" y="140"/>
     <use href="#face" x="144" y="140"/>
 
