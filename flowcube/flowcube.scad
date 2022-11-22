@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "footmid";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -2809,7 +2809,7 @@ module footmid(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, 
         // Disc mounting holes
         for (an=[0:72:360-72]) rotate([0,0,an]) {
             translate([0, (68+155)/4, bot]) {
-                translate([0,0,-0.01]) cylinder(bthi+0.02, 3, 3, $fn=48);
+                translate([0,0,-0.01]) cylinder(bthi+0.02, 3.1, 3.1, $fn=48);
                 *translate([0,0,3]) cylinder(bthi-3+0.02, 7, 7, $fn=48);
                 // Hex nut M6
                 m6rd = (10*2/sqrt(3))/2;
@@ -2869,7 +2869,7 @@ module footstickdisc(pdia=126, idia=40, cdia=68, pts=4, cp=60)
 
 module footmidtwo(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=15, bot=44, cdia=68, idia2=40, cp=60)
 {
-    inr = (pdia/2)-3.6;
+    inr = (pdia/2)-3.7;
     holr1 = inr-8;
     holr2 = idia2/2;
     cr = cdia/2;
@@ -2926,11 +2926,11 @@ module footmidtwo(idia=90, pdia=126, dia=155, hei=111.8, ehei=10, ethi=6, bthi=1
         }
         // Handle holes
         rotate([0,0,36]) {
-            translate([-26/2, inr-10, ibot+52]) cube([26, 6, 22.02]);
+            translate([-26/2, inr-10, ibot+52]) cube([26.2, 6.2, 22.02]);
             translate([0, inr-12-0.01, ibot+62]) rotate([-90,0,0]) cylinder(12.01, 2, 2, $fn=48);
         }
         rotate([0,0,180+36]) {
-            translate([-26/2, inr-10, ibot+52]) cube([26, 6, 22.02]);
+            translate([-26/2, inr-10, ibot+52]) cube([26.2, 6.2, 22.02]);
             translate([0, inr-12-0.01, ibot+62]) rotate([-90,0,0]) cylinder(12.01, 2, 2, $fn=48);
         }
 
@@ -2978,7 +2978,7 @@ module midhandle(hwid, hthi, hhei, hbot)
 
 module foothandle(cp=60, pdia=126, an=36)
 {
-    inr = (pdia/2)-3.6;
+    inr = (pdia/2)-3.7;
     hei = 150;
     translate([0,0,52+44]) rotate([0,0,an]) difference() {
         union() {

@@ -16,6 +16,13 @@ inlay = 0.2;
 
 sawtol = 0.2;
 
+dosaw = 0;
+doslit = 1;
+
+slitwid = 1.6;
+slithei = 1.8;
+slittol = 0.1;
+
 //magnetsize = [1.8, 9.8, 4.8];
 magnetsize = [5, 5, 5];
 
@@ -27,8 +34,8 @@ if (doitem == "labelbot") { rotate([0,0,180]) hexlabelbot(); }
 
 if (doitem == "") {
     translate([hexdia/2, 0, 0]) {
-        hexlabelbot();
-        *color("#6af") translate([0,0,thick+0.01]) rotate([180,0,0]) hexlabeltop();
+        translate([0,0,thick+0.01]) rotate([180,0,0]) render(convexity=6) hexlabeltop();
+        color("#6af5") render(convexity=6) hexlabelbot();
 
         //#translate([hexdia/2-hexin+labelside, -24.8/2, thick/2-0.2]) cube([114,24.8,0.4]);
 
@@ -57,41 +64,57 @@ module hexlabelbot()
     difference() {
         union() {
             hexlabel();
-            // Left side
-            for (an=[0,60,120]) rotate([0,0,an])
-            translate([-(hexdia/2),0,thick/2]) rotate([0,90,0])
-                linear_extrude(height=sawwid, convexity=5) polygon(concat(
-                    [[st+0.1, sof],[st+0.1,-sof]],
-                    [for (y=[-3,-2,2,3]) [(y%2 == 0) ? -st+sawtol : st , y*sof/3]]
-                ));
+            if (dosaw) {
+                // Left side
+                for (an=[0,60,120]) rotate([0,0,an])
+                translate([-(hexdia/2),0,thick/2]) rotate([0,90,0])
+                    linear_extrude(height=sawwid, convexity=5) polygon(concat(
+                        [[st+0.1, sof],[st+0.1,-sof]],
+                        [for (y=[-3,-2,2,3]) [(y%2 == 0) ? -st+sawtol : st , y*sof/3]]
+                    ));
 
-            translate([hexdia/2+1,sof+1,thick/2]) rotate([0,90,-90])
-                linear_extrude(height=sawwid, convexity=5) polygon(concat(
-                    [[st+0.1, sof2],[st+0.1, 0]],
-                    [for (y=[0,1,19,20]) [(y%2 == 0) ? st : -st+sawtol , y*sof2/20]]
+                translate([hexdia/2+1,sof+1,thick/2]) rotate([0,90,-90])
+                    linear_extrude(height=sawwid, convexity=5) polygon(concat(
+                        [[st+0.1, sof2],[st+0.1, 0]],
+                        [for (y=[0,1,19,20]) [(y%2 == 0) ? st : -st+sawtol , y*sof2/20]]
+                    ));
+                translate([hexdia/2+1,-sof-1+sawwid,thick/2]) rotate([0,90,-90])
+                    linear_extrude(height=sawwid, convexity=5) polygon(concat(
+                        [[st+0.1, sof2],[st+0.1, 0]],
+                        [for (y=[0,1,19,20]) [(y%2 == 0) ? st : -st+sawtol , y*sof2/20]]
+                    ));
+            }
+        }
+        if (doslit) {
+            slo = (hexdia/2-hexside+hexin+slitwid);
+            slr = (slo+slittol)*2/sqrt(3);
+            for (an=[0:-60:-180]) rotate([0,0,an]) {
+                translate([ slo-slitwid-slittol, -slr/2, thick/2-slithei])
+                    cube([slitwid+slittol*2, slr, slithei+0.01]);
+            }
+            translate([hexdia/2+labelside-hexin, sof+1-hexside+hexin-slittol, thick/2-slithei])
+                cube([labelw+hexin-labelside+4+slittol*2, slitwid+slittol*2, slithei+0.01]);
+            translate([hexdia/2+labelside-hexin, -(sof+1-hexside+hexin+slitwid+slittol), thick/2-slithei])
+                cube([labelw+hexin-labelside+4+slittol*2, slitwid+slittol*2, slithei+0.01]);
+        }
+        if (dosaw) {
+            for (an=[0,60,120]) rotate([0,0,an])
+            translate([-(hexdia/2)-0.01,0,thick/2-sawtol]) rotate([0,90,0])
+                linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
+                    [[-st-sawtol-0.1, sof*2/3],[-st-sawtol-0.1,-sof*2/3]],
+                    [for (y=[-2:2]) [(y%2 == 0) ? -st : st , y*sof/3]]
                 ));
-            translate([hexdia/2+1,-sof-1+sawwid,thick/2]) rotate([0,90,-90])
-                linear_extrude(height=sawwid, convexity=5) polygon(concat(
-                    [[st+0.1, sof2],[st+0.1, 0]],
-                    [for (y=[0,1,19,20]) [(y%2 == 0) ? st : -st+sawtol , y*sof2/20]]
+            translate([hexdia/2+1,sof+1+0.01,thick/2-sawtol]) rotate([0,90,-90])
+                linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
+                    [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
+                    [for (y=[1:19]) [(y%2 == 0) ? st : -st , y*sof2/20]]
+                ));
+            translate([hexdia/2+1,-sof-1+sawwid+0.01,thick/2-sawtol]) rotate([0,90,-90])
+                linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
+                    [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
+                    [for (y=[1:19]) [(y%2 == 0) ? st : -st , y*sof2/20]]
                 ));
         }
-        for (an=[0,60,120]) rotate([0,0,an])
-        translate([-(hexdia/2)-0.01,0,thick/2-sawtol]) rotate([0,90,0])
-            linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
-                [[-st-sawtol-0.1, sof*2/3],[-st-sawtol-0.1,-sof*2/3]],
-                [for (y=[-2:2]) [(y%2 == 0) ? -st : st , y*sof/3]]
-            ));
-        translate([hexdia/2+1,sof+1+0.01,thick/2-sawtol]) rotate([0,90,-90])
-            linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
-                [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
-                [for (y=[1:19]) [(y%2 == 0) ? st : -st , y*sof2/20]]
-            ));
-        translate([hexdia/2+1,-sof-1+sawwid+0.01,thick/2-sawtol]) rotate([0,90,-90])
-            linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
-                [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
-                [for (y=[1:19]) [(y%2 == 0) ? st : -st , y*sof2/20]]
-            ));
         logo();
     }
 }
@@ -104,41 +127,69 @@ module hexlabeltop()
     difference() {
         union() {
             mirror([0,1,0]) hexlabel();
-            // Left side
-            for (an=[0,-60,-120]) rotate([0,0,an])
-            translate([-(hexdia/2),0,thick/2]) rotate([0,90,0])
-                linear_extrude(height=sawwid, convexity=5) polygon(concat(
-                    [[st+0.1, sof],[st+0.1,-sof]],
-                    [for (y=[-2,-1,1,2]) [(y%2 != 0) ? -st+sawtol : st , y*sof/3]]
-                ));
+            if (dosaw) {
+                // Left side
+                for (an=[0,-60,-120]) rotate([0,0,an])
+                translate([-(hexdia/2),0,thick/2]) rotate([0,90,0])
+                    linear_extrude(height=sawwid, convexity=5) polygon(concat(
+                        [[st+0.1, sof],[st+0.1,-sof]],
+                        [for (y=[-2,-1,1,2]) [(y%2 != 0) ? -st+sawtol : st , y*sof/3]]
+                    ));
 
-            translate([hexdia/2+1,sof+1,thick/2]) rotate([0,90,-90])
-                linear_extrude(height=sawwid, convexity=5) polygon(concat(
-                    [[st+0.1, sof2],[st+0.1, 0]],
-                    [for (y=[1,2,18,19]) [(y%2 != 0) ? st : -st+sawtol , y*sof2/20]]
+                translate([hexdia/2+1,sof+1,thick/2]) rotate([0,90,-90])
+                    linear_extrude(height=sawwid, convexity=5) polygon(concat(
+                        [[st+0.1, sof2],[st+0.1, 0]],
+                        [for (y=[1,2,18,19]) [(y%2 != 0) ? st : -st+sawtol , y*sof2/20]]
+                    ));
+                translate([hexdia/2+1,-sof-1+sawwid,thick/2]) rotate([0,90,-90])
+                    linear_extrude(height=sawwid, convexity=5) polygon(concat(
+                        [[st+0.1, sof2],[st+0.1, 0]],
+                        [for (y=[1,2,18,19]) [(y%2 != 0) ? st : -st+sawtol , y*sof2/20]]
+                    ));
+            }
+            if (doslit) {
+                slo = (hexdia/2-hexside+hexin+slitwid);
+                slr = (slo)*2/sqrt(3);
+                slh = slithei+slit;
+                for (an=[0,180]) rotate([0,0,an]) {
+                    translate([ slo-slitwid, -slr/2, thick/2-slit-slittol])
+                        cube([slitwid, (slr-magnetsize.x)/2, slh]);
+                    translate([ slo-slitwid, magnetsize.x/2, thick/2-slit-slittol])
+                        cube([slitwid, (slr-magnetsize.x)/2, slh]);
+                }
+                for (an=[60,120]) rotate([0,0,an]) {
+                    translate([ slo-slitwid, -slr/2, thick/2-slit-slittol])
+                        cube([slitwid, slr, slh]);
+                }
+                translate([hexdia/2+labelside-hexin+slittol*2, sof+1-hexside+hexin, thick/2-slit-slittol])
+                    cube([labelw+1.2-magnetsize.x-slittol*2, slitwid, slh]);
+                translate([hexdia/2+labelw, sof+1-hexside+hexin, thick/2-slit-slittol])
+                    cube([4, slitwid, slh]);
+                translate([hexdia/2+labelside-hexin+slittol*2, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol])
+                    cube([labelw+1.2-magnetsize.x-slittol*2, slitwid, slh]);
+                translate([hexdia/2+labelw, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol])
+                    cube([4, slitwid, slh]);
+            }
+
+        }
+        if (dosaw) {
+            for (an=[0,-60,-120]) rotate([0,0,an])
+            translate([-(hexdia/2)-0.01,0,thick/2-sawtol]) rotate([0,90,0])
+                linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
+                    [[-st-sawtol-0.1, sof*2/3],[-st-sawtol-0.1,-sof*2/3]],
+                    [for (y=[-3:3]) [(y%2 != 0) ? -st : st , y*sof/3]]
                 ));
-            translate([hexdia/2+1,-sof-1+sawwid,thick/2]) rotate([0,90,-90])
-                linear_extrude(height=sawwid, convexity=5) polygon(concat(
-                    [[st+0.1, sof2],[st+0.1, 0]],
-                    [for (y=[1,2,18,19]) [(y%2 != 0) ? st : -st+sawtol , y*sof2/20]]
+            translate([hexdia/2+1,sof+1+0.01,thick/2-sawtol]) rotate([0,90,-90])
+                linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
+                    [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
+                    [for (y=[0:20]) [(y%2 != 0) ? st : -st , y*sof2/20]]
+                ));
+            translate([hexdia/2+1,-sof-1+sawwid+0.01,thick/2-sawtol]) rotate([0,90,-90])
+                linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
+                    [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
+                    [for (y=[0:20]) [(y%2 != 0) ? st : -st , y*sof2/20]]
                 ));
         }
-        for (an=[0,-60,-120]) rotate([0,0,an])
-        translate([-(hexdia/2)-0.01,0,thick/2-sawtol]) rotate([0,90,0])
-            linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
-                [[-st-sawtol-0.1, sof*2/3],[-st-sawtol-0.1,-sof*2/3]],
-                [for (y=[-3:3]) [(y%2 != 0) ? -st : st , y*sof/3]]
-            ));
-        translate([hexdia/2+1,sof+1+0.01,thick/2-sawtol]) rotate([0,90,-90])
-            linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
-                [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
-                [for (y=[0:20]) [(y%2 != 0) ? st : -st , y*sof2/20]]
-            ));
-        translate([hexdia/2+1,-sof-1+sawwid+0.01,thick/2-sawtol]) rotate([0,90,-90])
-            linear_extrude(height=sawwid+0.11, convexity=5) polygon(concat(
-                [[-st-sawtol-0.1, sof2*19/20],[-st-sawtol-0.1, sof2*1/20]],
-                [for (y=[0:20]) [(y%2 != 0) ? st : -st , y*sof2/20]]
-            ));
         logo();
     }
 }
