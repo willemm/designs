@@ -22,8 +22,8 @@
         </clipPath>
         <image id="face" href="../images/{{ image }}" x="{{ imagex }}" y="{{ imagey }}" width="{{ imagew }}" clip-path="url(#hexclip)" />
         <g id="facebg">
-            <image href="../images/{{ image }}" x="-50" y="-70" height="100" clip-path="url(#hextop)" />
-            <image href="../images/{{ image }}" x="-50" y="-30" height="100" clip-path="url(#hexbot)" />
+            <image href="../images/{{ image }}" x="-50" y="-120" height="150" clip-path="url(#hextop)" />
+            <image href="../images/{{ image }}" x="-50" y="-30" height="150" clip-path="url(#hexbot)" />
             <image href="../images/{{ image }}" x="-26" y="-30" width="100" clip-path="url(#hexleft)" />
             <image href="../images/{{ image }}" x="-74" y="-30" width="100" clip-path="url(#hexright)" />
         </g>
