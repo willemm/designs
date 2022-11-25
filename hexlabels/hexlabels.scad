@@ -17,7 +17,7 @@ inlay = 0.2;
 sawtol = 0.2;
 
 dosaw = 0;
-doslit = 1;
+doslit = 2;
 
 slitwid = 1.6;
 slithei = 1.8;
@@ -34,7 +34,7 @@ if (doitem == "labelbot") { rotate([0,0,180]) hexlabelbot(); }
 
 if (doitem == "") {
     translate([hexdia/2, 0, 0]) {
-        translate([0,0,thick+0.01]) rotate([180,0,0]) render(convexity=6) hexlabeltop();
+        *translate([0,0,thick+0.01]) rotate([180,0,0]) render(convexity=6) hexlabeltop();
         color("#6af5") render(convexity=6) hexlabelbot();
 
         //#translate([hexdia/2-hexin+labelside, -24.8/2, thick/2-0.2]) cube([114,24.8,0.4]);
@@ -89,13 +89,16 @@ module hexlabelbot()
             slo = (hexdia/2-hexside+hexin+slitwid);
             slr = (slo+slittol)*2/sqrt(3);
             for (an=[0:-60:-180]) rotate([0,0,an]) {
-                translate([ slo-slitwid-slittol, -slr/2, thick/2-slithei])
-                    cube([slitwid+slittol*2, slr, slithei+0.01]);
+                slitslot([ slo+slittol, -slr/2, thick/2],
+                          [ slo+slittol,  slr/2, thick/2],
+                          slitwid+slittol*2, slithei);
             }
-            translate([hexdia/2+labelside-hexin, sof+1-hexside+hexin-slittol, thick/2-slithei])
-                cube([labelw+hexin-labelside+4+slittol*2, slitwid+slittol*2, slithei+0.01]);
-            translate([hexdia/2+labelside-hexin, -(sof+1-hexside+hexin+slitwid+slittol), thick/2-slithei])
-                cube([labelw+hexin-labelside+4+slittol*2, slitwid+slittol*2, slithei+0.01]);
+            slitslot([hexdia/2+labelw+4+slittol*2, sof+1-hexside+hexin+slitwid+slittol, thick/2],
+                     [hexdia/2+labelside-hexin, sof+1-hexside+hexin+slitwid+slittol, thick/2],
+                     slitwid+slittol*2, slithei);
+            slitslot([hexdia/2+labelside-hexin, -(sof+1-hexside+hexin+slitwid+slittol), thick/2],
+                     [hexdia/2+labelw+4+slittol*2, -(sof+1-hexside+hexin+slitwid+slittol), thick/2],
+                     slitwid+slittol*2, slithei);
         }
         if (dosaw) {
             for (an=[0,60,120]) rotate([0,0,an])
@@ -152,23 +155,30 @@ module hexlabeltop()
                 slr = (slo)*2/sqrt(3);
                 slh = slithei+slit;
                 for (an=[0,180]) rotate([0,0,an]) {
-                    translate([ slo-slitwid, -slr/2, thick/2-slit-slittol])
-                        cube([slitwid, (slr-magnetsize.x)/2, slh]);
-                    translate([ slo-slitwid, magnetsize.x/2, thick/2-slit-slittol])
-                        cube([slitwid, (slr-magnetsize.x)/2, slh]);
+                    slitridge([ slo, -slr/2, thick/2-slit-slittol ],
+                              [ slo, -magnetsize.x/2, thick/2-slit-slittol ],
+                              slitwid, slh);
+                    slitridge([ slo,  magnetsize.x/2, thick/2-slit-slittol ],
+                              [ slo,  slr/2, thick/2-slit-slittol ],
+                              slitwid, slh);
                 }
                 for (an=[60,120]) rotate([0,0,an]) {
-                    translate([ slo-slitwid, -slr/2, thick/2-slit-slittol])
-                        cube([slitwid, slr, slh]);
+                    slitridge([ slo, -slr/2, thick/2-slit-slittol ],
+                              [ slo,  slr/2, thick/2-slit-slittol ],
+                              slitwid, slh);
                 }
-                translate([hexdia/2+labelside-hexin+slittol*2, sof+1-hexside+hexin, thick/2-slit-slittol])
-                    cube([labelw+1.2-magnetsize.x-slittol*2, slitwid, slh]);
-                translate([hexdia/2+labelw, sof+1-hexside+hexin, thick/2-slit-slittol])
-                    cube([4, slitwid, slh]);
-                translate([hexdia/2+labelside-hexin+slittol*2, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol])
-                    cube([labelw+1.2-magnetsize.x-slittol*2, slitwid, slh]);
-                translate([hexdia/2+labelw, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol])
-                    cube([4, slitwid, slh]);
+                slitridge([hexdia/2+labelw-magnetsize.x, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                          [hexdia/2+labelside-hexin+slittol*2, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                          slitwid, slh);
+                slitridge([hexdia/2+labelw+4, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                          [hexdia/2+labelw, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                          slitwid, slh);
+                slitridge( [hexdia/2+labelside-hexin+slittol*2, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                          [hexdia/2+labelw-magnetsize.x, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                          slitwid, slh);
+                slitridge([hexdia/2+labelw, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                          [hexdia/2+labelw+4, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                          slitwid, slh);
             }
 
         }
@@ -193,6 +203,33 @@ module hexlabeltop()
         logo();
     }
 }
+
+module slitridge(from, to, wid, hei, ridge=0.2)
+{
+    rdg = (doslit==2 ? ridge : 0);
+    x = to.x-from.x;
+    y = to.y-from.y;
+    an = atan2(x, -y);
+    len = sqrt(x*x + y*y);
+    translate(from) rotate([0,0,an]) rotate([90,0,0]) linear_extrude(height=len, convexity=4)
+        polygon([
+            [0,0], [0,hei-rdg*2], [-rdg,hei-rdg], [0,hei], [wid,hei], [wid,0]
+        ]);
+}
+
+module slitslot(from, to, wid, hei, ridge=0.3)
+{
+    rdg = (doslit==2 ? ridge : 0);
+    x = to.x-from.x;
+    y = to.y-from.y;
+    an = atan2(x, -y);
+    len = sqrt(x*x + y*y);
+    translate(from) rotate([0,0,an]) rotate([90,0,0]) linear_extrude(height=len, convexity=4)
+        polygon([
+            [0,0.01], [0,-hei+rdg*2], [-rdg,-hei+rdg], [0,-hei], [wid,-hei], [wid,0.01]
+        ]);
+}
+
 
 module logo()
 {
