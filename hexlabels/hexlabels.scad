@@ -32,9 +32,30 @@ magnetoff = magnetsize.x/2+sawwid;
 if (doitem == "labeltop") { hexlabeltop(); }
 if (doitem == "labelbot") { rotate([0,0,180]) hexlabelbot(); }
 
+if (doitem == "test" ) {
+    translate([-30,0,0]) intersection() {
+        difference() {
+            hexlabeltop();
+            #translate([-(hexdia-hexside)/2,-14,-0.01]) linear_extrude(height=0.41, convexity=4) {
+                mirror([1,0,0]) text("5", size=8, halign="center");
+            }
+        }
+        translate([-5,0,0]) cube([57,100,10], true);
+    }
+    rotate([0,0,180]) translate([-30,0,0]) intersection() {
+        difference() {
+            hexlabelbot();
+            #translate([-(hexdia-hexside)/2,-14,-0.01]) linear_extrude(height=0.41, convexity=4) {
+                mirror([1,0,0]) text("5", size=8, halign="center");
+            }
+        }
+        translate([-5,0,0]) cube([57,100,10], true);
+    }
+}
+
 if (doitem == "") {
     translate([hexdia/2, 0, 0]) {
-        *translate([0,0,thick+0.01]) rotate([180,0,0]) render(convexity=6) hexlabeltop();
+        translate([0,0,thick+0.01]) rotate([180,0,0]) render(convexity=6) hexlabeltop();
         color("#6af5") render(convexity=6) hexlabelbot();
 
         //#translate([hexdia/2-hexin+labelside, -24.8/2, thick/2-0.2]) cube([114,24.8,0.4]);
@@ -204,7 +225,7 @@ module hexlabeltop()
     }
 }
 
-module slitridge(from, to, wid, hei, ridge=0.2)
+module slitridge(from, to, wid, hei, ridge=0.5)
 {
     rdg = (doslit==2 ? ridge : 0);
     x = to.x-from.x;
@@ -217,7 +238,7 @@ module slitridge(from, to, wid, hei, ridge=0.2)
         ]);
 }
 
-module slitslot(from, to, wid, hei, ridge=0.3)
+module slitslot(from, to, wid, hei, ridge=0.6)
 {
     rdg = (doslit==2 ? ridge : 0);
     x = to.x-from.x;
@@ -233,17 +254,19 @@ module slitslot(from, to, wid, hei, ridge=0.3)
 
 module logo()
 {
-    translate([hexdia/2+labelw+2, 0, -0.01]) mirror([0,1,0]) rotate([0,0,-90])
-        linear_extrude(height=inlay+0.01, convexity=4) {
-            text("ACME", font="ethnocentric", size=4, halign="center");
+    if (doitem != "test") {
+        translate([hexdia/2+labelw+2, 0, -0.01]) mirror([0,1,0]) rotate([0,0,-90])
+            linear_extrude(height=inlay+0.01, convexity=4) {
+                text("ACME", font="ethnocentric", size=4, halign="center");
+            }
+        sz = 10;
+        stp = sz/15;
+        translate([hexdia+labelw-6, 0, -0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
+            for (y=[sz-stp:-stp*2:0]) polygon([
+                [-y*sqrt(3),y],[-(y+stp)*sqrt(3),y+stp],
+                [-(y+stp)*sqrt(3),-(y+stp)],[-y*sqrt(3),-y],
+                ]);
         }
-    sz = 10;
-    stp = sz/15;
-    translate([hexdia+labelw-6, 0, -0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
-        for (y=[sz-stp:-stp*2:0]) polygon([
-            [-y*sqrt(3),y],[-(y+stp)*sqrt(3),y+stp],
-            [-(y+stp)*sqrt(3),-(y+stp)],[-y*sqrt(3),-y],
-            ]);
     }
 }
 
@@ -290,30 +313,32 @@ module hexlabel()
                 ,[cos(30)*hxr+labelw+hexdia, sin(30)*hxr-hin]
                 ,[cos(30)*hxr+labelside-hexin, sin(30)*hxr-hin]]
                 );
-        llen = (hxr+hxir)/2;
-        translate([0,0,-0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
-            for (an=[30:60:330]) rotate(an) translate([(hxr+hxir)/2, 0]) {
-                rotate(30) {
-                    cline(llen, (an+30)/60);
+        if (doitem != "test") {
+            llen = (hxr+hxir)/2;
+            translate([0,0,-0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
+                for (an=[30:60:330]) rotate(an) translate([(hxr+hxir)/2, 0]) {
+                    rotate(30) {
+                        cline(llen, (an+30)/60);
+                    }
                 }
             }
-        }
-        stp = labelw/10;
-        swd = 1.8;
-        translate([hexdia/2, sin(30)*hxr-hexside/2, -0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
-            for (x=[stp/4:stp:labelw-stp]) {
-                polygon([
-                    [x+stp*0.3-swd,  swd], [x+stp*0.3+swd, -swd],
-                    [x+stp*0.8+swd, -swd], [x+stp*0.8-swd,  swd]
-                ]);
+            stp = labelw/10;
+            swd = 1.8;
+            translate([hexdia/2, sin(30)*hxr-hexside/2, -0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
+                for (x=[stp/4:stp:labelw-stp]) {
+                    polygon([
+                        [x+stp*0.3-swd,  swd], [x+stp*0.3+swd, -swd],
+                        [x+stp*0.8+swd, -swd], [x+stp*0.8-swd,  swd]
+                    ]);
+                }
             }
-        }
-        translate([hexdia/2, -sin(30)*hxr+hexside/2, -0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
-            for (x=[stp/4:stp:labelw-stp]) {
-                polygon([
-                    [x+stp*0.3-swd,  swd], [x+stp*0.3+swd, -swd],
-                    [x+stp*0.8+swd, -swd], [x+stp*0.8-swd,  swd]
-                ]);
+            translate([hexdia/2, -sin(30)*hxr+hexside/2, -0.01]) linear_extrude(height=inlay+0.01, convexity=4) {
+                for (x=[stp/4:stp:labelw-stp]) {
+                    polygon([
+                        [x+stp*0.3-swd,  swd], [x+stp*0.3+swd, -swd],
+                        [x+stp*0.8+swd, -swd], [x+stp*0.8-swd,  swd]
+                    ]);
+                }
             }
         }
     }
