@@ -22,6 +22,7 @@ doslit = 2;
 slitwid = 1.6;
 slithei = 1.8;
 slittol = 0.1;
+slitex = 5;
 
 //magnetsize = [1.8, 9.8, 4.8];
 magnetsize = [5, 5, 5];
@@ -57,6 +58,7 @@ if (doitem == "") {
     translate([hexdia/2, 0, 0]) {
         translate([0,0,thick+0.01]) rotate([180,0,0]) render(convexity=6) hexlabeltop();
         color("#6af5") render(convexity=6) hexlabelbot();
+        *hexlabeltop();
 
         //#translate([hexdia/2-hexin+labelside, -24.8/2, thick/2-0.2]) cube([114,24.8,0.4]);
 
@@ -110,15 +112,17 @@ module hexlabelbot()
             slo = (hexdia/2-hexside+hexin+slitwid);
             slr = (slo+slittol)*2/sqrt(3);
             for (an=[0:-60:-180]) rotate([0,0,an]) {
-                slitslot([ slo+slittol, -slr/2, thick/2],
-                          [ slo+slittol,  slr/2, thick/2],
+                ss = (an == -180) ? -slr/2-3 : -slr/2;
+                se = (an ==    0) ?  slr/2+3 : slr/2;
+                slitslot([ slo+slittol, ss, thick/2],
+                          [ slo+slittol, se, thick/2],
                           slitwid+slittol*2, slithei);
             }
-            slitslot([hexdia/2+labelw+4+slittol*2, sof+1-hexside+hexin+slitwid+slittol, thick/2],
+            slitslot([hexdia/2+labelw+slitex+slittol*2, sof+1-hexside+hexin+slitwid+slittol, thick/2],
                      [hexdia/2+labelside-hexin, sof+1-hexside+hexin+slitwid+slittol, thick/2],
                      slitwid+slittol*2, slithei);
             slitslot([hexdia/2+labelside-hexin, -(sof+1-hexside+hexin+slitwid+slittol), thick/2],
-                     [hexdia/2+labelw+4+slittol*2, -(sof+1-hexside+hexin+slitwid+slittol), thick/2],
+                     [hexdia/2+labelw+slitex+slittol*2, -(sof+1-hexside+hexin+slitwid+slittol), thick/2],
                      slitwid+slittol*2, slithei);
         }
         if (dosaw) {
@@ -176,11 +180,13 @@ module hexlabeltop()
                 slr = (slo)*2/sqrt(3);
                 slh = slithei+slit;
                 for (an=[0,180]) rotate([0,0,an]) {
-                    slitridge([ slo, -slr/2, thick/2-slit-slittol ],
+                    ss = (an ==   0) ? -slr/2-3 : -slr/2;
+                    se = (an == 180) ?  slr/2+3 : slr/2;
+                    slitridge([ slo, ss, thick/2-slit-slittol ],
                               [ slo, -magnetsize.x/2, thick/2-slit-slittol ],
                               slitwid, slh);
-                    slitridge([ slo,  magnetsize.x/2, thick/2-slit-slittol ],
-                              [ slo,  slr/2, thick/2-slit-slittol ],
+                    slitridge([ slo, magnetsize.x/2, thick/2-slit-slittol ],
+                              [ slo, se, thick/2-slit-slittol ],
                               slitwid, slh);
                 }
                 for (an=[60,120]) rotate([0,0,an]) {
@@ -191,14 +197,14 @@ module hexlabeltop()
                 slitridge([hexdia/2+labelw-magnetsize.x, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           [hexdia/2+labelside-hexin+slittol*2, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           slitwid, slh);
-                slitridge([hexdia/2+labelw+4, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                slitridge([hexdia/2+labelw+slitex, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           [hexdia/2+labelw, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           slitwid, slh);
                 slitridge( [hexdia/2+labelside-hexin+slittol*2, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
                           [hexdia/2+labelw-magnetsize.x, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
                           slitwid, slh);
                 slitridge([hexdia/2+labelw, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
-                          [hexdia/2+labelw+4, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                          [hexdia/2+labelw+slitex, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
                           slitwid, slh);
             }
 
@@ -227,7 +233,7 @@ module hexlabeltop()
 
 module slitridge(from, to, wid, hei, ridge=0.5)
 {
-    rdg = (doslit==2 ? ridge : 0);
+    rdg = (doslit == 2 ? ridge : 0);
     x = to.x-from.x;
     y = to.y-from.y;
     an = atan2(x, -y);
