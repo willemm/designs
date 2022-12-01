@@ -11,6 +11,7 @@ if (doitem == "topplatebot") { topplatebot(cp=240); }
 if (doitem == "topplatetop") { rotate([180,0,0]) topplatetop(cp=240); }
 if (doitem == "psuholder") { psuholder(cp=240); }
 if (doitem == "psucover") { rotate([180,0,0]) psucover(cp=240); }
+if (doitem == "relief") { strain_relief(); }
 if (doitem == "receptacle") {
         rotate([0,90-asin(1/s3),45]) { receptacle(cp=240); }
 }
@@ -1328,6 +1329,18 @@ module psucover(cp=48)
     // Sacrificial layer
     #for (x=[-1,1], y=[-1,1]) translate([x*(65/2-6/2)+2, y*(32.5/2-7.2/2), -48.8])
         cylinder(0.2, 2, 2, $fn=16);
+}
+
+module strain_relief()
+{
+    difference() {
+        translate([0,-3,0]) cube([15, 6, 6]);
+        translate([0,-0.5,-0.01]) cube([12, 1, 6.02]);
+        translate([3,-3.01,3]) rotate([-90,0,0]) cylinder(6.02, 1.6, 1.6, $fn=48);
+        translate([12, 0, -0.01]) cylinder(6.02, 0.8, 0.8, $fn=48);
+        translate([0, 0, -0.01]) cylinder(6.02, 0.8, 0.8, $fn=48);
+    }
+    *color("#555") translate([5, -0.5, -5]) cube([7, 1, 16]);
 }
 
 module smallpsu()
