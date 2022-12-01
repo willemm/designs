@@ -1,6 +1,7 @@
 $ErrorAction = 'Stop'
 
 $settings = @{
+    <#
     'clipboard' = 14, 41, '#db3', '#435', '129.jpg', -35, -30, 72
     'strix'     = 18, 40, '#db3', '#435', '346.jpg', -27, -27, 54
     'sigma'     = 18, 40, '#db3', '#435', '145.jpg', -27, -28, 56
@@ -16,19 +17,31 @@ $settings = @{
     'glitter'   = 18, 40, '#cde', '#353', '113.jpg', -27, -30, 54
 
     'octavia'   = 14, 41, '#cde', '#353',  '38.jpg', -28, -28, 56
-    'darius'    = 18, 40, '#cde', '#353', '385.png', -27, -26, 54
-    'tuloy'     = 18, 40, '#cde', '#353', '132.jpg', -29, -29, 62
-    'maati'     = 18, 40, '#cde', '#353',   '1.jpg', -35, -27, 70
-    'keanu'     = 18, 40, '#cde', '#353', '121.jpg', -27, -33, 52
-    'aelia'     = 18, 40, '#cde', '#353', '187.png', -32, -28, 63
+    #'maati'     = 18, 40, '#cde', '#353',   '1.jpg', -35, -27, 70
+    #'keanu'     = 18, 40, '#cde', '#353', '121.jpg', -27, -33, 52
+    'Aelia Devin'               = 10, 42, '#cde', '#353', '187.png', -32, -28, 63
+    'Darius Anatexis Al Jalmud' = 5, 42, '#cde', '#353', '385.png', -27, -26, 54
+    'Tuloy Mabuhay Panatag'     = 6, 42, '#cde', '#353', '132.jpg', -29, -29, 62
 
     #'orlov'     = 18, 40, '#db3', '#435', '168.jpg', -32, -29, 64
+#>
+
+    'Aleksei Volkov'       = 6, 42, '#000', '#fff', '125.jpg', -28, -28, 54
+    'Armond Vincere'       = 6, 42, '#000', '#fff', '106.jpg', -34, -27, 68
+    'Curo Salai Corian'    = 6, 42, '#000', '#fff',  '56.jpg', -33, -28, 66
+    'Medea Flavius'        = 6, 42, '#000', '#fff', '233.png', -36, -24, 74
+    'Nimuel Agati Iskandu' = 6, 42, '#000', '#fff',  '42.jpg', -28, -28, 54
+    'Tiberius Quartus'     = 6, 42, '#000', '#fff',  '46.jpg', -35, -28, 70
+    'Vladimir Karkin'      = 6, 42, '#000', '#fff', '183.jpg', -18, -25, 38
 }
 
 $svgcontent = @{}
 
 foreach ($itm in $settings.keys) {
-    $callsign = $itm.ToUpper()
+    $callsign = $itm
+    if ($callsign -notmatch ' ') {
+        $callsign = $itm.ToUpper()
+    }
 
     ($textsz, $texty, $textfg, $textbg, $image, $imagex, $imagey, $imagew) = $settings[$itm]
 
@@ -39,11 +52,12 @@ foreach ($itm in $settings.keys) {
         (Get-Variable -Name $m.Groups[1]).Value
     })
     $svgcontent[$itm] = $content
-    $content | Out-File -Encoding utf8 "labels/$itm.svg"
+    #$content | Out-File -Encoding utf8 "labels/$itm.svg"
 }
 
 $svgs = foreach ($itm in $settings.keys | Sort-Object) {
-    $svgcontent[$itm] -replace "id=`"", "id=`"$($itm)_" -replace "href=`"#","href=`"#$($itm)_" -replace "url\(#","url(#$($itm)_"
+    $itmid = $itm -replace ' ','_'
+    $svgcontent[$itm] -replace "id=`"", "id=`"$($itmid)_" -replace "href=`"#","href=`"#$($itmid)_" -replace "url\(#","url(#$($itmid)_"
 }
 
 $html = "<html><body>`n$($svgs -join "`n")`n</body></html>`n"
