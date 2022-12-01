@@ -1,7 +1,6 @@
 $ErrorAction = 'Stop'
 
 $settings = @{
-    <#
     'clipboard' = 14, 41, '#db3', '#435', '129.jpg', -35, -30, 72
     'strix'     = 18, 40, '#db3', '#435', '346.jpg', -27, -27, 54
     'sigma'     = 18, 40, '#db3', '#435', '145.jpg', -27, -28, 56
@@ -24,15 +23,14 @@ $settings = @{
     'Tuloy Mabuhay Panatag'     = 6, 42, '#cde', '#353', '132.jpg', -29, -29, 62
 
     #'orlov'     = 18, 40, '#db3', '#435', '168.jpg', -32, -29, 64
-#>
 
-    'Aleksei Volkov'       = 6, 42, '#000', '#fff', '125.jpg', -28, -28, 54
-    'Armond Vincere'       = 6, 42, '#000', '#fff', '106.jpg', -34, -27, 68
-    'Curo Salai Corian'    = 6, 42, '#000', '#fff',  '56.jpg', -33, -28, 66
-    'Medea Flavius'        = 6, 42, '#000', '#fff', '233.png', -36, -24, 74
-    'Nimuel Agati Iskandu' = 6, 42, '#000', '#fff',  '42.jpg', -28, -28, 54
-    'Tiberius Quartus'     = 6, 42, '#000', '#fff',  '46.jpg', -35, -28, 70
-    'Vladimir Karkin'      = 6, 42, '#000', '#fff', '183.jpg', -18, -25, 38
+    'Aleksei Volkov'       = 6, 42, '#000', '#fff', '125.jpg', -28, -28, 54, 'ethnocentric'
+    'Armond Vincere'       = 6, 42, '#000', '#fff', '106.jpg', -34, -27, 68, 'ethnocentric'
+    'Curo Salai Corian'    = 6, 42, '#000', '#fff',  '56.jpg', -33, -28, 66, 'ethnocentric'
+    'Medea Flavius'        = 6, 42, '#000', '#fff', '233.png', -36, -24, 74, 'ethnocentric'
+    'Nimuel Agati Iskandu' = 6, 42, '#000', '#fff',  '42.jpg', -28, -28, 54, 'ethnocentric'
+    'Tiberius Quartus'     = 6, 42, '#000', '#fff',  '46.jpg', -35, -28, 70, 'ethnocentric'
+    'Vladimir Karkin'      = 6, 42, '#000', '#fff', '183.jpg', -18, -25, 38, 'ethnocentric'
 }
 
 $svgcontent = @{}
@@ -43,7 +41,9 @@ foreach ($itm in $settings.keys) {
         $callsign = $itm.ToUpper()
     }
 
-    ($textsz, $texty, $textfg, $textbg, $image, $imagex, $imagey, $imagew) = $settings[$itm]
+    ($textsz, $texty, $textfg, $textbg, $image, $imagex, $imagey, $imagew, $textfont) = $settings[$itm]
+
+    if (-not $textfont) { $textfont = 'varino' }
 
     $content = Get-Content -Raw "label.svg"
 
