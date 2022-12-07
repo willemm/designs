@@ -1,4 +1,4 @@
-doitem = "footmid";
+doitem = "";
 // Holes in perfboard
 // holesp = 2.54;
 holesp = 2.54;
@@ -167,10 +167,10 @@ intersection() {
 
 botoffset = 860;
 
-color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connpos[0]);
-color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
-color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
-color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
+*color("#dd3") translate([0,0,-botoffset]) footblob(seed=stalkseed[0], conn=connpos[0]);
+*color("#ad3") rotate([0,0,90]) translate([0,0,-botoffset]) footblob(seed=stalkseed[1], conn=connpos[1]);
+*color("#dd3") rotate([0,0,180]) translate([0,0,-botoffset]) footblob(seed=stalkseed[2], conn=connpos[2]);
+*color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalkseed[3], conn=connpos[3]);
 
 *color("#4dd") translate([0,0,-botoffset]) footconnector();
 
@@ -178,11 +178,11 @@ color("#ad3") rotate([0,0,270]) translate([0,0,-botoffset]) footblob(seed=stalks
 
 *color("#cf3") translate([0,0,-botoffset+0.1]) footstickdisc();
 
-color("#fc3") translate([0,0,-botoffset+0.1]) footstickfoot();
+*color("#fc3") translate([0,0,-botoffset+0.1]) footstickfoot();
 
-*color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
+color("#ae3") translate([0,0,-botoffset+0.1]) footmiddisc();
 
-color("#fc3") translate([0,0,-botoffset+0.1]) foothandle();
+*color("#fc3") translate([0,0,-botoffset+0.1]) foothandle();
 color("#ae3") translate([0,0,-botoffset+0.1]) footmidtwo();
 
 
@@ -2991,18 +2991,22 @@ module foothandle(cp=60, pdia=126, an=36)
     }
 }
 
-module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=60)
+module footmiddisc(thi=10, thi2=36.8, dia=175, hdia=142, pdia=126, idia=90, cp=60)
 {
-    tly = 3;
+    tly = 7;
     br2 = pdia/2;
 
     difference() {
         polyhedron(convexity=5,
             points = concat(
-                zbcircle(0, 0,   0,  dia/2, 360/cp),
-                zbcircle(0, 0,   0, idia/2, 360/cp),
-                zbcircle(0, 0, thi, idia/2, 360/cp),
-                zbcircle(0, 0, thi,  dia/2, 360/cp),
+                zbcircle(0, 0,    0,  dia/2, 360/cp),
+                zbcircle(0, 0,    0, idia/2, 360/cp),
+                zbcircle(0, 0, thi2, idia/2, 360/cp),
+                zbcircle(0, 0, thi2, hdia/2, 360/cp),
+                zbcircle(0, 0,  thi+4, hdia/2, 360/cp),
+                zbcircle(0, 0,  thi, hdia/2+4, 360/cp),
+                zbcircle(0, 0,  thi, idia/2, 360/cp),
+                zbcircle(0, 0,  thi,  dia/2, 360/cp),
                 []
             ), faces = concat(
                 [for (z=[0:tly-1]) each nquads(z*cp, cp, cp)],
@@ -3010,22 +3014,31 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=60)
                 []
             ));
         for (an=[0:90:360-90]) {
+            hlexan = asin(10/(br2+10));
             rotate([0,0,an+0]) {
                 translate([br2+10, 10, -0.01]) cylinder(2.21, 6.1, 4, $fn=48);
                 translate([br2+10, 10, 2-0.01]) cylinder(thi-2+0.02, 2, 2, $fn=48);
-                translate([br2+10, 10, thi-3.6]) cylinder(3.61, 7/sqrt(2), 7/sqrt(2), $fn=4);
+                translate([br2+10, 10, thi-5]) rotate([0,0,45+hlexan]) {
+                    cylinder(3.41, 7/sqrt(2), 7/sqrt(2), $fn=4);
+                    translate([0,0,3.4]) cylinder(1.01, 6.8/sqrt(2), 6.8/sqrt(2), $fn=4);
+                    translate([0,0,4.4]) cylinder(4.61, 7/sqrt(2), 7/sqrt(2), $fn=4);
+                }
             }
             rotate([0,0,an+90]) {
                 translate([br2+10,-10, -0.01]) cylinder(2.21, 6.1, 4, $fn=48);
                 translate([br2+10,-10, 2-0.01]) cylinder(thi-2+0.02, 2, 2, $fn=48);
-                translate([br2+10,-10, thi-3.6]) cylinder(3.61, 7/sqrt(2), 7/sqrt(2), $fn=4);
+                translate([br2+10,-10, thi-5]) rotate([0,0,45-hlexan]) {
+                    cylinder(3.41, 7/sqrt(2), 7/sqrt(2), $fn=4);
+                    translate([0,0,3.4]) cylinder(1.01, 6.8/sqrt(2), 6.8/sqrt(2), $fn=4);
+                    translate([0,0,4.4]) cylinder(4.61, 7/sqrt(2), 7/sqrt(2), $fn=4);
+                }
             }
         }
         // Disc mounting holes
         for (an=[0:72:360-72]) rotate([0,0,an]) {
             translate([0, (68+155)/4, 0]) {
-                translate([0,0,-0.01]) cylinder(thi+0.02, 3, 3, $fn=48);
-                translate([0,0,-0.01]) cylinder(thi-3+0.01, 7.5, 7.5, $fn=48);
+                translate([0,0,-0.01]) cylinder(thi2+0.02, 4.5, 4.5, $fn=48);
+                translate([0,0,-0.01]) cylinder(3+0.01, 7.7, 7.7, $fn=48);
             }
         }
     }
@@ -3041,7 +3054,7 @@ module footmiddisc(thi=6.8, dia=175, pdia=126, idia=90, cp=60)
     // Disc mounting holes
     #for (an=[0:72:360-72]) rotate([0,0,an]) {
         translate([0, (68+155)/4, 0]) {
-            translate([0,0,thi-3]) cylinder(0.2, 3.2, 3.2, $fn=48);
+            translate([0,0,3]) cylinder(0.2, 4.6, 4.6, $fn=48);
         }
     }
 }
@@ -3415,7 +3428,7 @@ module brakedisc(cp = 60)
     hdia = 178;
     oth = 25.5;
     ith = 18.5;
-    hth = 7;
+    hth = ith+oth-7.2;
     ndia = 12.8;
 
     tly = 7;
