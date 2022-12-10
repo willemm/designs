@@ -21,7 +21,7 @@ doslit = 2;
 
 slitwid = 1.6;
 slithei = 1.8;
-slittol = 0.1;
+slittol = 0.2;
 slitex = 5;
 
 //magnetsize = [1.8, 9.8, 4.8];
@@ -29,6 +29,8 @@ magnetsize = [5, 5, 5];
 
 //magnetoff = magnetsize.x/2+sawwid;
 magnetoff = magnetsize.x/2+sawwid;
+
+magnetend = 3;
 
 if (doitem == "labeltop") { hexlabeltop(); }
 if (doitem == "labelbot") { rotate([0,0,180]) hexlabelbot(); }
@@ -194,16 +196,16 @@ module hexlabeltop()
                               [ slo,  slr/2, thick/2-slit-slittol ],
                               slitwid, slh);
                 }
-                slitridge([hexdia/2+labelw-magnetsize.x, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                slitridge([hexdia/2+labelw-magnetsize.x-magnetend, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           [hexdia/2+labelside-hexin+slittol*2, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           slitwid, slh);
                 slitridge([hexdia/2+labelw+slitex, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
-                          [hexdia/2+labelw, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
+                          [hexdia/2+labelw-magnetend, sof+1-hexside+hexin+slitwid, thick/2-slit-slittol],
                           slitwid, slh);
                 slitridge( [hexdia/2+labelside-hexin+slittol*2, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
-                          [hexdia/2+labelw-magnetsize.x, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                          [hexdia/2+labelw-magnetsize.x-magnetend, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
                           slitwid, slh);
-                slitridge([hexdia/2+labelw, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
+                slitridge([hexdia/2+labelw-magnetend, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
                           [hexdia/2+labelw+slitex, -(sof+1-hexside+hexin+slitwid), thick/2-slit-slittol],
                           slitwid, slh);
             }
@@ -240,7 +242,7 @@ module slitridge(from, to, wid, hei, ridge=0.5)
     len = sqrt(x*x + y*y);
     translate(from) rotate([0,0,an]) rotate([90,0,0]) linear_extrude(height=len, convexity=4)
         polygon([
-            [0,0], [0,hei-rdg*2], [-rdg,hei-rdg], [0,hei], [wid,hei], [wid,0]
+            [0,0], [0,hei-rdg*2], [-rdg,hei-rdg], [0,hei], [wid-rdg,hei], [wid,hei-rdg], [wid,0]
         ]);
 }
 
@@ -303,9 +305,9 @@ module hexlabel()
         translate([ (hexdia/2-magnetoff), 0, thick/2]) magnethole();
         //translate([ (hexdia/2-magnetoff), 0, thick/2]) magnethole();
         //translate([ (hexdia/2+labelw+hexside-magnetoff), 0, thick/2]) magnethole();
-        translate([ (hexdia/2+labelw-magnetsize.y/2), (sin(30)*hxr-magnetoff), thick/2])
+        translate([ (hexdia/2+labelw-magnetsize.y/2-magnetend), (sin(30)*hxr-magnetoff), thick/2])
             rotate([0,0,90]) magnethole();
-        translate([ (hexdia/2+labelw-magnetsize.y/2),-(sin(30)*hxr-magnetoff), thick/2])
+        translate([ (hexdia/2+labelw-magnetsize.y/2-magnetend),-(sin(30)*hxr-magnetoff), thick/2])
             rotate([0,0,90]) magnethole();
         translate([0, 0, thick/2-slit/2]) linear_extrude(height=slit/2+0.01, convexity=5)
             polygon(concat(
