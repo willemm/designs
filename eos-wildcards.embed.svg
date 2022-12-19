@@ -32,45 +32,45 @@
 	</defs>
 	
   <circle cx="0" cy="0" r="450" fill="black" />
-  <use x="-21" y="-82" href="#star" />
-  <use x="-13" y="-202" href="#star" />
-  <use x="-35" y="-171" href="#star" />
-  <use x="-45" y="-21" href="#star" />
-  <use x="-72" y="-93" href="#star" />
-  <use x="-57" y="-237" href="#star" />
-  <use x="-51" y="-300" href="#star" />
-  <use x="-62" y="-325" href="#star" />
-  <use x="-220" y="249" href="#star" />
-  <use x="-150" y="262" href="#star" />
-  <use x="-334" y="82" href="#star" />
-  <use x="-312" y="124" href="#star" />
-  <use x="-347" y="-50" href="#star" />
-  <use x="-340" y="-72" href="#star" />
-  <use x="-309" y="-133" href="#star" />
-  <use x="-312" y="-163" href="#star" />
-  <use x="-204" y="-283" href="#star" />
-  <use x="-214" y="-271" href="#star" />
+  <use x="-21" y="-82" xlink:href="#star" />
+  <use x="-13" y="-202" xlink:href="#star" />
+  <use x="-35" y="-171" xlink:href="#star" />
+  <use x="-45" y="-21" xlink:href="#star" />
+  <use x="-72" y="-93" xlink:href="#star" />
+  <use x="-57" y="-237" xlink:href="#star" />
+  <use x="-51" y="-300" xlink:href="#star" />
+  <use x="-62" y="-325" xlink:href="#star" />
+  <use x="-220" y="249" xlink:href="#star" />
+  <use x="-150" y="262" xlink:href="#star" />
+  <use x="-334" y="82" xlink:href="#star" />
+  <use x="-312" y="124" xlink:href="#star" />
+  <use x="-347" y="-50" xlink:href="#star" />
+  <use x="-340" y="-72" xlink:href="#star" />
+  <use x="-309" y="-133" xlink:href="#star" />
+  <use x="-312" y="-163" xlink:href="#star" />
+  <use x="-204" y="-283" xlink:href="#star" />
+  <use x="-214" y="-271" xlink:href="#star" />
 
-  <use x="302" y="124" href="#star" />
-  <use x="304" y="152" href="#star" />
-  <use x="347" y="-23" href="#star" />
-  <use x="299" y="-173" href="#star" />
-  <use x="338" y="27" href="#star" />
-  <use x="204" y="-283" href="#star" />
-  <use x="184" y="-293" href="#star" />
-  <use x="240" y="256" href="#star" />
-  <use x="210" y="268" href="#star" />
-  <use x="180" y="244" href="#star" />
-  <use x="286" y="184" href="#star" />
-  <use x="110" y="283" href="#star" />
-  <use x="47" y="-316" href="#star" />
-  <use x="27" y="-339" href="#star" />
-  <use x="47" y="-209" href="#star" />
-  <use x="72" y="-94" href="#star" />
-  <use x="51" y="-25" href="#star" />
-  <use x="24" y="-72" href="#star" />
-  <use x="31" y="-153" href="#star" />
-  <use x="9" y="-251" href="#star" />
+  <use x="302" y="124" xlink:href="#star" />
+  <use x="304" y="152" xlink:href="#star" />
+  <use x="347" y="-23" xlink:href="#star" />
+  <use x="299" y="-173" xlink:href="#star" />
+  <use x="338" y="27" xlink:href="#star" />
+  <use x="204" y="-283" xlink:href="#star" />
+  <use x="184" y="-293" xlink:href="#star" />
+  <use x="240" y="256" xlink:href="#star" />
+  <use x="210" y="268" xlink:href="#star" />
+  <use x="180" y="244" xlink:href="#star" />
+  <use x="286" y="184" xlink:href="#star" />
+  <use x="110" y="283" xlink:href="#star" />
+  <use x="47" y="-316" xlink:href="#star" />
+  <use x="27" y="-339" xlink:href="#star" />
+  <use x="47" y="-209" xlink:href="#star" />
+  <use x="72" y="-94" xlink:href="#star" />
+  <use x="51" y="-25" xlink:href="#star" />
+  <use x="24" y="-72" xlink:href="#star" />
+  <use x="31" y="-153" xlink:href="#star" />
+  <use x="9" y="-251" xlink:href="#star" />
   <path fill="#456" d="
     M -368 0
     a 368 368 0 0 1  736 0
@@ -82,19 +82,30 @@
     Z
   " />
 
-  <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="8" word-spacing="32">
-    <textPath href="#circleCW" text-anchor="middle" startOffset="25%">
-       AUXILIO EX SUPRA 
+  <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="8" word-spacing="30">
+    <textPath xlink:href="#circleCW" text-anchor="middle" startOffset="25%">
+       EX SUPRA
+    </textPath>
+  </text>
+  <text fill="#bcd" font-size="100" style="font-family: varino;" font-weight="bold" letter-spacing="0" word-spacing="38">
+    <textPath xlink:href="#circleCW" text-anchor="start" startOffset="0%">
+       &#x2665; &#x2660;
+    </textPath>
+  </text>
+  <text fill="#bcd" font-size="100" style="font-family: varino;" font-weight="bold" letter-spacing="0" word-spacing="38">
+    <textPath xlink:href="#circleCW" text-anchor="end" startOffset="50%">
+       &#x2663; &#x2666;
     </textPath>
   </text>
 
-  <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="16" word-spacing="48">
-    <textPath href="#circleCCW" text-anchor="middle" startOffset="25%">
-      EOS ANGELS
+  <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="16" word-spacing="44">
+    <textPath xlink:href="#circleCCW" text-anchor="middle" startOffset="25%">
+      EOS WILDCARDS
     </textPath>
   </text>
 
-  <path id="asterisk" fill="#bcd" transform="rotate(75) translate(0 410)" d="
+<!--
+  <path id="asterisk" fill="#bcd" transform="rotate(105) translate(0 410)" d="
     M -25 -2
     Q -3 -3 -2 -25
     C -2 -28 2 -28 2 -25
@@ -106,7 +117,8 @@
     C -28 2 -28 -2 -25 -2
     Z
   " />
-  <use href="#asterisk" transform="rotate(-150)" />
+  <use xlink:href="#asterisk" transform="rotate(-210)" />
+-->
 
   <path id="center" fill="#fff" d="
     M 0 -30
@@ -183,8 +195,8 @@
     Z
   " />
 
-  <use href="#trailOuter" fill="#33c" transform="scale(-1 1)" />
-  <use href="#trailInner" fill="#383" transform="scale(-1 1)" />
+  <use xlink:href="#trailOuter" fill="#33c" transform="scale(-1 1)" />
+  <use xlink:href="#trailInner" fill="#383" transform="scale(-1 1)" />
 
   <g id="wings" fill="#bcd">
     <path id="root" d="
@@ -253,6 +265,6 @@
     " />
   </g>
 
-  <use href="#wings" transform="scale(-1 1)" />
+  <use xlink:href="#wings" transform="scale(-1 1)" />
 
 </svg>
