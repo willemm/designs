@@ -61,10 +61,10 @@
   <use x="24" y="-72" xlink:href="#star" />
   <use x="31" y="-153" xlink:href="#star" />
   <use x="9" y="-251" xlink:href="#star" />
-  <path fill="#567" d="
-    M -370 0
-    a 370 370 0 0 1  740 0
-    a 370 370 0 0 1 -740 0
+  <path fill="#456" d="
+    M -368 0
+    a 368 368 0 0 1  736 0
+    a 368 368 0 0 1 -736 0
     Z
     M -450 0
     a 450 450 0 0 0  900 0
@@ -72,9 +72,19 @@
     Z
   " />
 
-  <text fill="#bcd" font-size="84" font-family="varino,black marker,chopsic,pasti,arial" font-weight="bold" y="-7" letter-spacing="5" word-spacing="30">
+  <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="8" word-spacing="30">
     <textPath xlink:href="#circleCW" text-anchor="middle" startOffset="25%">
-       EX SUPRA 
+       EX SUPRA
+    </textPath>
+  </text>
+  <text fill="#bcd" font-size="100" style="font-family: varino;" font-weight="bold" letter-spacing="0" word-spacing="38">
+    <textPath xlink:href="#circleCW" text-anchor="start" startOffset="0%">
+       &#x2665; &#x2660;
+    </textPath>
+  </text>
+  <text fill="#bcd" font-size="100" style="font-family: varino;" font-weight="bold" letter-spacing="0" word-spacing="38">
+    <textPath xlink:href="#circleCW" text-anchor="end" startOffset="50%">
+       &#x2663; &#x2666;
     </textPath>
   </text>
 
@@ -83,33 +93,6 @@
       EOS WILDCARDS
     </textPath>
   </text>
-
-  <text fill="#bcd" font-size="100" style="font-family: arial;" font-weight="bold" letter-spacing="0" word-spacing="38">
-    <textPath xlink:href="#circleCW" text-anchor="start" startOffset="0%">
-       &#x2665; &#x2660;
-    </textPath>
-  </text>
-  <text fill="#bcd" font-size="100" style="font-family: arial;" font-weight="bold" letter-spacing="0" word-spacing="38">
-    <textPath xlink:href="#circleCW" text-anchor="end" startOffset="50%">
-       &#x2663; &#x2666;
-    </textPath>
-  </text>
-
-<!--
-  <path id="asterisk" fill="#bcd" transform="rotate(75) translate(0 410)" d="
-    M -25 -2
-    Q -3 -3 -2 -25
-    C -2 -28 2 -28 2 -25
-    Q  3 -3 25 -2
-    C 28 -2 28 2 25 2
-    Q  3  3 2 25
-    C  2  28 -2 28 -2 25
-    Q -3  3 -25 2
-    C -28 2 -28 -2 -25 -2
-    Z
-  " />
-  <use xlink:href="#asterisk" transform="rotate(-150)" />
--->
 
   <path id="center" fill="#fff" d="
     M 0 -30
