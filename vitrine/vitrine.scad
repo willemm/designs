@@ -9,29 +9,64 @@ conn_thick = 3;    // Connector thickness
 conn_width = 20;  // Connector width
 conn_depth = 23;  // Connector depth
 
-if (doitem == "corner_outside") { edgeconnector_outside(); }
-if (doitem == "corner_inside")  { edgeconnector_inside(); }
+if (doitem == "corner_outside") { edgeconnector_outside_corner(); }
+if (doitem == "corner_inside")  { edgeconnector_inside_corner(); }
+if (doitem == "edge_inside")    { edgeconnector_inside(); }
+if (doitem == "corner_hinge")   { edgeconnector_outside_hinge(); }
 
 
 if (doitem == "") {
-    color("#8a5") edgeconnector_outside();
+    color("#8a5") edgeconnector_outside_hinge();
     color("#58a") edgeconnector_inside();
 
-    *color("#99a4") acryl_plates();
+    color("#8a5") rotate([0,-90,-90]) hingeconnector_outside();
+    color("#58a") rotate([0,-90,-90]) hingeconnector_inside();
+
+    color("#99a4") acryl_plates();
 }
 
-module acryl_plates(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
-        ct = conn_thick, cw = conn_width, tol=0.1)
+module hingeconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
 {
     cof = ct/s2+1+tol;
-    echo(cof);
-    zof = at+tt;
-    *translate([-tt,-cof,0]) rotate([0,0,180]) cube([at, ah, aw]);
-    *mirror([1,1,0]) rotate([0,0,180]) translate([tt,ct/s2+1+tol,0]) cube([at, ah, aw]);
+    xi = cof-0.5-tol;
+    xo = xi-ct;
+    yi = -0.5;
+    yo = yi+0.5+tt+at;
+    ict = ct-1;
+    translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=cw+0.5, convexity=5) {
+        polygon([
+            [xi,yi], [xi,yo], [cd,yo], [cd,yo+ct],
+            [xo,yo+ct], [xo, yi-ict], [cd, yi-ict],
+            [cd, tt-tol], [cd-1, tt-tol], [cd-1, yi]
+        ]);
+    }
+    translate([0,0,cof-ct]) rotate([0,0,90]) linear_extrude(height=ct-0.5, convexity=5) {
+        polygon([
+            [xo,yo+ct], [cd,yo+ct], [cd,yi-ict], [xo,yi-ict]
+        ]);
+    }
+}
 
-    translate([cof,cof,-zof]) cube([aw, ah, at]);
-    mirror([1,0,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
-    mirror([0,1,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
+module hingeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    xi = cof-0.5;
+    xo = xi-ct;
+    yi = -0.5;
+    yo = tt+at-tol;
+    ict = ct-1;
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon([
+            [xi,yi], [xi, yo], [xi+0.5, yo], [xi+0.5,0], [cd-1,0], [cd-1,yi]
+        ]);
+    }
+    translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=0.5, convexity=5) {
+        polygon([
+            [xi,yi], [xi, yo], [cd-1,yo], [cd-1,yi]
+        ]);
+    }
 }
 
 module edgeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
@@ -41,9 +76,25 @@ module edgeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
     translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
         polygon(mirxy(edgecon_in_poly(cd, ct, at, tt)));
     }
+    inside_nubs(ct, cw);
+}
+
+module edgeconnector_inside_corner(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon(mirxy(edgecon_in_poly(cd, ct, at, tt)));
+    }
     translate([0,0,-tt]) rotate([0,0,90]) linear_extrude(height=cof+tt, convexity=5) {
         polygon(mirxy(edgecon_in_bot(cd, ct, at, tt)));
     }
+    inside_nubs(ct, cw);
+}
+
+module inside_nubs(ct, cw, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
     cx = ct/s2+ct*3-tol-nub;
     cy = ct+nub;
     translate([cx, cy, cw+cof-nub/sqrt(2)-nub/2-0.1]) rotate([135,0,-45])
@@ -54,6 +105,37 @@ module edgeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
 
 module edgeconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width,
         cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon(mirxy(edgecon_out_innie(cd, ct, at, tt)));
+    }
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon(mirxy(edgecon_out_poly(cd, ct, at, tt)));
+    }
+    outside_nubs(ct, cw);
+}
+
+module edgeconnector_outside_hinge(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon(mirxy(edgecon_out_innie(cd, ct, at, tt)));
+    }
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon(mirxy(edgecon_out_poly(cd, ct, at, tt)));
+    }
+    *translate([0,0,-tt]) rotate([0,0,90]) linear_extrude(height=tt+cof, convexity=5) {
+        polygon(mirxy(edgecon_out_bot(cd, ct, at, tt)));
+    }
+    outside_nubs(ct, cw);
+}
+
+module edgeconnector_outside_corner(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, tol=0.1)
 {
     cof = ct/s2+1+tol;
 
@@ -100,6 +182,12 @@ module edgeconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width,
         translate([cutln/2-at-tt-ct,-at-tt-ct,-at-tt-ct]) rotate([45,0,0]) cube([cutln+0.01,cutsz,cutsz], true);
         translate([-at-tt-ct,cutln/2-at-tt-ct,-at-tt-ct]) rotate([0,45,0]) cube([cutsz,cutln+0.01,cutsz], true);
     }
+    outside_nubs(ct, cw);
+}
+
+module outside_nubs(ct, cw, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
     cx = ct/s2+ct*3-tol/2-nub;
     cy = ct+nub+tol/2;
     ns = nub-0.2;
@@ -176,3 +264,18 @@ function edgecon_out_bot(cd, ct, at, tt, tol=0.1) = (
 );
 
 function mirxy(ar) = concat(ar, [for (i=[len(ar)-1:-1:0]) [-ar[i].y, -ar[i].x]]);
+
+module acryl_plates(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+        ct = conn_thick, cw = conn_width, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    echo(cof);
+    zof = at+tt;
+    *translate([-tt,-cof,0]) rotate([0,0,180]) cube([at, ah, aw]);
+    *mirror([1,1,0]) rotate([0,0,180]) translate([tt,ct/s2+1+tol,0]) cube([at, ah, aw]);
+
+    translate([cof,cof,-zof]) cube([aw, ah, at]);
+    mirror([1,0,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
+    mirror([0,1,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
+}
+
