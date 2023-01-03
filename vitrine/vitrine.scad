@@ -20,11 +20,11 @@ if (doitem == "hinge_outside")  { rotate([180,0,0]) hingeconnector_outside(); }
 
 
 if (doitem == "") {
-    *color("#8a5") edgeconnector_outside_hinge();
+    color("#8a5") edgeconnector_outside_hinge();
     color("#58a") edgeconnector_inside();
 
-    *color("#8a5") rotate([0,-90,-90]) hingeconnector_outside();
-    *color("#58a") rotate([0,-90,-90]) hingeconnector_inside();
+    color("#8a5") rotate([0,-90,-90]) hingeconnector_outside();
+    color("#58a") rotate([0,-90,-90]) hingeconnector_inside();
 
     *color("#bcd") rotate([0,-90,-90]) translate([-2,-2,0]) cylinder(40, 3, 3, $fn=48);
     *color("#ee5") rotate([0,-90,-90]) translate([-2,-2,0]) {
@@ -79,7 +79,7 @@ module hingeconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width
             translate([-cmid,xo,cof-tpt-0.01]) cylinder(tpt-1, 3, 3, $fn=cp);
         }
     }
-    translate([0,cd-1,cw+cof]) rotate([0,90,0]) linear_extrude(height=0.5) polygon([
+    translate([-0.0,cd-1,cw+cof]) rotate([0,90,0]) linear_extrude(height=tt+0.0) polygon([
         [3,0],[0,-3],[0,0]
     ]);
 }
@@ -100,7 +100,7 @@ module hingeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
             ]);
         }
         translate([-0.01,cd-1,cw+cof]) rotate([0,90,0]) linear_extrude(height=0.52) polygon([
-            [3.2,0.1],[-0.1,-3.2],[-0.1,0.1]
+            [3.4,0.1],[-0.1,-3.4],[-0.1,0.1]
         ]);
     }
     translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=0.5, convexity=5) {
