@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-450 -450 900 900" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <path id="circleCW" fill="black" stroke="#bcd" style="stroke-width:15" d="
-      M -377 0 
-      a 377 377 0 0 1  754 0
-      a 377 377 0 0 1 -754 0
+      M 0  377
+      a 377 377 0 0 1  0 -754
+      a 377 377 0 0 1  0  754
       Z
     " />
     <path id="circleCCW" fill="black" stroke="#bcd" style="stroke-width:15" d="
-      M -438 0 
-      a 438 438 0 0 0  876 0
-      a 438 438 0 0 0 -876 0
+      M 0 -438 
+      a 438 438 0 0 0  0  876
+      a 438 438 0 0 0  0 -876
       Z
     " />
     <path id="star" fill="#fff" d="
@@ -73,24 +73,24 @@
   " />
 
   <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="8" word-spacing="30">
-    <textPath xlink:href="#circleCW" text-anchor="middle" startOffset="25%">
-       EX SUPRA
+    <textPath xlink:href="#circleCW" text-anchor="middle" startOffset="50%">
+      EOS WILDCARDS
     </textPath>
   </text>
   <text fill="#bcd" font-size="100" style="font-family: varino;" font-weight="bold" letter-spacing="0" word-spacing="38">
-    <textPath xlink:href="#circleCW" text-anchor="start" startOffset="0%">
+    <textPath xlink:href="#circleCW" text-anchor="end" startOffset="25%">
        &#x2665; &#x2660;
     </textPath>
   </text>
   <text fill="#bcd" font-size="100" style="font-family: varino;" font-weight="bold" letter-spacing="0" word-spacing="38">
-    <textPath xlink:href="#circleCW" text-anchor="end" startOffset="50%">
+    <textPath xlink:href="#circleCW" text-anchor="start" startOffset="75%">
        &#x2663; &#x2666;
     </textPath>
   </text>
 
   <text fill="#bcd" font-size="84" style="font-family: varino;" font-weight="bold" letter-spacing="16" word-spacing="44">
-    <textPath xlink:href="#circleCCW" text-anchor="middle" startOffset="25%">
-      EOS WILDCARDS
+    <textPath xlink:href="#circleCCW" text-anchor="middle" startOffset="50%">
+      EX SUPRA
     </textPath>
   </text>
 
@@ -200,68 +200,102 @@
   <use xlink:href="#trailOuter" fill="#33c" transform="scale(-1 1)" />
   <use xlink:href="#trailInner" fill="#383" transform="scale(-1 1)" />
 
-  <g id="wings" fill="#bcd">
-    <path id="root" d="
-      M -85 140
-      C 0 0 -180 -40 -90 -130
-      C -90 -135 -90 -135 -100 -132
-      C -188 -90 -75 40 -95 100
-      C -105 120 -100 140 -85 140
+<!--
+  <g id="wings" fill="#bcd" transform="translate(-10 20)">
+
+    <path id="wingtop" d="
+      M -262 -227
+      L -210 -270
+      L -160 -125
       Z
     " />
 
-    <path d="
+    <path id="wingspan1" d="
+      M -55 70
+      L -30 20
+      L -270 -220
+      L -255 -130
+      Z
+    " />
+
+    <path id="wingspan2" d="
+      M -85 130
+      L -60 80
+      L -252 -112
+      L -237  -22
+      Z
+    " />
+
+    <path id="wingbot" d="
+      M -90 140
+      L -160 70
+      L -120 200
+      Z
+    " />
+  </g>
+  -->
+
+  <g id="wings" fill="#bcd">
+    <path id="root" d="
+      M -65 100
+      C -90 -60 -150 -50 -90 -130
+      C -90 -135 -90 -135 -100 -132
+      C -188 -90 -75 40 -83 136
+      Z
+    " />
+
+    <path id="wingtop1" d="
       M -120 -125
       C -40 -150 -140 -280 -100 -320
       C -200 -300 -110 -180 -120 -125
       Z
     " />
 
-    <path d="
+    <path id="wingtop2" d="
       M -140 -80
       C -100 -170 -200 -200 -170 -280
       C -250 -230 -180 -150 -140 -80
       Z
     " />
 
-    <path d="
+    <path id="wingside1" d="
       M -120 5
-      C -150 -170 -250 -120 -230 -220
+      C -150 -170 -250 -130 -230 -220
       C -300 -100 -220 -150 -120 5
       Z
     " />
 
-    <path d="
+    <path id="wingside2" d="
       M -100 60
       C -145 -90 -300 -80 -280 -150
       C -350 -20 -120 -10 -100 60
       Z
     " />
 
-    <path d="
-      M -105 120
-      C -60 -30 -300 35 -315 -70
-      C -370 80 -120 40 -105 120
+    <path id="wingside3" d="
+      M -90 125
+      C -80 -40 -300 35 -315 -70
+      C -370 80 -120 40 -90 125
       Z
     " />
 
-    <path d="
-      M -100 135
-      C -120 75 -270 75 -300 40
-      C -300 150 -120 150 -100 135
+    <path id="wingbot1" d="
+      M -90 140
+      C -100 50 -270 95 -300 40
+      C -300 150 -120 130 -90 140
       Z
     " />
 
-    <path d="
-      M -85 145
-      C -120 135 -180 170 -260 130
-      C -200 250 -120 170 -85 145
+    <path id="wingbot2" d="
+      M -90 145
+      C -180 125 -180 170 -260 130
+      C -200 250 -120 150 -90 145
       Z
     " />
 
-    <path d="
-      M -85 150
-      C -120 185 -180 220 -210 200
+    <path id="wingbot3" d="
+      M -85 147
+      C -140 170 -160 220 -210 200
       C -170 250 -80 220 -85 150
       Z
     " />
