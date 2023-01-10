@@ -20,11 +20,14 @@ if (doitem == "hinge_outside")  { rotate([180,0,0]) hingeconnector_outside(); }
 
 
 if (doitem == "") {
-    color("#8a5") edgeconnector_outside_hinge();
-    color("#58a") edgeconnector_inside();
+    *color("#8a5") edgeconnector_outside_corner();
+    *color("#58a") edgeconnector_inside_corner();
 
-    color("#8a5") rotate([0,-90,-90]) hingeconnector_outside();
-    color("#58a") rotate([0,-90,-90]) hingeconnector_inside();
+    *color("#8a5") edgeconnector_outside_hinge();
+    *color("#58a") edgeconnector_inside();
+
+    *color("#8a5") rotate([0,-90,-90]) hingeconnector_outside();
+    *color("#58a") rotate([0,-90,-90]) hingeconnector_inside();
 
     *color("#bcd") rotate([0,-90,-90]) translate([-2,-2,0]) cylinder(40, 3, 3, $fn=48);
     *color("#ee5") rotate([0,-90,-90]) translate([-2,-2,0]) {
@@ -32,15 +35,83 @@ if (doitem == "") {
         translate([0,0,6]) cylinder(1.8, 5, 5, $fn=48);
     }
 
-    *color("#99a4") acryl_plates();
+    color("#8a5") rotate([0,-90,-90]) magnetconnector_outside();
+    color("#58a") rotate([0,-90,-90]) magnetconnector_inside();
+
+    color("#8a5") rotate([0,0,0]) magnetconnector_outside();
+
+    color("#99a4") acryl_plates();
 }
+
+module magnetconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1, cp=48)
+{
+    cof = ct/s2+1+tol;
+    xi = cof+tol;
+    xo = cof-1-tol;
+    yi = 0.5;
+    yo = at+tt+tol;
+    ict = ct-1-tol;
+    bev = 2.5;
+
+    difference() {
+        union() {
+            translate([0,0,cof-1]) rotate([0,0,90]) linear_extrude(height=cw+2, convexity=5) {
+                polygon([
+                    [xo,yo+1], [xi+cw,yo+1], [xi+cw,yo], [xi+cw+1,yo],
+                    [xi+cw+1,yo+ct], [xo-ict+bev,yo+ct], [xo-ict, yo+ct-bev],
+                    [xo-ict,yi-ct+bev], [xo-ict+bev,yi-ct], [xi+cw+1,yi-ct],
+                    [xi+cw+1,yi], [xi,yi], [xi,yi-1], [xo,yi-1]
+                ]);
+            }
+            translate([0,0,cof-ct]) rotate([0,0,90]) linear_extrude(height=ct-0.7, convexity=5) {
+                polygon([
+                    [xi+cw+1,yo+ct], [xo-ict+bev,yo+ct], [xo-ict, yo+ct-bev],
+                    [xo-ict,yi-ct+bev], [xo-ict+bev,yi-ct], [xi+cw+1,yi-ct],
+                ]);
+            }
+        }
+        cutsz = bev*sqrt(2);
+        cutln = at+ct+ct+tt;
+        cutwd = cw+at+ct;
+        translate([cutln/2-at-tt-ct,cof-ct,cof-ct]) rotate([45,0,0]) cube([cutln+0.01,cutsz,cutsz+0.01], true);
+        translate([-at-tt-ct-tol,cutwd/2-ct/2,cof-ct]) rotate([0,45,0]) cube([cutsz+0.01,cutwd+0.01,cutsz], true);
+        translate([ct-tt,cutwd/2-ct/2,cof-ct]) rotate([0,-45,0]) cube([cutsz+0.01,cutwd+0.01,cutsz], true);
+    }
+}
+
+module magnetconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    xi = cof;
+    xo = xi-ct;
+    yi = tt+at+tt+0.5;
+    yo = tt+tol;
+    difference() {
+        translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=cd-cof+0.5, convexity=5) {
+            polygon([
+                [xi-nub,yi], [xi-nub, yo-1], [xi, yo-1], [xi,yi-0.5], [cd,yi-0.5], [cd,yi]
+            ]);
+        }
+        translate([-yi-0.01,cd,cd]) rotate([0,90,0]) linear_extrude(height=0.52) polygon([
+            [3.4,0.1],[-0.1,-3.4],[-0.1,0.1]
+        ]);
+    }
+    translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=0.5, convexity=5) {
+        polygon([
+            [xi-nub,yi], [xi-nub, yo], [cd,yo], [cd,yi]
+        ]);
+    }
+}
+
 
 module hingeconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width,
         cd = conn_depth, tt = tape_thick, nub=1, tol=0.1, cp=48)
 {
     cof = ct/s2+1+tol;
-    xi = cof-0.5-tol;
-    xo = xi-ct + (hinge_type==2 ? -1 : hinge_type==3 ? ct+1 : ct);
+    xi = cof-1-tol;
+    xo = xi-ct + (hinge_type==2 ? -1 : hinge_type==3 ? ct+1 : ct+0.5);
     yi = -0.5;
     yo = yi+0.5+tt+at;
     ict = 1.5;
@@ -55,7 +126,7 @@ module hingeconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width
             translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=cw+0.5, convexity=5) {
                 polygon(concat([
                     //[xo, yi-ict], [xo,yo+ct],
-                    [cd,yo+ct], [cd,yo], [xi,yo], [xi,yi],
+                    [cd,yo+ct], [cd,yo], [xi+1+tol*2,yo], [xi+1+tol*2,yo+1], [xi,yo+1], [xi,yi],
                     [cd-1, yi], [cd-1, tt-tol], [cd, tt-tol], [cd, yi-ict],
                 ], [for (an=[0:360/cp:180]) [xo+sin(an)*crad, cmid+cos(an)*crad]]
                 ));
@@ -88,15 +159,15 @@ module hingeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
         cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
 {
     cof = ct/s2+1+tol;
-    xi = cof-0.5;
+    xi = cof;
     xo = xi-ct;
     yi = -0.5;
     yo = tt+at-tol;
     ict = ct-1;
     difference() {
-        translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=cw+0.5, convexity=5) {
             polygon([
-                [xi,yi], [xi, yo], [xi+0.5, yo], [xi+0.5,0], [cd-1,0], [cd-1,yi]
+                [xi-nub,yi], [xi-nub, yo+1], [xi, yo+1], [xi,0], [cd-1.2,0], [cd-1.2,yi]
             ]);
         }
         translate([-0.01,cd-1,cw+cof]) rotate([0,90,0]) linear_extrude(height=0.52) polygon([
@@ -105,7 +176,7 @@ module hingeconnector_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
     }
     translate([0,0,cof-0.5]) rotate([0,0,90]) linear_extrude(height=0.5, convexity=5) {
         polygon([
-            [xi,yi], [xi, yo], [cd-1,yo], [cd-1,yi]
+            [xi-nub,yi], [xi-nub, yo], [cd-1.2,yo], [cd-1.2,yi]
         ]);
     }
 }
