@@ -48,9 +48,55 @@ if (doitem == "") {
     *#color("#8a5") mirror([1,-1,0]) rotate([0,-90,-90]) magnetconnector_outside();
 
     color("#8a5") translate([0,0,100]) edgeholder_plug();
+    color("#8a57") translate([0,0,100+0.1]) render(convexity=6) edgeholder_cap();
+    *color("#8a57") translate([0,0,100+0.1]) edgeholder_cap();
 
-    color("#454") translate([0,0,100]) barrelplug();
+    *color("#454") translate([0,0,100]) barrelplug();
     color("#99a4") acryl_plates();
+}
+
+module edgeholder_cap(at = acryl_thick, ct = conn_thick, cd = 7, cw = 15, tt=tape_thick,
+                co=5, od=9, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    xi = cof+tol;
+    xo = cof-1-tol;
+    yi = 0;
+    xe = ct*2*sqrt(2);
+    ys = cw/2+xo+1;
+    hw = 2.6;
+    xs = cw+xo;
+    tw = xs+ct;
+    ht = tw-1;
+
+    translate([0,0,cw]) difference() {
+        intersection() {
+            rotate([0,0,90]) linear_extrude(height=tw+0.01, convexity=5) {
+                polygon(mirxy(plugcon_out_poly(cd, ct, at, tt, co, od)));
+            }
+            rotate([0,-90,-45]) translate([0,0,-ys]) linear_extrude(height=ys*2, convexity=5) {
+                polygon(concat([[xs+ct,xe], [xs+ct,ct]],
+                    //[[xs+ct+4,ct],[2,-xs]],
+                    [for (an=[0:2:90]) [2+cos(an)*(xs+ct-2), ct+sin(an)*(-ct-xs+0.9)]],
+                [[-0.001,-xs+0.9], [-0.001,xe]]));
+            }
+        }
+        rotate([0,-90,-45]) translate([0,0,-hw]) linear_extrude(height=hw*2, convexity=5) {
+            polygon([[ht,xe], [ht,-xs+5+(ht)], [-0.01,-xs+5-0.01],
+                [-0.01,-3-0.01], [5,-3+5], [5,xe]]);
+        }
+        difference() {
+            translate([-co,-co,-0.01]) cylinder(1.21, 7.9, 7.9, $fn=48);
+            translate([-co,-co,-0.02]) cylinder(1.23, 6.9, 6.9, $fn=48);
+        }
+        /*
+        translate([-co,-co,ct]) cylinder(cw-ct+0.01, 7, 7, $fn=48);
+        translate([-co,-co,-0.01]) rotate([0,0,45]) intersection() {
+            cylinder(ct+0.02, 4, 4, $fn=48);
+            translate([0,0,4]) cube([6.6, 8.1, 8.1], true);
+        }
+        */
+    }
 }
 
 module edgeholder_plug(at = acryl_thick, ct = conn_thick, cd = 7, cw = 15, tt=tape_thick,
@@ -66,9 +112,10 @@ module edgeholder_plug(at = acryl_thick, ct = conn_thick, cd = 7, cw = 15, tt=ta
             translate([0,0,0]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
                 polygon(mirxy(plugcon_out_poly(cd, ct, at, tt, co, od)));
             }
+            translate([-co,-co,cw]) cylinder(1, 7.8, 7.8, $fn=48);
         }
-        translate([-co,-co,ct]) cylinder(cw-ct+0.01, 7, 7, $fn=48);
-        translate([-co,-co,-0.01]) rotate([0,0,45]) intersection() {
+        translate([-co,-co,ct]) cylinder(cw-ct+1+0.01, 7, 7, $fn=48);
+        translate([-co,-co,-0.01]) rotate([0,0,-45]) intersection() {
             cylinder(ct+0.02, 4, 4, $fn=48);
             translate([0,0,4]) cube([6.6, 8.1, 8.1], true);
         }
@@ -76,7 +123,7 @@ module edgeholder_plug(at = acryl_thick, ct = conn_thick, cd = 7, cw = 15, tt=ta
 
 }
 module barrelplug(co=5) {
-    translate([-co,-co,0]) rotate([0,0,45]) {
+    translate([-co,-co,0]) rotate([0,0,-45]) {
         translate([0,0,-4]) cylinder(4, 5, 5, $fn=48);
         translate([0,0,0]) intersection() {
             cylinder(8, 3.8, 3.8, $fn=48);
@@ -94,7 +141,7 @@ function plugcon_out_poly(cd, ct, at, tt, co, od, tol=0.1) = (
         ,xi = ct/s2+1
         ,xo = cd
         )
-    concat([ [xi, yi+tt-ct], [xo,yi+tt-ct], [xo,yi+tt], [xi, yi+tt], [xi, ym], [xo, ym], [xo, yo] ],
+    concat([ [xi, yi+tt-ct], [xo,yi+tt-ct], [xo,yi+tt], [xi, yi+tt], [xi, ym], [xo, ym], [xo, yo-1] ],
         [for (an=[135:5:225]) [-co+od*sin(an), co-od*cos(an)]])
 );
 
