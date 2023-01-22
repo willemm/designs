@@ -39,16 +39,65 @@ if (doitem == "") {
 
     *#color("#58a") translate([0,0,-4]) mirror([0,0,1]) rotate([0,-90,-90]) hingeconnector_inside();
 
-    color("#8a5") rotate([0,-90,-90]) magnetconnector_outside();
-    color("#58a") rotate([0,-90,-90]) magnetconnector_inside();
+    *color("#8a5") rotate([0,-90,-90]) magnetconnector_outside();
+    *color("#58a") rotate([0,-90,-90]) magnetconnector_inside();
 
-    color("#8a5") rotate([0,0,0]) magnetconnector_outside();
-    color("#8a5") rotate([90,0,90]) magnetconnector_outside();
+    *color("#8a5") rotate([0,0,0]) magnetconnector_outside();
+    *color("#8a5") rotate([90,0,90]) magnetconnector_outside();
 
     *#color("#8a5") mirror([1,-1,0]) rotate([0,-90,-90]) magnetconnector_outside();
 
-    *color("#99a4") acryl_plates();
+    color("#8a5") translate([0,0,100]) edgeholder_plug();
+
+    color("#454") translate([0,0,100]) barrelplug();
+    color("#99a4") acryl_plates();
 }
+
+module edgeholder_plug(at = acryl_thick, ct = conn_thick, cd = 7, cw = 15, tt=tape_thick,
+                co=5, od=9, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    xi = cof+tol;
+    xo = cof-1-tol;
+    yi = 0;
+
+    difference() {
+        union() {
+            translate([0,0,0]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+                polygon(mirxy(plugcon_out_poly(cd, ct, at, tt, co, od)));
+            }
+        }
+        translate([-co,-co,ct]) cylinder(cw-ct+0.01, 7, 7, $fn=48);
+        translate([-co,-co,-0.01]) rotate([0,0,45]) intersection() {
+            cylinder(ct+0.02, 4, 4, $fn=48);
+            translate([0,0,4]) cube([6.6, 8.1, 8.1], true);
+        }
+    }
+
+}
+module barrelplug(co=5) {
+    translate([-co,-co,0]) rotate([0,0,45]) {
+        translate([0,0,-4]) cylinder(4, 5, 5, $fn=48);
+        translate([0,0,0]) intersection() {
+            cylinder(8, 3.8, 3.8, $fn=48);
+            translate([0,0,4]) cube([6.5, 8, 8.1], true);
+        }
+        translate([-1.1, 2.4, 8]) cube([2.2, 0.4, 6]);
+        translate([-1.1,-2.4, 8]) cube([2.2, 0.4, 4.5]);
+    }
+}
+
+function plugcon_out_poly(cd, ct, at, tt, co, od, tol=0.1) = (
+    let (yi = 0
+        ,ym = at+tt
+        ,yo = ym+ct
+        ,xi = ct/s2+1
+        ,xo = cd
+        )
+    concat([ [xi, yi+tt-ct], [xo,yi+tt-ct], [xo,yi+tt], [xi, yi+tt], [xi, ym], [xo, ym], [xo, yo] ],
+        [for (an=[135:5:225]) [-co+od*sin(an), co-od*cos(an)]])
+);
+
 
 module magnetconnector_outside(at = acryl_thick, ct = conn_thick, cw = conn_width,
         cd = conn_depth, tt = tape_thick, nub=1, tol=0.1, cp=48)
