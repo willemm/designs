@@ -19,6 +19,8 @@ if (doitem == "hinge_inside")   { rotate([0,90,0]) hingeconnector_inside(); }
 if (doitem == "hinge_outside")  { rotate([180,0,0]) hingeconnector_outside(); }
 if (doitem == "magnet_inside")   { rotate([0,-90,-90]) magnetconnector_inside(); }
 if (doitem == "magnet_outside")  { rotate([180,0,0]) magnetconnector_outside(); }
+if (doitem == "plug_holder")  { edgeholder_plug(); }
+if (doitem == "plug_cap")  { edgeholder_cap(); }
 
 
 if (doitem == "") {
@@ -47,12 +49,31 @@ if (doitem == "") {
 
     *#color("#8a5") mirror([1,-1,0]) rotate([0,-90,-90]) magnetconnector_outside();
 
-    color("#8a5") translate([0,0,100]) edgeholder_plug();
-    color("#8a57") translate([0,0,100+0.1]) render(convexity=6) edgeholder_cap();
+    *color("#8a5") translate([0,0,100]) edgeholder_plug();
+    *color("#8a57") translate([0,0,100+0.1]) render(convexity=6) edgeholder_cap();
     *color("#8a57") translate([0,0,100+0.1]) edgeholder_cap();
 
-    *color("#454") translate([0,0,100]) barrelplug();
+    color("#454") translate([0,0,23]) mirror([0,0,1]) barrelplug();
+
+    *color("#8a5") edgeconnector_outside_corner();
+    color("#58a") edgeconnector_inside_plug();
     color("#99a4") acryl_plates();
+}
+
+module edgeconnector_inside_plug(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    translate([0,0,cof]) rotate([0,0,90]) linear_extrude(height=cw, convexity=5) {
+        polygon(mirxy(edgecon_in_poly(cd, ct, at, tt)));
+    }
+    translate([0,0,-tt]) rotate([0,0,90]) linear_extrude(height=cof+tt, convexity=5) {
+        polygon(mirxy(edgecon_in_bot(cd, ct, at, tt)));
+    }
+    translate([0,0,cof+cw-3]) rotate([0,0,90]) linear_extrude(height=3, convexity=5) {
+        polygon(mirxy(edgecon_in_plug_poly(cd, ct, at, tt)));
+    }
+    inside_nubs(ct, cw);
 }
 
 module edgeholder_cap(at = acryl_thick, ct = conn_thick, cd = 7, cw = 15, tt=tape_thick,
@@ -449,6 +470,22 @@ module outside_nubs(ct, cw, nub=1, tol=0.1)
     translate([cy, cx, cw+cof-nub/sqrt(2)]) rotate([90,0,-45])
         translate([-nub+0.3,0,0]) rotate([0,0,45]) cylinder(ns/sqrt(2), ns, 0, $fn=4);
 }
+
+function edgecon_in_plug_poly(cd, ct, at, tt, nub=1, tol=0.1) = (
+    let (yi = 0
+        ,ym = at
+        ,yo = ym+ct
+        ,xi = ct/s2
+        ,xo = cd
+        ,ro = 5
+        )
+    concat(
+        [ for (an=[130:-5:0]) [ -ro+7*cos(an), +ro+7*sin(an) ] ],
+        [ [xi+tol-1, yi+at+tt-tol], [xi+tol-1, yi+1], [xi+tol+1, yi+tt]
+        , [xi+tol+1, yi+at+tt-tol] ],
+        [ for (an=[0:5:130]) [ -ro+10*cos(an), +ro+10*sin(an) ] ]
+        )
+);
 
 function edgecon_in_poly(cd, ct, at, tt, nub=1, tol=0.1) = (
     let (yi = 0
