@@ -2,7 +2,68 @@
 *color("#777") conn12v();
 *color("#999") translate([0,0,5]) connnut();
 
-rotate([180,0,0]) connbox();
+*rotate([180,0,0]) connbox();
+
+*color("#bbb") psu();
+*color("#bbe") translate([-82,-10,0]) cube([20,20,20]);
+
+rotate([180,0,0]) psubox();
+
+module psubox()
+{
+    len = 190;
+    cw = 5.5;
+    ch = 3.5;
+    hof = 6;
+    difference() {
+        union() {
+            translate([-len/2, -50/2, 25]) cube([len, 50, 2]);
+            translate([-len/2, -50/2, 0]) cube([len, 2, 25]);
+            translate([-len/2, 50/2-2, 0]) cube([len, 2, 25]);
+            translate([-len/2, -50/2, 0]) cube([3, 50, 25]);
+            translate([len/2-3, -50/2, 0]) cube([3, 50, 25]);
+            for (x=[0,1]) mirror([x,0,0])
+            translate([-len/2, 0, 0]) linear_extrude(height=26, convexity=5) polygon(concat(
+                [[0, hof], [0, -hof]],
+                [for (an=[-90:5:90]) [ hof+hof*cos(an), hof*sin(an)]]
+            ));
+        }
+        *#translate([-len/2-0.01, -10, ch/2]) rotate([0,90,0]) cylinder(3.02, 3.5/2, 3.5/2, $fn=48);
+        for (x=[0,1], y=[0,1]) mirror([x,0,0]) mirror([0,y,0])
+        translate([-len/2-0.01, -10, 0]) rotate([0,90,0])
+            linear_extrude(height=3.02, convexity=4) polygon(concat(
+                //[[-ch/2, -cw/2], [0.01, -cw/2], [0.01, cw/2], [-ch/2, cw/2]],
+                [[0.01, -cw/2], [0.01, cw/2]],
+                [for (an=[-90:5:0]) [ -ch/2-cos(an)*ch/2,  (cw-ch)/2-sin(an)*ch/2]],
+                [for (an=[ 0:5: 90]) [ -ch/2-cos(an)*ch/2, -(cw-ch)/2-sin(an)*ch/2]]
+            ));
+
+        for (x=[0,1]) mirror([x,0,0]) {
+            translate([-len/2+hof, 0, -0.01]) cylinder(4.02, 1.6, 1.6, $fn=48);
+            translate([-len/2+hof, 0, 4]) cylinder(23.01, 3.2, 3.2, $fn=48);
+        }
+        hlen = 130;
+        xst = 7;
+        zst = xst/sqrt(3);
+        for (y=[0,1]) mirror([0,y,0]) {
+            for (x=[0:hlen*2/xst+1], z=[(x%2!=0?zst:zst*1.5):zst:22]) {
+                translate([x*(xst/2)-hlen/2-1.5, -50/2+2.01, z]) rotate([90,0,0]) cylinder(2.02, 1, 1, $fn=12);
+            }
+        }
+    }
+    for (x=[0,1], y=[0,1]) mirror([x,0,0]) mirror([0,y,0]) {
+        translate([-len/2+2, -11-cw/2, ch-0.6]) cube([1, cw+2, 1]);
+        translate([-48, -50/2, 0]) cube([1.5, 4, 25]);
+    }
+    for (x=[0,1]) mirror([x,0,0]) {
+        #translate([-len/2+hof, 0, 3.7]) cylinder(0.3, 1.8, 1.8, $fn=48);
+    }
+}
+
+module psu()
+{
+    translate([-123/2, -41/2, 0]) cube([123, 41, 20]);
+}
 
 module conn12v()
 {
