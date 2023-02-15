@@ -53,11 +53,58 @@ if (doitem == "") {
     *color("#8a57") translate([0,0,100+0.1]) render(convexity=6) edgeholder_cap();
     *color("#8a57") translate([0,0,100+0.1]) edgeholder_cap();
 
-    color("#454") translate([0,0,23]) mirror([0,0,1]) barrelplug();
+    *color("#454") translate([0,0,23]) mirror([0,0,1]) barrelplug();
 
     *color("#8a5") edgeconnector_outside_corner();
-    color("#58a") edgeconnector_inside_plug();
-    color("#99a4") acryl_plates();
+    *color("#58a") edgeconnector_inside_plug();
+
+    color("#8a5") translate([0,0,0]) ledpanel_holder();
+
+
+    ledpanel();
+    color("#7c94") acryl_plates();
+}
+
+module ledpanel_holder(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+        ct = conn_thick, cw = conn_width, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    rw = 295;
+    pw = 242;
+    zof = 5;
+    xof = cof+(300-295)/2;
+    ridge = 25;
+    over = 2;
+    ridgepoly = [
+        [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
+        [zof+ct, -at-tt-ct], [-cof-cw, -at-tt-ct], [-cof-cw, -at-tt], [-cof+tol, -at-tt],
+        [-cof+tol, 0], [-cof-cw, 0], [-cof-cw-tt, -tt], [zof-13-ridge-tt+1, -tt],
+        [zof-13-ridge-tt+1, 1-tt], [zof-13-1, ridge-1], [zof-13, ridge-1], [zof-13, xof-tol] ] ;
+    rotate([0,90,0]) linear_extrude(height=aw+cof*2, convexity=5) polygon(ridgepoly);
+    mirror([-1,1,0]) rotate([0,90,0]) linear_extrude(height=aw+cof*2, convexity=5) polygon(ridgepoly);
+}
+
+module ledpanel(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+        ct = conn_thick, cw = conn_width, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    rw = 295;
+    pw = 242;
+    zof = 5;
+    translate([cof, cof, -zof]) {
+        color("#eee") translate([aw/2, aw/2, 0]) linear_extrude(height=12.5, convexity=5) {
+            polygon([[-rw/2,-rw/2], [rw/2, -rw/2], [rw/2, rw/2], [-rw/2, rw/2],
+                     [-pw/2,-pw/2], [pw/2, -pw/2], [pw/2, pw/2], [-pw/2, pw/2]],
+                    [[0,1,2,3],[4,5,6,7]]);
+        }
+        color("#ddd") translate([aw/2, aw/2, 0]) linear_extrude(height=11, convexity=5) {
+            square(pw, true);
+        }
+        color("#333") translate([20, 51, 0]) {
+            translate([0,0,-8]) cylinder(8, 5, 7, $fn=24);
+            translate([0,0,-16]) cylinder(16, 3, 3, $fn=24);
+        }
+    }
 }
 
 module edgeconnector_inside_plug(at = acryl_thick, ct = conn_thick, cw = conn_width,
@@ -564,7 +611,7 @@ module acryl_plates(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
     *translate([-tt,-cof,0]) rotate([0,0,180]) cube([at, ah, aw]);
     *mirror([1,1,0]) rotate([0,0,180]) translate([tt,ct/s2+1+tol,0]) cube([at, ah, aw]);
 
-    translate([cof,cof,-zof]) cube([aw, ah, at]);
+    *translate([cof,cof,-zof]) cube([aw, ah, at]);
     mirror([1,0,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
     mirror([0,1,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
 }
