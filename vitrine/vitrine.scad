@@ -9,6 +9,8 @@ conn_thick = 3;    // Connector thickness
 conn_width = 20;  // Connector width
 conn_depth = 23;  // Connector depth
 
+sideoff = 300+6/s2+2.2;
+
 hinge_type = 1;
 
 if (doitem == "corner_outside") { edgeconnector_outside_corner(); }
@@ -58,14 +60,16 @@ if (doitem == "") {
     *color("#8a5") edgeconnector_outside_corner();
     *color("#58a") edgeconnector_inside_plug();
 
-    color("#8a5") translate([0,0,0]) ledpanel_holder();
+    color("#cb5") translate([0,0,0]) ledpanel_holder_back();
+    color("#5ac") translate([0,sideoff,0]) mirror([0,1,0]) ledpanel_holder_back();
+    *color("#5ac") translate([sideoff,0,0]) mirror([1,0,0]) ledpanel_holder_front();
+    color("#cb5") translate([sideoff,sideoff,0]) rotate([0,0,180]) ledpanel_holder_front();
 
-
-    ledpanel();
+    *ledpanel();
     color("#7c94") acryl_plates();
 }
 
-module ledpanel_holder(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+module ledpanel_holder_front(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
         ct = conn_thick, cw = conn_width, tol=0.1)
 {
     cof = ct/s2+1+tol;
@@ -75,13 +79,66 @@ module ledpanel_holder(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
     xof = cof+(300-295)/2;
     ridge = 25;
     over = 2;
+    sidelen = (aw+cof*2)/2;
+    outs = -at-tt-ct;
+
+    ledpanel_holder_side(aw, ah, at, tt, ct, cw, zof, tol);
+    difference() {
+        mirror([-1,1,0]) rotate([0,90,0]) linear_extrude(height=sidelen, convexity=5) polygon([
+            [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
+            [zof+ct, 0], [zof-13-ct, 0], [zof-13-ct, ridge-1],
+            [zof-13, ridge-1], [zof-13, xof-tol]
+        ]);
+        translate([2, aw/2+cof-21, 1-12/2]) cube([5.5-4,21.01,12]);
+    }
+
+    translate([0,0,-zof-ct]) linear_extrude(height=zof+ct+cof+cw) polygon([
+        [0, outs], [0, cof-tol],
+        [cof-tol, 0], [cof-tol, outs]
+    ]);
+}
+
+module ledpanel_holder_back(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+        ct = conn_thick, cw = conn_width, tol=0.1)
+{
+    zof = 5;
+    outs = -at-tt-ct;
+    cof = ct/s2+1+tol;
+
+    ledpanel_holder_side(aw, ah, at, tt, ct, cw, zof, tol);
+    mirror([-1,1,0]) ledpanel_holder_side(aw, ah, at, tt, ct, cw, zof, tol);
+
+    translate([0,0,-zof-ct]) linear_extrude(height=zof+ct+cof+cw) polygon([
+        [0, outs], [outs, 0], [outs, cof-tol], [0, cof-tol],
+        [cof-tol, 0], [cof-tol, outs]
+    ]);
+    translate([0,0,cof+cw]) linear_extrude(height=9.4) polygon([
+        [0, 0], [cof-tol, -tt], [0, -tt], [-tt, 0], [-tt, cof-tol]
+    ]);
+}
+
+module ledpanel_holder_side(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+        ct = conn_thick, cw = conn_width, zof = 5, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    rw = 295;
+    pw = 242;
+    xof = cof+(300-295)/2;
+    ridge = 25;
+    over = 2;
+    sidelen = (aw+cof*2)/2;
+    outs = -at-tt-ct;
     ridgepoly = [
         [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
-        [zof+ct, -at-tt-ct], [-cof-cw, -at-tt-ct], [-cof-cw, -at-tt], [-cof+tol, -at-tt],
+        [zof+ct, outs], [-cof-cw, outs], [-cof-cw, -at-tt], [-cof+tol, -at-tt],
         [-cof+tol, 0], [-cof-cw, 0], [-cof-cw-tt, -tt], [zof-13-ridge-tt+1, -tt],
         [zof-13-ridge-tt+1, 1-tt], [zof-13-1, ridge-1], [zof-13, ridge-1], [zof-13, xof-tol] ] ;
-    rotate([0,90,0]) linear_extrude(height=aw+cof*2, convexity=5) polygon(ridgepoly);
-    mirror([-1,1,0]) rotate([0,90,0]) linear_extrude(height=aw+cof*2, convexity=5) polygon(ridgepoly);
+
+    difference() {
+        rotate([0,90,0]) linear_extrude(height=sidelen, convexity=5) polygon(ridgepoly);
+        translate([aw/2+cof-21, 12, 12]) rotate([45,0,0]) cube([21.01,3,10]);
+        translate([aw/2+cof-21, 12, 12]) rotate([-45,0,0]) translate([5, -5, 2]) cylinder(6, 1.6, 1.6, $fn=48);
+    }
 }
 
 module ledpanel(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
@@ -600,9 +657,6 @@ function edgecon_out_bot(cd, ct, at, tt, tol=0.1) = (
     [[0,yo+tt],[xo,yo+tt],[xo,yi-xi-1-tol]]
 );
 
-function swapxy(ar) = [for (i=[len(ar)-1:-1:0]) [-ar[i].y, -ar[i].x]];
-function mirxy(ar) = concat(ar, swapxy(ar));
-
 module acryl_plates(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
         ct = conn_thick, cw = conn_width, tol=0.1)
 {
@@ -616,3 +670,10 @@ module acryl_plates(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
     mirror([0,1,-1]) translate([cof,cof,-zof]) cube([aw, ah, at]);
 }
 
+function swapxy(ar) = [for (i=[len(ar)-1:-1:0]) [-ar[i].y, -ar[i].x]];
+function mirxy(ar) = concat(ar, swapxy(ar));
+
+// Rotate around a given point
+module crotate(ang, point) {
+    translate(point) rotate(ang) translate(-point) children();
+}
