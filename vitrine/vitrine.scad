@@ -60,12 +60,17 @@ if (doitem == "") {
     *color("#8a5") edgeconnector_outside_corner();
     *color("#58a") edgeconnector_inside_plug();
 
-    color("#cb5") translate([0,0,0]) ledpanel_holder_back();
-    color("#5ac") translate([0,sideoff,0]) mirror([0,1,0]) ledpanel_holder_back();
+    *color("#cb5") translate([0,0,0]) ledpanel_holder_back();
+    *color("#5ac") translate([0,sideoff,0]) mirror([0,1,0]) ledpanel_holder_back();
     *color("#5ac") translate([sideoff,0,0]) mirror([1,0,0]) ledpanel_holder_front();
-    color("#cb5") translate([sideoff,sideoff,0]) rotate([0,0,180]) ledpanel_holder_front();
+    *color("#cb5") translate([sideoff,sideoff,0]) rotate([0,0,180]) ledpanel_holder_front();
+    color("#5ac") ledpanel_holder_front();
 
-    *ledpanel();
+    *color("#8a5") magnetconnector_outside();
+    *color("#8a55") hingeconnector_outside();
+    *color("#8a5") rotate([90,0,90]) edgeconnector_outside_hinge();
+
+    ledpanel();
     color("#7c94") acryl_plates();
 }
 
@@ -82,20 +87,25 @@ module ledpanel_holder_front(aw = 300, ah = 300, at = acryl_thick, tt = tape_thi
     sidelen = (aw+cof*2)/2;
     outs = -at-tt-ct;
 
-    ledpanel_holder_side(aw, ah, at, tt, ct, cw, zof, tol);
     difference() {
-        mirror([-1,1,0]) rotate([0,90,0]) linear_extrude(height=sidelen, convexity=5) polygon([
-            [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
-            [zof+ct, 0], [zof-13-ct, 0], [zof-13-ct, ridge-1],
-            [zof-13, ridge-1], [zof-13, xof-tol]
-        ]);
-        translate([2, aw/2+cof-21, 1-12/2]) cube([5.5-4,21.01,12]);
-    }
+        union() {
+            translate([2,0,0]) ledpanel_holder_side(aw-4, ah, at, tt, ct, cw, zof, tol);
+            mirror([-1,1,0]) rotate([0,90,0]) translate([0,0,5])
+                linear_extrude(height=sidelen-5, convexity=5) polygon([
+                    [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
+                    [zof+ct, 0], [zof-13-ct, 0], [zof-13-ct, ridge-1],
+                    [zof-13, ridge-1], [zof-13, xof-tol]
+                ]);
 
-    translate([0,0,-zof-ct]) linear_extrude(height=zof+ct+cof+cw) polygon([
-        [0, outs], [0, cof-tol],
-        [cof-tol, 0], [cof-tol, outs]
-    ]);
+            translate([0,0,2]) linear_extrude(height=cof+cw-2) polygon([
+                [0, outs], [0, cof-tol],
+                [cof-tol, 0], [cof-tol, outs]
+            ]);
+            rotate([90,0,90]) outside_hinge_thing(xh=1.5);
+        }
+        translate([2, aw/2+cof-21, 1-12/2]) cube([5.5-4,21.01,12]);
+        translate([-0.01, -7, 1]) cube([2.01, 31, 35]);
+    }
 }
 
 module ledpanel_holder_back(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
@@ -129,8 +139,8 @@ module ledpanel_holder_side(aw = 300, ah = 300, at = acryl_thick, tt = tape_thic
     sidelen = (aw+cof*2)/2;
     outs = -at-tt-ct;
     ridgepoly = [
-        [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
-        [zof+ct, outs], [-cof-cw, outs], [-cof-cw, -at-tt], [-cof+tol, -at-tt],
+        [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over], [zof+ct, outs+8],
+        [zof+ct-8, outs], [-cof-cw, outs], [-cof-cw, -at-tt], [-cof+tol, -at-tt],
         [-cof+tol, 0], [-cof-cw, 0], [-cof-cw-tt, -tt], [zof-13-ridge-tt+1, -tt],
         [zof-13-ridge-tt+1, 1-tt], [zof-13-1, ridge-1], [zof-13, ridge-1], [zof-13, xof-tol] ] ;
 
@@ -483,20 +493,28 @@ module edgeconnector_outside_hinge(at = acryl_thick, ct = conn_thick, cw = conn_
     translate([0,0,-tp+cof]) rotate([0,0,90]) linear_extrude(height=tp, convexity=5) {
         polygon(mirxy(edgecon_out_bot(cd, ct, at, tt)));
     }
+    outside_nubs(ct, cw);
+    outside_hinge_thing(at, ct, cw, cd, tt, tp, ht, nub, tol);
+}
+
+module outside_hinge_thing(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, tp=1, ht=8.6, nub=1, tol=0.1, xh=0)
+{
+    cof = ct/s2+1+tol;
     difference() {
         translate([0,0,-tp+cof-ht]) rotate([0,0,90]) linear_extrude(height=ht, convexity=5) {
             yi = 0;
             ym = at;
-            yo = ym+ct;
+            yo = ym+ct+xh;
             xi = ct/s2;
             xo = cd;
-            polygon([[-yo-tt,0],[-yo-tt,-xo],[1,-xo], [1,2], [-4.5,2]]);
+            polygon([[-yo-tt,6-yo],[-yo-tt,-xo],[1,-xo], [1,2], [-4.5,2]]);
         }
         translate([2.8,-8, -1.6]) rotate([-90,90,0]) difference() {
             cube([8, 8, 10]);
             translate([0,0,-0.01]) cylinder(10.02, 5, 5, $fn=48);
         }
-        translate([11,-6.5,-6.5]) rotate([0,90,0]) rotate([0,0,45]) cube([3, 3, 26], true);
+        translate([11,-7.5,-5.5]) rotate([0,90,0]) rotate([0,0,45]) cube([6, 3, 26], true);
 
         xi = cof-0.5-tol;
         xo = xi-ct + (hinge_type==2 ? -1 : hinge_type==3 ? ct+1 : ct);
@@ -509,7 +527,6 @@ module edgeconnector_outside_hinge(at = acryl_thick, ct = conn_thick, cw = conn_
         rotate([-90,0,0]) translate([xo,cmid,cof-tpt-5]) cylinder(5.01, 2.7, 2.7, $fn=48);
 
     }
-    outside_nubs(ct, cw);
 }
 
 module edgeconnector_outside_corner(at = acryl_thick, ct = conn_thick, cw = conn_width,
