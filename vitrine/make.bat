@@ -11,3 +11,4 @@ openscad -D doitem=\"panelholder_hinge\"  -o vt-panelholder_hinge.stl  vitrine.s
 openscad -D doitem=\"panelholder_magnet\" -o vt-panelholder_magnet.stl vitrine.scad
 openscad -D doitem=\"panelholder_rgb\"    -o vt-panelholder_rgb.stl    vitrine.scad
 openscad -D doitem=\"panelholder_cap\"    -o vt-panelholder_cap.stl    vitrine.scad
+openscad -D doitem=\"panelholder_inside\" -o vt-panelholder_inside.stl vitrine.scad

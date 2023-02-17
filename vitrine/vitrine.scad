@@ -1,4 +1,4 @@
-doitem = "";
+doitem = "panelholder_inside";
 
 s2 = 1.5;  // Very round to get nice even sizes
 
@@ -26,6 +26,7 @@ if (doitem == "panelholder_hinge")  { mirror([1,0,0]) ledpanel_holder_hinge(); }
 if (doitem == "panelholder_magnet") { ledpanel_holder_magnet(); }
 if (doitem == "panelholder_rgb")    { ledpanel_holder_rgb(); }
 if (doitem == "panelholder_cap")    { rotate([90,0,0]) ledpanel_holder_cap(); }
+if (doitem == "panelholder_inside") { rotate([-90,0,0]) ledpanel_holder_inside(); }
 if (doitem == "plug_holder")        { edgeholder_plug(); }
 if (doitem == "plug_cap")           { edgeholder_cap(); }
 
@@ -72,7 +73,9 @@ if (doitem == "") {
     *color("#5ac") ledpanel_holder_hinge();
     *color("#5ac") ledpanel_holder_magnet();
 
-    color("#a93") translate([0,0,0]) ledpanel_holder_cap();
+    color("#58a") rotate([0,0,0]) ledpanel_holder_inside();
+
+    *color("#a93") translate([0,0,0]) ledpanel_holder_cap();
 
     *color("#8a5") magnetconnector_outside();
     *color("#8a55") hingeconnector_outside();
@@ -81,8 +84,28 @@ if (doitem == "") {
     *color("#8a5") translate([130.1,0,0]) rotate([90,0,90]) magnetconnector_outside();
 
     *ledpanel();
-    rgbcontroller();
-    *color("#7c94") acryl_plates();
+    *rgbcontroller();
+    color("#7c94") acryl_plates();
+}
+
+module ledpanel_holder_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
+        cd = conn_depth, tt = tape_thick, nub=1, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    xi = cof;
+    xo = xi-ct;
+    yi = tt+at+tt+0.5;
+    yo = tt+tol;
+    difference() {
+        translate([cof,0,0]) rotate([0,90,0]) linear_extrude(height=149.5, convexity=5) {
+            polygon([
+                [-cof,-tt+0.2], [-cof-cw,-tt+0.2], [-cof-cw, 0.5], [-cof+1, 0.5],
+                [-cof+1, -tt-at], [-cof, -tt-at]
+            ]);
+        }
+        translate([cof-0.01, -tt-0.01, cof]) cube([cd+0.01,tt+0.01,cw+0.01]);
+        translate([cof+149.5-cd, -tt-0.01, cof]) cube([cd+0.01,tt+0.01,cw+0.01]);
+    }
 }
 
 module ledpanel_holder_cap()
