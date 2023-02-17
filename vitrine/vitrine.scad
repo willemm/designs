@@ -63,14 +63,14 @@ if (doitem == "") {
     *color("#8a5") edgeconnector_outside_corner();
     *color("#58a") edgeconnector_inside_plug();
 
-    *color("#cb5") translate([0,0,0]) ledpanel_holder_back();
-    *color("#5ac") translate([0,sideoff,0]) mirror([0,1,0]) ledpanel_holder_back();
-    *color("#5ac") translate([sideoff,0,0]) mirror([1,0,0]) ledpanel_holder_hinge();
-    *color("#cb5") translate([sideoff,sideoff,0]) rotate([0,0,180]) ledpanel_holder_magnet();
+    color("#cb5") translate([0,0,0]) ledpanel_holder_back();
+    color("#5ac") translate([0,sideoff,0]) mirror([0,1,0]) ledpanel_holder_back();
+    color("#5ac") translate([sideoff,0,0]) mirror([1,0,0]) ledpanel_holder_hinge();
+    color("#cb5") translate([sideoff,sideoff,0]) rotate([0,0,180]) ledpanel_holder_magnet();
     *color("#5ac") ledpanel_holder_hinge();
-    color("#5ac") ledpanel_holder_magnet();
+    *color("#5ac") ledpanel_holder_magnet();
 
-    color("#8a5") magnetconnector_outside();
+    *color("#8a5") magnetconnector_outside();
     *color("#8a55") hingeconnector_outside();
     *color("#8a5") rotate([90,0,90]) edgeconnector_outside_hinge();
 
@@ -149,7 +149,7 @@ module ledpanel_holder_front(aw = 300, ah = 300, at = acryl_thick, tt = tape_thi
 
     difference() {
         union() {
-            translate([1.5,0,0]) ledpanel_holder_side(aw-3.5, ah, at, tt, ct, cw, zof, tol);
+            translate([1.5,0,0]) ledpanel_holder_side(aw-3.0, ah, at, tt, ct, cw, zof, tol);
             mirror([-1,1,0]) rotate([0,90,0]) translate([0,0,5])
                 linear_extrude(height=sidelen-5, convexity=5) polygon([
                     [zof+tol, xof-tol], [zof+tol, xof+over], [zof+ct, xof+over],
