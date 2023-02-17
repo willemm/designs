@@ -89,7 +89,12 @@ module ledpanel_holder_hinge(aw = 300, ah = 300, at = acryl_thick, tt = tape_thi
         [2, outs], [2, tol],
         [cof-tol, tol], [cof-tol, outs]
     ]);
-    rotate([90,0,90]) outside_hinge_thing(xh=1.5);
+    difference() {
+        rotate([90,0,90]) outside_hinge_thing(xh=1.5, cd=30);
+        translate([0,0,-8.01]) linear_extrude(height=9.02, convexity=5) polygon([
+            [0.01,30.01],[-6.51,30.01],[-6.51,30-6.51]
+        ]);
+    }
 }
 
 module ledpanel_holder_magnet(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
@@ -575,7 +580,7 @@ module outside_hinge_thing(at = acryl_thick, ct = conn_thick, cw = conn_width,
             cube([8, 8, 10]);
             translate([0,0,-0.01]) cylinder(10.02, 5, 5, $fn=48);
         }
-        translate([11,-7.5,-5.5]) rotate([0,90,0]) rotate([0,0,45]) cube([6, 3, 26], true);
+        translate([(cd+3)/2-2,-7.5,-5.5]) rotate([0,90,0]) rotate([0,0,45]) cube([6, 3, cd+3], true);
 
         xi = cof-0.5-tol;
         xo = xi-ct + (hinge_type==2 ? -1 : hinge_type==3 ? ct+1 : ct);
