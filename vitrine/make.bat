@@ -1,0 +1,13 @@
+openscad -D doitem=\"corner_outside\"     -o vt-corner_outside.stl     vitrine.scad
+openscad -D doitem=\"corner_inside\"      -o vt-corner_inside.stl      vitrine.scad
+openscad -D doitem=\"edge_inside\"        -o vt-edge_inside.stl        vitrine.scad
+openscad -D doitem=\"corner_hinge\"       -o vt-corner_hinge.stl       vitrine.scad
+openscad -D doitem=\"hinge_inside\"       -o vt-hinge_inside.stl       vitrine.scad
+openscad -D doitem=\"hinge_outside\"      -o vt-hinge_outside.stl      vitrine.scad
+openscad -D doitem=\"magnet_inside\"      -o vt-magnet_inside.stl      vitrine.scad
+openscad -D doitem=\"magnet_outside\"     -o vt-magnet_outside.stl     vitrine.scad
+openscad -D doitem=\"panelholder_back\"   -o vt-panelholder_back.stl   vitrine.scad
+openscad -D doitem=\"panelholder_hinge\"  -o vt-panelholder_hinge.stl  vitrine.scad
+openscad -D doitem=\"panelholder_magnet\" -o vt-panelholder_magnet.stl vitrine.scad
+openscad -D doitem=\"panelholder_rgb\"    -o vt-panelholder_rgb.stl    vitrine.scad
+openscad -D doitem=\"panelholder_cap\"    -o vt-panelholder_cap.stl    vitrine.scad

@@ -24,6 +24,8 @@ if (doitem == "magnet_outside")     { rotate([180,0,0]) magnetconnector_outside(
 if (doitem == "panelholder_back")   { ledpanel_holder_back(); }
 if (doitem == "panelholder_hinge")  { mirror([1,0,0]) ledpanel_holder_hinge(); }
 if (doitem == "panelholder_magnet") { ledpanel_holder_magnet(); }
+if (doitem == "panelholder_rgb")    { ledpanel_holder_rgb(); }
+if (doitem == "panelholder_cap")    { rotate([90,0,0]) ledpanel_holder_cap(); }
 if (doitem == "plug_holder")        { edgeholder_plug(); }
 if (doitem == "plug_cap")           { edgeholder_cap(); }
 
@@ -63,7 +65,7 @@ if (doitem == "") {
     *color("#8a5") edgeconnector_outside_corner();
     *color("#58a") edgeconnector_inside_plug();
 
-    *color("#cb5") translate([0,0,0]) ledpanel_holder_rgb();
+    color("#cb5") translate([0,0,0]) ledpanel_holder_rgb();
     *color("#5ac") translate([0,sideoff,0]) mirror([0,1,0]) ledpanel_holder_back();
     *color("#5ac") translate([sideoff,0,0]) mirror([1,0,0]) ledpanel_holder_hinge();
     *color("#cb5") translate([sideoff,sideoff,0]) rotate([0,0,180]) ledpanel_holder_magnet();
@@ -95,7 +97,7 @@ module ledpanel_holder_cap()
                     [[-5.5/2, 0.01], [ 5.5/2, 0.01]]
                 ));
             }
-            translate([10,4.01,18]) rotate([90,0,0]) cylinder(4.02, 1.5, 1.5, $fn=48);
+            translate([10,4.01,18]) rotate([90,0,0]) cylinder(4.02, 1.2, 1.2, $fn=48);
         }
         translate([17.5,17.5,25-5.5/2]) rotate([90,0,0]) cylinder(6, 0.5, 0.5, $fn=4);
         translate([15.5,17.5,25+5.5/2]) rotate([90,0,0]) cylinder(6, 0.5, 0.5, $fn=4);
@@ -120,6 +122,7 @@ module ledpanel_holder_rgb(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick
                     [for (an=[  0:5:180]) [10+5*sin(an), 5*cos(an)]],
                     [for (an=[180:5:360]) [-10+5*sin(an), 5*cos(an)]]
                 ));
+            translate([87,4.01,20.2]) rotate([90,0,0]) cylinder(4.02, 1.6, 1.6, $fn=48);
         }
     }
 }
