@@ -1,4 +1,4 @@
-doitem = "panelholder_inside";
+doitem = "";
 
 s2 = 1.5;  // Very round to get nice even sizes
 
@@ -27,6 +27,7 @@ if (doitem == "panelholder_magnet") { ledpanel_holder_magnet(); }
 if (doitem == "panelholder_rgb")    { ledpanel_holder_rgb(); }
 if (doitem == "panelholder_cap")    { rotate([90,0,0]) ledpanel_holder_cap(); }
 if (doitem == "panelholder_inside") { rotate([-90,0,0]) ledpanel_holder_inside(); }
+if (doitem == "panelholder_conn")   { rotate([45,0,0]) ledpanel_holder_connector(); }
 if (doitem == "plug_holder")        { edgeholder_plug(); }
 if (doitem == "plug_cap")           { edgeholder_cap(); }
 
@@ -74,8 +75,9 @@ if (doitem == "") {
     *color("#5ac") ledpanel_holder_magnet();
 
     color("#58a") rotate([0,0,0]) ledpanel_holder_inside();
+    color("#85a") ledpanel_holder_connector();
 
-    *color("#a93") translate([0,0,0]) ledpanel_holder_cap();
+    color("#973") translate([0,0,0]) ledpanel_holder_cap();
 
     *color("#8a5") magnetconnector_outside();
     *color("#8a55") hingeconnector_outside();
@@ -85,7 +87,18 @@ if (doitem == "") {
 
     *ledpanel();
     *rgbcontroller();
-    color("#7c94") acryl_plates();
+    *color("#7c94") acryl_plates();
+}
+
+module ledpanel_holder_connector(aw = 300, ah = 300, at = acryl_thick, tt = tape_thick,
+        ct = conn_thick, cw = conn_width, zof = 5, tol=0.1)
+{
+    cof = ct/s2+1+tol;
+    translate([aw/2+cof-21, 12, 12]) difference() {
+        translate([0.5, 0.2, 0.2]) rotate([45,0,0]) cube([40, 2.6, 9.6]);
+        rotate([-45,0,0]) translate([5, -5, 0]) cylinder(3, 1.2, 1.2, $fn=48);
+        rotate([-45,0,0]) translate([41-5, -5, 0]) cylinder(3, 1.2, 1.2, $fn=48);
+    }
 }
 
 module ledpanel_holder_inside(at = acryl_thick, ct = conn_thick, cw = conn_width,
@@ -110,21 +123,34 @@ module ledpanel_holder_inside(at = acryl_thick, ct = conn_thick, cw = conn_width
 
 module ledpanel_holder_cap()
 {
+    cable = 6;
+    hi = 17;
     translate([115, -24, -5.8]) {
         difference() {
-            cube([20, 17.5, 36]);
+            cube([20, hi, 35.8]);
             translate([-0.01, 4, 3]) cube([15.01, 13.51, 30]);
-            translate([15-0.01,17.5,25]) rotate([0,90,0]) {
+            translate([15-0.01,hi,25]) rotate([0,90,0]) {
                 linear_extrude(height=5.02, convexity=5) polygon(concat(
-                    [ for (an=[90:5:270]) [ sin(an)*5.5/2, -5.5/2+cos(an)*5.5/2 ]],
-                    [[-5.5/2, 0.01], [ 5.5/2, 0.01]]
+                    [ for (an=[90:5:270]) [ sin(an)*cable/2, -cable/2+cos(an)*cable/2 ]],
+                    [[-cable/2, 0.01], [ cable/2, 0.01]]
                 ));
             }
             translate([10,4.01,18]) rotate([90,0,0]) cylinder(4.02, 1.2, 1.2, $fn=48);
         }
-        translate([17.5,17.5,25-5.5/2]) rotate([90,0,0]) cylinder(6, 0.5, 0.5, $fn=4);
-        translate([15.5,17.5,25+5.5/2]) rotate([90,0,0]) cylinder(6, 0.5, 0.5, $fn=4);
-        translate([19.5,17.5,25+5.5/2]) rotate([90,0,0]) cylinder(6, 0.5, 0.5, $fn=4);
+        translate([17.5,17.0,25-cable/2-0.4]) intersection() {
+            rotate([84,0,0]) cylinder(cable+1, 1, 1, $fn=4);
+            translate([-1.0,-cable-1,0]) cube([2.0, cable+1, 1.6]);
+        }
+        translate([15.6,17.0,25+cable/2+0.4]) intersection() {
+            rotate([96,0,0]) cylinder(cable+1, 1, 1, $fn=4);
+            translate([-0.6,-cable-1,-1.6]) cube([1.6, cable+1, 1.6]);
+        }
+        translate([19.4,17.0,25+cable/2+0.4]) intersection() {
+            rotate([96,0,0]) cylinder(cable+1, 1, 1, $fn=4);
+            translate([-1.0,-cable-1,-1.6]) cube([1.6, cable+1, 1.6]);
+        }
+        // translate([15.6,17.0,25+cable/2+0.3]) rotate([95,0,0]) cylinder(cable+1, 1, 1, $fn=4);
+        // translate([19.4,17.0,25+cable/2+0.3]) rotate([95,0,0]) cylinder(cable+1, 1, 1, $fn=4);
     }
 }
 
