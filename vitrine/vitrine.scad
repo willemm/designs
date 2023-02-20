@@ -1,4 +1,4 @@
-doitem = "corner_magnet";
+doitem = "panelholder_conn";
 
 s2 = 1.5;  // Very round to get nice even sizes
 
