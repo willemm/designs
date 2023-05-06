@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chip Programming Puzzle</title>
+    <meta charset="utf-8">
+<style>
+table.prog {
+    border-collapse: collapse;
+}
+table.prog td {
+    width: 30px;
+}
+table.prog td div {
+    margin: 5px auto;
+}
+#positions td div {
+    border: 4px solid black;
+    border-radius: 8px;
+    width: 12px;
+    height: 12px;
+    background-color: #666;
+}
+#positions td.tape div {
+    background-color: #bfb;
+}
+#positions td.tape.show div {
+    background-color: #fff;
+}
+#connectors td div {
+    border: 5px solid green;
+    border-radius: 20px;
+    width: 15px;
+    height: 15px;
+    background-color: #333;
+}
+#tape {
+}
+#tape .cell {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid black;
+    border-radius: 4px;
+    background-color: #fff;
+    margin: 2px 1px;
+}
+#tape .cell_1 {
+    background-color: #0ff;
+}
+#tape .cell_2 {
+    background-color: #f0f;
+}
+#tape .cell_3 {
+    background-color: #ff0;
+}
+.buttons input {
+    margin: 5px 2px;
+}
+
+#slots td > div {
+    border: 3px solid #333;
+    border-radius: 5px;
+    width: 20px;
+    height: 80px;
+    background-color: #333;
+    text-align: center;
+}
+
+#slots td > div > div {
+    width: 20px;
+    height: 80px;
+    padding: 0;
+    margin: 0;
+}
+
+#slots .card_1 div,
+#slots .card_2 div,
+#slots .card_3 div {
+    content: (" ");
+    clip-path: polygon(
+        7px 35px,
+        7px 25px,
+        13px 25px,
+        13px 35px,
+        20px 35px,
+        20px 45px,
+        13px 45px,
+        13px 55px,
+        7px 55px,
+        7px 45px,
+        0px 45px,
+        0px 35px
+    );
+}
+
+#slots .card_4 div,
+#slots .card_5 div,
+#slots .card_6 div,
+#slots .card_7 div {
+    content: (" ");
+    clip-path: polygon(
+        0px 55px,
+        7px 55px,
+        7px 40px,
+        13px 40px,
+        13px 55px,
+        20px 55px,
+        10px 75px
+    );
+    
+}
+
+#slots .card_1 div {
+    background-color: #0ff;
+}
+#slots .card_2 div {
+    background-color: #f0f;
+}
+#slots .card_3 div {
+    background-color: #ff0;
+}
+#slots .card_4 div {
+    background-color: #fff;
+}
+#slots .card_5 div {
+    background-color: #0ff;
+}
+#slots .card_6 div {
+    background-color: #f0f;
+}
+#slots .card_7 div {
+    background-color: #ff0;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+var cols = 32
+var tapelen = 32
+
+var slots = []
+
+$(init)
+
+function init()
+{
+    for (var c = 0; c < cols; c++) {
+        slots.push({
+            card: 0,
+            conns: [],
+            tape: null,
+            newtape: null
+        })
+    }
+    var html = [[],[],[]]
+    for (var s = 0; s < slots.length; s++) {
+        html[0].push('<td><div></div></td>')
+        html[1].push('<td><div class="slot" myslotidx="'+s+'"><div></div></div></td>')
+        html[2].push('<td><div></div></td>')
+    }
+    $('#positions').html(html[0].join(''))
+    $('#slots').html(html[1].join(''))
+    $('#connectors').html(html[2].join(''))
+    html = []
+    for (var t = 0; t < tapelen; t++) {
+        html.push('<div class="cell"></div>')
+    }
+    $('#tape').html(html.join(''))
+
+    $('#stepone').click(clickstepone)
+    $('#insert').click(clickinsert)
+
+    $('#slots').on('click', 'div.slot', clickslot)
+}
+
+function clickslot(e)
+{
+    console.log(this)
+    var slotidx = parseInt($(this).attr('myslotidx'))
+    var slot = slots[slotidx]
+    slot.card = (slot.card + 1) % 8
+    this.className = "slot card_"+slot.card
+}
+
+function clickstepone(e)
+{
+    stepone()
+    e.stopPropagation()
+    return false
+}
+
+function clickinsert(e)
+{
+    newtape()
+    e.stopPropagation()
+    return false
+}
+
+function newtape()
+{
+    var tape = {
+        content: [1,2,1,2,1],
+        show: true
+    }
+    slots[0].newtape = tape
+}
+
+function stepone()
+{
+    for (var s = 0; s < slots.length; s++) {
+        var slot = slots[s]
+        if (slot.tape != null) {
+            if (slot.tape.error) {
+                console.log("Eating error tape")
+                continue
+            }
+            var tape = slot.tape
+            var tgts = [s+1]
+            if (slot.card < 4) {
+                // Write color
+                if (slot.card > 0) {
+                    if (tape.content.length < 32) {
+                        tape.content.push(slot.card)
+                    } else {
+                        console.log("Tape overflow")
+                    }
+                }
+            } else {
+                var dobranch = true
+                if (slot.card > 4) {
+                    // Read color
+                    var color = tape.content.shift()
+                    if (color != (slot.card-4)) {
+                        dobranch = false
+                    }
+                }
+                if (dobranch) {
+                    tgts = slot.conns
+                }
+            }
+            if (tgts.length == 0) {
+                console.log("Tape disappear?")
+            }
+            for (t = 0; t < tgts.length; t++) {
+                var ns = tgts[t]
+                if (ns < slots.length) {
+                    if (slots[ns].newtape != null) {
+                        console.log("Tape clash")
+                        slots[ns].newtape.error = "clash"
+                    } else {
+                        slots[ns].newtape = tape
+                    }
+                } else {
+                    tapecheck(tape)
+                }
+            }
+        }
+    }
+    var poss = $('#positions td')
+    for (var s = 0; s < slots.length; s++) {
+        var slot = slots[s]
+        if (slot.newtape) {
+            slot.tape = slot.newtape
+            if (slot.tape.show) {
+                showtape(slot.tape)
+                poss[s].className = "tape show"
+            } else {
+                poss[s].className = "tape"
+            }
+        } else {
+            slot.tape = null
+            poss[s].className = ""
+        }
+        slot.newtape = null
+    }
+}
+
+function tapecheck(tape)
+{
+    console.log("TODO check", tape)
+}
+
+function showtape(tape)
+{
+    var tapecells = $('#tape div.cell')
+    for (t = 0; t < tapecells.length; t++) {
+        if (tape.content[t]) {
+            tapecells[t].className = "cell cell_"+tape.content[t]
+        } else {
+            tapecells[t].className = "cell"
+        }
+    }
+}
+
+</script>
+</head>
+<body>
+    <div class="buttons">
+        <input type="button" id="stepone" value="step one">
+        <input type="button" id="insert" value="insert">
+        <div id="tape"></div>
+    </div>
+    <table class="prog">
+        <tr id="positions"/>
+        <tr id="slots"/>
+        <tr id="connectors"/>
+    </table>
+</body>
+</html>
