@@ -1,6 +1,6 @@
 doitem = "";
 board_thick = 5;
-hole_offset = 16;
+hole_offset = 17;
 post_hole = 15;
 
 if (doitem == "outside_corner") { outside_corner(); } 
@@ -46,6 +46,8 @@ module outside_corner()
         translate([0, hoff, top-10]) rotate([0,90,0]) {
             translate([0, 0, -thi-0.01]) cylinder(thi+0.02, srad, srad, $fn=30);
         }
+        translate([0,0,0]) rotate([45,90,0]) translate([0,0,-bev*2.5])
+            linear_extrude(height=bev*5) polygon([ [0.01,bev], [0.01-bev,0], [0.01,0] ]);
     }
 }
 
@@ -56,27 +58,28 @@ module inside_corner()
     wid = 25;
     holer = post_hole/2+0.1;
     srad = 4/2;
-    hrad = 7/2;
+    hrad = 8/2;
     hoff = hole_offset;
     
     difference() {
-        linear_extrude(convexity=5, height=top) difference() { polygon([
-                [wid+bth, bth], [bth, bth], [bth, wid+bth],
-                [bth+wid-12, wid+bth], [wid+bth, bth+wid-12]
-            ]);
-            translate([hoff, hoff]) circle(holer, $fn=30);
+        linear_extrude(convexity=5, height=top) difference() {
+            polygon(concat(
+                [ [wid+bth, bth], [bth, bth], [bth, wid+bth] ],
+                [ for (an=[0:3:90]) [hoff+sin(an)*(wid+bth-hoff), hoff+cos(an)*(wid+bth-hoff)] ]
+            ));
+            translate([hoff, hoff]) circle(holer, $fn=60);
         }
         translate([hoff, 0, top/2]) rotate([-90,0,0]) {
             translate([0, 0, bth-0.01]) cylinder(wid/2-holer, srad, srad, $fn=30);
             translate([0, 0, bth+2]) cylinder(wid/2-holer-1, hrad, hrad, $fn=30);
 
-            translate([0, 0, bth+wid/2+holer-1]) cylinder(wid/2-holer+1.01, hrad, hrad, $fn=30);
+            translate([0, 0, bth+wid/2+holer-3]) cylinder(wid/2-holer+3.01, hrad, hrad, $fn=30);
         }
         translate([0, hoff, top/2]) rotate([0,90,0]) {
             translate([0, 0, bth-0.01]) cylinder(wid/2-holer, srad, srad, $fn=30);
             translate([0, 0, bth+2]) cylinder(wid/2-holer-1, hrad, hrad, $fn=30);
 
-            translate([0, 0, bth+wid/2+holer-1]) cylinder(wid/2-holer+1.01, hrad, hrad, $fn=30);
+            translate([0, 0, bth+wid/2+holer-3]) cylinder(wid/2-holer+3.01, hrad, hrad, $fn=30);
         }
     }
 }
