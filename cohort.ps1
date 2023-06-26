@@ -49,12 +49,15 @@ function crown($step=0, $angle=10, $outangle=10, $inradius=$sunradius+$edge, $ra
 function crowns($angle=$inangle, $outangle=$outangle, $num=$numrays, $color=$suncol)
 {
   $cnt = 1
+  @(
   foreach ($st in (-$num .. $num)) {
-    '<path id="crown$cnt" fill="{0}" d="' -f $color
-    crown -step ($st*2) -angle $angle -outangle $outangle
-    '" />'
+      '  <path id="crown{0}" fill="{1}" d="' -f ($cnt,$color)
+      '    '+((crown -step ($st*2) -angle $angle -outangle $outangle) -join "`r`n    ")
+      '  " />'
+      ''
     $cnt += 1
   }
+  ) -join "`r`n"
 }
 
 function star($x, $y, $rado=20, $radi=10, $pts=4)
@@ -63,9 +66,9 @@ function star($x, $y, $rado=20, $radi=10, $pts=4)
     foreach ($st in (0 .. ($pts-1))) {
         $an1 = $st * 2*[math]::pi/$pts
         $an2 = ($st+0.5) * 2*[math]::pi/$pts
-        "$cmd $($x + [math]::sin($an1)*$rado) $($y - [math]::cos($an1)*$rado)"
+        "{0} {1:0.0} {2:0.0}" -f ($cmd, ($x + [math]::sin($an1)*$rado), ($y - [math]::cos($an1)*$rado))
         $cmd = "L"
-        "$cmd $($x + [math]::sin($an2)*$radi) $($y - [math]::cos($an2)*$radi)"
+        "{0} {1:0.0} {2:0.0}" -f ($cmd, ($x + [math]::sin($an2)*$radi), ($y - [math]::cos($an2)*$radi))
     }
     "Z"
 }
@@ -103,11 +106,14 @@ function stars($color = "#fff")
         200, 140
     )
     $ns = $starpos.count/2
+    @(
     foreach ($st in (0 .. ($starpos.count/2-1))) {
-        '<path id="star$st" fill="{0}" d="' -f $color
-        $((star $starpos[$st*2] $starpos[$st*2+1]) -join "`n    ")
-        '" />'
+        '  <path id="star{0}" fill="{1}" d="' -f ($st,$color)
+        '    '+((star $starpos[$st*2] $starpos[$st*2+1]) -join "`r`n    ")
+        '  " />'
+        ''
     }
+    ) -join "`r`n"
 }
 
 if ($html) {
@@ -162,11 +168,11 @@ if ($html) {
   </text>
 
   <path id="planet" fill="#46f" d="
-    $((planet) -join "`n    ")
+    $((planet) -join "`r`n    ")
   " />
 
   <path id="sun" fill="$suncol" d="
-    $((sun) -join "`n    ")
+    $((sun) -join "`r`n    ")
   " />
 
   $(crowns)
