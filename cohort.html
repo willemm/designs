@@ -19,6 +19,7 @@
 Text
 <label for="uppertext">Upper:</label> <input id="uppertext" type="text">
 <label for="lowertext">Lower:</label> <input id="lowertext" type="text">
+<label for="textfont">Font:</label> <input id="textfont" type="text">
 <label for="textcol">Color:</label> <input id="textcol" type="color">
 <label for="bordercol">Border:</label> <input id="bordercol" type="color">
 <br>
@@ -62,11 +63,12 @@ var size = 450
 var circlelower = size - 12
 var circleupper = size - 73
 var border = size - 82
-var bordercol = "#bbccdd"
+var bordercol = "#4466ff"
 
-var textcol = "#334455"
-var uppertext = 'ONGSTRAY ALONAY'
-var lowertext = 'ERSTRONGAY OGETHERTAY'
+var textcol = "#ffffff"
+var uppertext = 'COHORT EOS'
+var lowertext = 'DURIUS MELIUS VELOCIUS FORTIOR'
+var textfont = 'arial'
 
 var planetradius = 60
 var planetoffset = 20
@@ -121,17 +123,18 @@ function draw_svg()
     Z
   " />
 
-  <text fill="${textcol}" font-size="84" style="font-family: arial;" font-weight="bold" letter-spacing="4" word-spacing="30">
+  <text fill="${textcol}" font-size="84" style="font-family: ${textfont};" font-weight="bold" letter-spacing="4" word-spacing="30">
     <textPath xlink:href="#circleCW" text-anchor="middle" startOffset="50%">
       ${uppertext}
     </textPath>
   </text>
-  <text fill="${textcol}" font-size="84" style="font-family: arial;" font-weight="bold" letter-spacing="10" word-spacing="20">
+  <text fill="${textcol}" font-size="84" style="font-family: ${textfont};" font-weight="bold" letter-spacing="4" word-spacing="20">
     <textPath xlink:href="#circleCCW" text-anchor="middle" startOffset="50%">
       ${lowertext}
     </textPath>
   </text>
 ${planet()}
+${numeral()}
 ${sun()}
 ${stars()}
 ${crown()}
@@ -141,6 +144,35 @@ ${crown()}
 
   $('#cohort').html(svg)
   $('#svg_output').text(svg)
+}
+
+function numeral(color=suncolor, radius=planetradius, offset=planetoffset, width=45, height=70, stem=25, serif=15)
+{
+  // Transform xy percentages to scale and across arcs
+  function txy(x, y, o=offset) {
+    return `${x*(radius/100)} ${y*(radius/100)+o}`
+  }
+  var arcserif = txy(600,600,0)
+  var arctop = txy(400,400,0)
+  var arcside = txy(280,280,0)
+  var width2 = width+serif*0.75
+  return `
+    <path fill="${color}" stroke="#000000" style="stroke-width: 3" d="
+      M ${txy( width,-height)}
+      A ${arcserif} 0 0 1 ${txy( width2,-height+serif)}
+      A ${arctop} 0 0 0 ${txy( stem, -height+serif*1.5)}
+      A ${arcside} 0 0 1 ${txy( stem,  height-serif*1.5)}
+      A ${arctop} 0 0 0 ${txy( width2, height-serif)}
+      A ${arcserif} 0 0 1 ${txy( width, height)}
+      A ${arctop} 0 0 0 ${txy(-width, height)}
+      A ${arcserif} 0 0 1 ${txy(-width2, height-serif)}
+      A ${arctop} 0 0 0 ${txy(-stem,  height-serif*1.5)}
+      A ${arcside} 0 0 1 ${txy(-stem, -height+serif*1.5)}
+      A ${arctop} 0 0 0 ${txy(-width2,-height+serif)}
+      A ${arcserif} 0 0 1 ${txy(-width,-height)}
+      A ${arctop} 0 0 0 ${txy( width,-height)}
+      Z
+    " />`
 }
 
 function planet(color=planetcolor, radius=planetradius, offset=planetoffset)
