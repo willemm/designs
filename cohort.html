@@ -77,8 +77,8 @@ var edge = 3
 var sunintersect = sunradius-5
 var suncolor = "#ffffff"
 var sunrays = 7
-var inangle = 10
-var outangle = 15
+var inangle = 130
+var outangle = 195
 var raycolor = "#ffffff"
 
 var starpoints = 4
@@ -174,7 +174,7 @@ function crown(inan=inangle, outan=outangle, inr=sunradius+edge,
 {
   var svg = []
   for (var step = -((sunrays-1)); step <= ((sunrays-1)); step += 2) {
-    svg.push(crownray((sunrays+1)/2, step, inan, outan, inr, outr, sunoffset, color))
+    svg.push(crownray((sunrays+1)/2, step, inan/(rays*2-1), outan/(rays*2-1), inr, outr, sunoffset, color))
   }
   return svg.join("\n")
 }
