@@ -1,38 +1,58 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Cohort</title>
     <meta charset="utf-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width">
-    <script>
-    </script>
+    <style>
+input[type="number"] {
+    width: 3.5em;
+}
+input[type="color"] {
+    width: 2.5em;
+    height: 1.5em;
+}
+    </style>
 </head>
 <body>
 <div id="controls" style="float:right; margin: 20px;">
 <label for="size">Size:</label> <input id="size" type="number">
-<label for="circlelower">Lower:</label> <input id="circlelower" type="number">
-<label for="circleupper">Upper:</label> <input id="circleupper" type="number">
 <label for="border">Border:</label> <input id="border" type="number">
+<label for="borderedge">Edge:</label> <input id="borderedge" type="number">
 <br>
 
-Text
-<label for="uppertext">Upper:</label> <input id="uppertext" type="text">
-<label for="lowertext">Lower:</label> <input id="lowertext" type="text">
-<label for="textfont">Font:</label> <input id="textfont" type="text">
+Font
+<input id="fontuploadurl" type="text">
+<input id="fontupload" type="file">
+<label for="textcircle">Circle:</label> <input id="textcircle" type="number">
 <label for="textcol">Color:</label> <input id="textcol" type="color">
-<label for="bordercol">Border:</label> <input id="bordercol" type="color">
+<label for="bordercol"></label> <input id="bordercol" type="color">
+<br>
+
+Upper
+<label for="uppertext">Text:</label> <input id="uppertext" type="text" style="width: 20em">
+<label for="fontsizeupper">Size:</label> <input id="fontsizeupper" type="number">
+<label for="upperspan">Span:</label> <input id="upperspan" type="number">
+<br>
+
+Lower
+<label for="lowertext">Text:</label> <input id="lowertext" type="text" style="width: 20em">
+<label for="fontsizelower">Size:</label> <input id="fontsizelower" type="number">
+<label for="lowerspan">Span:</label> <input id="lowerspan" type="number">
 <br>
 
 Planet
 <label for="planetradius">Radius:</label> <input id="planetradius" type="number">
 <label for="planetoffset">Offset:</label> <input id="planetoffset" type="number">
+<label for="planetedge">Edge:</label> <input id="planetedge" type="number">
 <label for="planetcolor">Color:</label> <input id="planetcolor" type="color">
 <br>
 
 Sun
 <label for="sunradius">Radius:</label> <input id="sunradius" type="number">
-<label for="edge">Edge:</label> <input id="edge" type="number">
+<label for="sunedge">Edge:</label> <input id="sunedge" type="number">
+<label for="rayedge"></label> <input id="rayedge" type="number">
 <label for="sunintersect">Intersect:</label> <input id="sunintersect" type="number">
 <label for="suncolor">Color:</label> <input id="suncolor" type="color">
 <br>
@@ -49,7 +69,24 @@ Stars
 <label for="starouter">Outer:</label> <input id="starouter" type="number">
 <label for="starinner">Inner:</label> <input id="starinner" type="number">
 <label for="startopangle">Angle:</label> <input id="startopangle" type="number">
+<label for="staroffsetx">Offset:</label> <input id="staroffsetx" type="number">
+<label for="staroffsety"></label> <input id="staroffsety" type="number">
+<label for="starscale">Scale:</label> <input id="starscale" type="number" step="0.1">
 <label for="starcolor">Color:</label> <input id="starcolor" type="color">
+<br>
+<label for="starpositions">Positions:</label> <input id="starpositions" type="text" style="width: 50em">
+<br>
+
+Numeral
+<label for="numeralwidth">Width:</label> <input id="numeralwidth" type="number">
+<label for="numeralheight">Height:</label> <input id="numeralheight" type="number">
+<label for="numeralstem">Stem:</label> <input id="numeralstem" type="number">
+<label for="numeralserif">Serif:</label> <input id="numeralserif" type="number">
+<label for="numeraledge">Edge:</label> <input id="numeraledge" type="number">
+<label for="numeralcol">Color:</label> <input id="numeralcol" type="color">
+<label for="numeraledgecol"></label> <input id="numeraledgecol" type="color">
+<br>
+<button onclick="export_svg()">Export SVG</button>
 <br>
 <textarea id="svg_output" rows="30" cols="100" readonly>
 </textarea>
@@ -58,28 +95,47 @@ Stars
 <div id="cohort"></div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/makerjs@0/target/js/browser.maker.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bezier-js@2/bezier.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@0/dist/opentype.js"></script>
 <script>
+var makerjs = require('makerjs')
+
 var size = 450
-var circlelower = size - 12
-var circleupper = size - 73
-var border = size - 82
-var bordercol = "#4466ff"
+var circlelower = size - 22
+var circleupper = size - 70
+var border = size - 74
+var bordercol = "#0c2079"
+var borderedge = 10
+
+var upperspan = 83
+var lowerspan = 262
+var textcircle = 408
 
 var textcol = "#ffffff"
-var uppertext = 'COHORT EOS'
-var lowertext = 'DURIUS MELIUS VELOCIUS FORTIOR'
-var textfont = 'arial'
+var uppertext = 'COHORT  EOS'
+var lowertext = '\u00b7  STRONG  ALONE  \u00b7  STRONGER  TOGETHER  \u00b7'
+var textfont = 'garamond'
+var textfontweight = 'bold'
 
-var planetradius = 60
-var planetoffset = 20
-var planetcolor = "#4466ff"
+var fontuploadurl = 'AquilaEthnocentric.ttf'
+var uploadedfont
 
-var sunradius = 40
-var edge = 3
-var sunintersect = sunradius-5
+var fontsizeupper = 60
+var fontsizelower = 60
+
+var planetradius = 100
+var planetoffset = 50
+var planetcolor = "#0c2079"
+var planetedge = 5
+
+var sunradius = 50
+var sunedge = 5
+var rayedge = 15
+var sunintersect = 25
 var suncolor = "#ffffff"
 var sunrays = 7
-var inangle = 130
+var inangle = 125
 var outangle = 195
 var raycolor = "#ffffff"
 
@@ -87,7 +143,34 @@ var starpoints = 4
 var starouter = 20
 var starinner = 10
 var startopangle = 180
+var staroffsetx = 0
+var staroffsety = 20
+var starscale = 10.5
 var starcolor = "#ffffff"
+
+var numeralcol = "#ffffff"
+var numeraledgecol = "#000000"
+var numeraledge = 5
+var numeralwidth = 45
+var numeralheight = 70
+var numeralstem = 25
+var numeralserif = 15
+
+var starpositions = `
+-27, 12,
+-21, 10,
+-15, 7,
+-22, 15,
+-14, 14,
+-13, 20,
+
+-8, 27,
+-2, 22,
+
+15, 13,
+22, 8,
+14, 22,
+20, 16`.replace(/[\s\r\n]+/g, ' ')
 
 var sunY = 0
 
@@ -97,18 +180,6 @@ function draw_svg()
 <svg width="800" height="800" xmlns="http://www.w3.org/2000/svg"
     viewBox="-${size} -${size} ${size*2} ${size*2}" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
-    <path id="circleCW" d="
-      M 0 ${circleupper}
-      a ${circleupper} ${circleupper} 0 0 1  0 -${2*circleupper}
-      a ${circleupper} ${circleupper} 0 0 1  0  ${2*circleupper}
-      Z
-    " />
-    <path id="circleCCW" d="
-      M 0 -${circlelower} 
-      a ${circlelower} ${circlelower} 0 0 0  0  ${2*circlelower}
-      a ${circlelower} ${circlelower} 0 0 0  0 -${2*circlelower}
-      Z
-    " />
     ${star()}
   </defs>
   <circle cs="0" cy="0" r="${size}" fill="black" />
@@ -117,22 +188,13 @@ function draw_svg()
     a ${border} ${border} 0 0 1  ${border*2} 0
     a ${border} ${border} 0 0 1 -${border*2} 0
     Z
-    M -${size} 0
-    a ${size} ${size} 0 0 0  ${size*2} 0
-    a ${size} ${size} 0 0 0 -${size*2} 0
+    M -${size-borderedge} 0
+    a ${size-borderedge} ${size-borderedge} 0 0 0  ${(size-borderedge)*2} 0
+    a ${size-borderedge} ${size-borderedge} 0 0 0 -${(size-borderedge)*2} 0
     Z
   " />
 
-  <text fill="${textcol}" font-size="84" style="font-family: ${textfont};" font-weight="bold" letter-spacing="4" word-spacing="30">
-    <textPath xlink:href="#circleCW" text-anchor="middle" startOffset="50%">
-      ${uppertext}
-    </textPath>
-  </text>
-  <text fill="${textcol}" font-size="84" style="font-family: ${textfont};" font-weight="bold" letter-spacing="4" word-spacing="20">
-    <textPath xlink:href="#circleCCW" text-anchor="middle" startOffset="50%">
-      ${lowertext}
-    </textPath>
-  </text>
+${bordertext()}
 ${planet()}
 ${numeral()}
 ${sun()}
@@ -143,10 +205,43 @@ ${crown()}
 `
 
   $('#cohort').html(svg)
+  return svg
+}
+
+function export_svg()
+{
+  svg = draw_svg()
   $('#svg_output').text(svg)
 }
 
-function numeral(color=suncolor, radius=planetradius, offset=planetoffset, width=45, height=70, stem=25, serif=15)
+function bordertext(font=uploadedfont)
+{
+  if (!font) return ''
+  var uppermodel = new makerjs.models.Text(font, uppertext, fontsizeupper)
+  var upperarc = { type: 'arc', origin: [0,0], radius: textcircle, startAngle: 90-upperspan/2, endAngle: 90+upperspan/2 }
+  makerjs.layout.childrenOnPath(uppermodel, upperarc, 0.5, true, true, true)
+
+  var upperpath = makerjs.exporter.toSVGPathData(uppermodel, {origin: [0,0], accuracy: 0.1})
+
+  var lowermodel = new makerjs.models.Text(font, lowertext, fontsizelower)
+  var lowerarc = { type: 'arc', origin: [0,0], radius: textcircle, startAngle: 270-lowerspan/2, endAngle: 270+lowerspan/2 }
+  makerjs.layout.childrenOnPath(lowermodel, lowerarc, 0.5, false, true, true)
+
+  var lowerpath = makerjs.exporter.toSVGPathData(lowermodel, {origin: [0,0], accuracy: 0.1})
+
+  return `
+    <path id="textupper" fill="${textcol}" fill-rule="evenodd" d="
+    ${upperpath}
+    " />
+    <path id="textlower" fill="${textcol}" fill-rule="evenodd" d="
+    ${lowerpath}
+    " />
+    `
+}
+
+function numeral(color=numeralcol, radius=planetradius, offset=planetoffset, stroke=numeraledge,
+                 width=numeralwidth, height=numeralheight, stem=numeralstem, serif=numeralserif,
+                 edgecolor=numeraledgecol)
 {
   // Transform xy percentages to scale and across arcs
   function txy(x, y, o=offset) {
@@ -157,7 +252,7 @@ function numeral(color=suncolor, radius=planetradius, offset=planetoffset, width
   var arcside = txy(280,280,0)
   var width2 = width+serif*0.75
   return `
-    <path fill="${color}" stroke="#000000" style="stroke-width: 3" d="
+    <path fill="${color}" stroke="${edgecolor}" stroke-width="${stroke}" d="
       M ${txy( width,-height)}
       A ${arcserif} 0 0 1 ${txy( width2,-height+serif)}
       A ${arctop} 0 0 0 ${txy( stem, -height+serif*1.5)}
@@ -175,9 +270,15 @@ function numeral(color=suncolor, radius=planetradius, offset=planetoffset, width
     " />`
 }
 
-function planet(color=planetcolor, radius=planetradius, offset=planetoffset)
+function planet(color=planetcolor, radius=planetradius, offset=planetoffset, edge=planetedge)
 {
   return `
+    <path id="planetoutline" fill="${suncolor}" d="
+      M -${radius+edge+1} ${offset}
+      a ${radius+edge+1} ${radius+edge+1} 0 0 1  ${(radius+edge+1)*2} 0
+      a ${radius+edge+1} ${radius+edge+1} 0 0 1 -${(radius+edge+1)*2} 0
+      Z
+    " />
     <path id="planet" fill="${color}" d="
       M -${radius} ${offset}
       a ${radius} ${radius} 0 0 1  ${radius*2} 0
@@ -186,9 +287,10 @@ function planet(color=planetcolor, radius=planetradius, offset=planetoffset)
     " />`
 }
 
-function sun(radius=sunradius, edgeradius=planetradius+edge,
-             intersectX=sunintersect, offset=planetoffset, color=suncolor)
+function sun(radius=sunradius, edgeradius=planetradius+planetedge,
+             intersect=sunintersect, offset=planetoffset, color=suncolor)
 {
+  var intersectX = Math.cos(intersect*Math.PI/180)*radius
   var intersectY = -Math.sqrt(edgeradius*edgeradius - intersectX*intersectX) + offset
   sunY = Math.sqrt(radius*radius - intersectX*intersectX) + intersectY
   intersectY = intersectY.toFixed(1)
@@ -201,8 +303,8 @@ function sun(radius=sunradius, edgeradius=planetradius+edge,
     " />`
 }
 
-function crown(inan=inangle, outan=outangle, inr=sunradius+edge,
-               outr=border-edge, sunoffset=sunY, color=raycolor, rays=sunrays)
+function crown(inan=inangle, outan=outangle, inr=sunradius+sunedge,
+               outr=border-rayedge, sunoffset=sunY, color=raycolor, rays=sunrays)
 {
   var svg = []
   for (var step = -((sunrays-1)); step <= ((sunrays-1)); step += 2) {
@@ -242,27 +344,12 @@ function star(points=starpoints, outer=starouter, inner=starinner, angle=startop
   return svg.join("\n")
 }
 
-function stars()
+function stars(offsetx=staroffsetx, offsety=staroffsety, scale=starscale)
 {
-  var positions = [
-    -270, 100,
-    -210, 80,
-    -150, 50,
-    -220, 130,
-    -140, 120,
-    -130, 180,
-
-    -80, 250,
-    -20, 200,
-
-    150, 110,
-    220, 60,
-    140, 200,
-    200, 140
-  ]
+  var positions = starpositions.split(',').map(x => parseFloat(x))
   var svg = []
   for (var st = 0; st < positions.length; st += 2) {
-    svg.push(`    <use xlink:href="#star" x="${positions[st]}" y="${positions[st+1]}" />\n`)
+    svg.push(`    <use xlink:href="#star" x="${positions[st]*scale+offsetx}" y="${(positions[st+1]*scale)+offsety}" />\n`)
   }
   return svg.join("\n")
 }
@@ -274,6 +361,7 @@ function add_controls()
 {
   $('#controls input').each(function() {
     var thisid = this.id
+    if (this.type == "file") return
     this.value = window[this.id]
     if (this.type == "number") {
       $(this).change(function() { window[thisid] = parseFloat(this.value); draw_svg() })
@@ -281,6 +369,29 @@ function add_controls()
       $(this).change(function() { window[thisid] = this.value; draw_svg() })
     }
   })
+  $('#fontupload').change(do_fontload)
+  $('#fontuploadurl').change(do_fontload)
+  do_fontload()
+}
+
+function do_fontload()
+{
+  var files = document.getElementById('fontupload').files
+  if (files.length > 0) {
+    files[0].arrayBuffer().then(data => {
+      uploadedfont = opentype.parse(data)
+      draw_svg()
+    })
+  } else if (fontuploadurl) {
+    opentype.load(fontuploadurl, function(err, font) {
+      if (!err) {
+        uploadedfont = font
+        draw_svg()
+      }
+    })
+  } else {
+    uploadedfont = null
+  }
 }
 
 </script>
