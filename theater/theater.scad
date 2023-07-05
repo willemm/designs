@@ -1,7 +1,7 @@
 doitem = "";
 board_thick = 5;
 hole_offset = 17;
-post_hole = 15;
+post_hole = 16;
 
 if (doitem == "outside_corner") { outside_corner(); } 
 if (doitem == "inside_corner")  { inside_corner(); } 
@@ -58,7 +58,7 @@ module inside_corner()
     wid = 25;
     holer = post_hole/2+0.1;
     srad = 4/2;
-    hrad = 8/2;
+    hrad = 9/2;
     hoff = hole_offset;
     
     difference() {
