@@ -1,7 +1,10 @@
 doitem = "";
 board_thick = 5;
 hole_offset = 17;
-post_hole = 16;
+post_dia = 15;
+post_hole = post_dia+1;
+
+front_hi = 80;
 
 if (doitem == "outside_corner") { outside_corner(); } 
 if (doitem == "inside_corner")  { inside_corner(); } 
@@ -9,6 +12,104 @@ if (doitem == "") {
     outside_corner();
     translate([0,0,board_thick+2]) inside_corner();
     translate([0,0,80]) inside_corner();
+
+    translate([hole_offset,hole_offset,400+7]) rotate([0,180,270]) top_tee();
+
+    translate([hole_offset,hole_offset,400+7-56]) top_front();
+
+    translate([hole_offset, hole_offset, 7]) color("#ca8") cylinder(400, post_dia/2, post_dia/2, $fn=30);
+}
+
+module top_front()
+{
+    tol = 0.5;
+    swid = 7-tol*2;
+    stab = 15-tol*2;
+    sdep = 15;
+    tdep = 10-tol*2;
+    shi = front_hi;
+    hi = 100;
+    off = 12+tol;
+    wid = 500-2*off;
+
+    translate([off,0,0]) linear_extrude(height=shi, convexity=5) {
+        polygon([
+            [0,     stab/2],
+            [tdep,  stab/2],
+            [tdep,  swid/2],
+            [sdep,  swid/2],
+            [sdep,  stab/2],
+
+            [wid-sdep, stab/2],
+            [wid-sdep, swid/2],
+            [wid-tdep, swid/2],
+            [wid-tdep, stab/2],
+            [wid,      stab/2],
+
+            [wid,      -stab/2],
+            [wid-tdep, -stab/2],
+            [wid-tdep, -swid/2],
+            [wid-sdep, -swid/2],
+            [wid-sdep, -swid/2-2],
+            [wid-sdep-2, -swid/2-2],
+            [wid-sdep-2, -swid/2],
+
+            [sdep+2, -swid/2],
+            [sdep+2, -swid/2-2],
+            [sdep, -swid/2-2],
+
+            [sdep, -swid/2],
+            [tdep, -swid/2],
+            [tdep, -stab/2],
+            [0,    -stab/2]
+        ]);
+    }
+    
+}
+
+module top_tee()
+{
+    twid = 24;
+    th = twid;
+    ttab = 5;
+    ins = front_hi-th+ttab;
+    hcut = 4;
+    //tlen = 30;
+    tbev = 15;
+    sdep = 15;
+    swid = 7;
+    stab = 15;
+    tdep = 10;
+    difference() {
+        translate([0, twid/2+sdep, 0]) rotate([90,0,0]) linear_extrude(height=twid+sdep, convexity=5)
+            polygon([
+                [twid/2+tbev, -th], [twid/2+tbev, 0],
+                [twid/2, tbev], [twid/2, ins], [-twid/2, ins],
+                [-twid/2, 0], [-twid/2, -th]
+            ]);
+        translate([0,0,-th-0.01]) linear_extrude(height=ins+th+0.01-ttab, convexity=5) {
+            polygon([
+                [ stab/2, twid/2],
+                [ stab/2, twid/2+tdep],
+                [ swid/2, twid/2+tdep],
+                [ swid/2, twid/2+sdep+0.01],
+                [-swid/2, twid/2+sdep+0.01],
+                [-swid/2, twid/2+tdep],
+                [-stab/2, twid/2+tdep],
+                [-stab/2, twid/2]
+            ]);
+        }
+        translate([0,0,-th-0.01]) linear_extrude(height=ins+th+0.02, convexity=5) {
+            polygon([
+                [ twid/2+tbev+0.01, twid/2],
+                [ twid/2+tbev+0.01, twid/2+sdep+0.01],
+                [ twid/2, twid/2+sdep+0.01],
+                [ twid/2, twid/2+tbev]
+            ]);
+        }
+        #translate([0,0,-hcut]) cylinder(ins+hcut+0.01, post_dia/2+0.1, post_dia/2+0.1, $fn=30);
+        rotate([0,90,0]) translate([th/2,0,-twid/2-0.01]) cylinder(twid+tbev+0.02, post_dia/2, post_dia/2, $fn=30);
+    }
 }
 
 module outside_corner()
