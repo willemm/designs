@@ -10,6 +10,7 @@ if (doitem == "outside_corner") { outside_corner(); }
 if (doitem == "inside_corner")  { inside_corner(); } 
 if (doitem == "top_corner")     { top_corner(); } 
 if (doitem == "top_front")      { rotate([-90,0,0]) top_front(); } 
+if (doitem == "topfront_pin")   { cube([36, 9.8, 4.5]); }
 if (doitem == "") {
     outside_corner();
     translate([0,0,board_thick+2]) inside_corner();
@@ -20,6 +21,8 @@ if (doitem == "") {
     translate([hole_offset,hole_offset,350+7-56]) top_front();
 
     translate([hole_offset, hole_offset, 7]) color("#ca8") cylinder(350, post_dia/2, post_dia/2, $fn=30);
+
+    #translate([hole_offset+200,hole_offset+2,350+7-56+10]) cube([38, 4.5, 9.8], true);
 }
 
 module top_front()
@@ -95,13 +98,15 @@ module top_corner()
     th = twid;
     ttab = 5;
     ins = front_hi-th+ttab;
-    hcut = 4;
+    hcut = 2;
     //tlen = 30;
     tbev = 15;
     sdep = 15;
     swid = 7;
     stab = 15;
     tdep = 10;
+    htol = 0.2;
+    vtol = 0.2;
     difference() {
         translate([0, twid/2+sdep, 0]) rotate([90,0,0]) linear_extrude(height=twid+sdep, convexity=5)
             polygon([
@@ -129,8 +134,8 @@ module top_corner()
                 [ twid/2, twid/2+tbev]
             ]);
         }
-        #translate([0,0,-hcut]) cylinder(ins+hcut+0.01, post_dia/2+0.1, post_dia/2+0.1, $fn=30);
-        rotate([0,90,0]) translate([th/2,0,-twid/2-0.01]) cylinder(twid+tbev+0.02, post_dia/2, post_dia/2, $fn=30);
+        translate([0,0,-hcut]) cylinder(ins+hcut+0.01, post_dia/2+vtol, post_dia/2+vtol, $fn=30);
+        rotate([0,90,0]) translate([th/2,0,-twid/2-0.01]) cylinder(twid+tbev+0.02, post_dia/2+htol, post_dia/2+htol, $fn=30);
     }
 }
 
