@@ -8,16 +8,18 @@ front_hi = 80;
 
 if (doitem == "outside_corner") { outside_corner(); } 
 if (doitem == "inside_corner")  { inside_corner(); } 
+if (doitem == "top_corner")     { top_corner(); } 
+if (doitem == "top_front")      { rotate([-90,0,0]) top_front(); } 
 if (doitem == "") {
     outside_corner();
     translate([0,0,board_thick+2]) inside_corner();
     translate([0,0,80]) inside_corner();
 
-    translate([hole_offset,hole_offset,400+7]) rotate([0,180,270]) top_tee();
+    translate([hole_offset,hole_offset,350+7]) rotate([0,180,270]) top_corner();
 
-    translate([hole_offset,hole_offset,400+7-56]) top_front();
+    translate([hole_offset,hole_offset,350+7-56]) top_front();
 
-    translate([hole_offset, hole_offset, 7]) color("#ca8") cylinder(400, post_dia/2, post_dia/2, $fn=30);
+    translate([hole_offset, hole_offset, 7]) color("#ca8") cylinder(350, post_dia/2, post_dia/2, $fn=30);
 }
 
 module top_front()
@@ -30,44 +32,64 @@ module top_front()
     shi = front_hi;
     hi = 100;
     off = 12+tol;
-    wid = 500-2*off;
+    wid = 400-2*off;
 
-    translate([off,0,0]) linear_extrude(height=shi, convexity=5) {
-        polygon([
-            [0,     stab/2],
-            [tdep,  stab/2],
-            [tdep,  swid/2],
-            [sdep,  swid/2],
-            [sdep,  stab/2],
+    difference() {
+        translate([off,0,0]) linear_extrude(height=shi, convexity=5) {
+            polygon([
+                [sdep+1, -swid/2],
+                [sdep+1, -swid/2-0.6],
+                [sdep, -swid/2-0.6],
 
-            [wid-sdep, stab/2],
-            [wid-sdep, swid/2],
-            [wid-tdep, swid/2],
-            [wid-tdep, stab/2],
-            [wid,      stab/2],
+                [sdep, -swid/2],
+                [tdep, -swid/2],
+                [tdep, -stab/2+1],
+                [tdep-1, -stab/2],
+                [1,    -stab/2],
+                [0,    -stab/2+1],
 
-            [wid,      -stab/2],
-            [wid-tdep, -stab/2],
-            [wid-tdep, -swid/2],
-            [wid-sdep, -swid/2],
-            [wid-sdep, -swid/2-2],
-            [wid-sdep-2, -swid/2-2],
-            [wid-sdep-2, -swid/2],
+                [0,     stab/2-1],
+                [1,     stab/2],
+                [tdep-1,  stab/2],
+                [tdep,  stab/2-1],
+                [tdep,  swid/2],
+                [sdep,  swid/2],
+                [sdep,  stab/2-1],
+                [sdep+1,  stab/2],
 
-            [sdep+2, -swid/2],
-            [sdep+2, -swid/2-2],
-            [sdep, -swid/2-2],
+                [wid/2, stab/2],
+                [wid/2, -swid/2],
 
-            [sdep, -swid/2],
-            [tdep, -swid/2],
-            [tdep, -stab/2],
-            [0,    -stab/2]
-        ]);
+                /*
+                [wid-sdep, stab/2],
+                [wid-sdep, swid/2],
+                [wid-tdep, swid/2],
+                [wid-tdep, stab/2],
+                [wid,      stab/2],
+
+                [wid,      -stab/2],
+                [wid-tdep, -stab/2],
+                [wid-tdep, -swid/2],
+                [wid-sdep, -swid/2],
+                [wid-sdep, -swid/2-0.6],
+                [wid-sdep-1, -swid/2-0.6],
+                [wid-sdep-1, -swid/2],
+                */
+            ]);
+        }
+        cdep = 20;
+        cthi = 5;
+        cwid = 10;
+        translate([off+wid/2-cdep/2, (stab-swid)/4, 0]) {
+            translate([0,0,10]) cube([cdep+0.6,cthi,cwid], true);
+            translate([0,0,shi/2]) cube([cdep+0.6,cthi,cwid], true);
+            translate([0,0,shi-10]) cube([cdep+0.6,cthi,cwid], true);
+        }
     }
     
 }
 
-module top_tee()
+module top_corner()
 {
     twid = 24;
     th = twid;
