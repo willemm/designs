@@ -105,8 +105,9 @@ module top_corner()
     swid = 7;
     stab = 15;
     tdep = 10;
-    htol = 0.2;
+    htol = 0.3;
     vtol = 0.2;
+    pin = 3;
     difference() {
         translate([0, twid/2+sdep, 0]) rotate([90,0,0]) linear_extrude(height=twid+sdep, convexity=5)
             polygon([
@@ -135,6 +136,9 @@ module top_corner()
             ]);
         }
         translate([0,0,-hcut]) cylinder(ins+hcut+0.01, post_dia/2+vtol, post_dia/2+vtol, $fn=30);
+        translate([tbev,0,-twid-0.01]) cylinder(twid-8.01, pin/2, pin/2, $fn=30);
+        translate([tbev,0,-twid-0.01]) cylinder(twid+8.01, pin/2-0.5, pin/2-0.5, $fn=30);
+        *translate([tbev,0,-twid-0.01]) cylinder(2, pin/2+2, pin/2, $fn=30);
         rotate([0,90,0]) translate([th/2,0,-twid/2-0.01]) cylinder(twid+tbev+0.02, post_dia/2+htol, post_dia/2+htol, $fn=30);
     }
 }
