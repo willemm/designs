@@ -11,6 +11,7 @@ if (doitem == "inside_corner")  { inside_corner(); }
 if (doitem == "top_corner")     { top_corner(); } 
 if (doitem == "top_front")      { rotate([-90,0,0]) top_front(); } 
 if (doitem == "topfront_pin")   { cube([36, 9.8, 4.5]); }
+if (doitem == "tc_jig")         { tc_jig(); }
 if (doitem == "") {
     outside_corner();
     translate([0,0,board_thick+2]) inside_corner();
@@ -18,11 +19,37 @@ if (doitem == "") {
 
     translate([hole_offset,hole_offset,350+7]) rotate([0,180,270]) top_corner();
 
+    translate([hole_offset, hole_offset, 350+7]) rotate([0,180,270]) tc_jig();
+
     translate([hole_offset,hole_offset,350+7-56]) top_front();
 
     translate([hole_offset, hole_offset, 7]) color("#ca8") cylinder(350, post_dia/2, post_dia/2, $fn=30);
 
     #translate([hole_offset+200,hole_offset+2,350+7-56+10]) cube([38, 4.5, 9.8], true);
+}
+
+module tc_jig()
+{
+    twid = 24;
+    th = twid;
+    ttab = 5;
+    ins = front_hi-th+ttab;
+    hcut = 2;
+    //tlen = 30;
+    tbev = 15;
+    sdep = 15;
+    swid = 7;
+    stab = 15;
+    tdep = 10;
+    htol = 0.3;
+    vtol = 0.2;
+    pin = 3;
+
+    difference() {
+        translate([-23,-15,-25]) cube([50, 30, 50]);
+        translate([tbev,0,-25-0.01]) cylinder(50.02, pin/2, pin/2, $fn=30);
+        rotate([0,90,0]) translate([th/2,0,-23-0.01]) cylinder(50.02, post_dia/2+htol, post_dia/2+htol, $fn=30);
+    }
 }
 
 module top_front()
