@@ -10,6 +10,7 @@ if (doitem == "outside_corner") { outside_corner(); }
 if (doitem == "inside_corner")  { inside_corner(); } 
 if (doitem == "top_corner")     { top_corner(); } 
 if (doitem == "top_front")      { rotate([-90,0,0]) top_front(); } 
+if (doitem == "top_front_m")    { rotate([-90,0,0]) mirror([1,0,0]) top_front(); } 
 if (doitem == "topfront_pin")   { cube([36, 9.8, 4.5]); }
 if (doitem == "tc_jig")         { tc_jig(); }
 if (doitem == "") {
@@ -19,13 +20,13 @@ if (doitem == "") {
 
     translate([hole_offset,hole_offset,350+7]) rotate([0,180,270]) top_corner();
 
-    translate([hole_offset, hole_offset, 350+7]) rotate([0,180,270]) tc_jig();
+    *#translate([hole_offset, hole_offset, 350+7]) rotate([0,180,270]) tc_jig();
 
-    translate([hole_offset,hole_offset,350+7-56]) top_front();
+    color("#8c4") translate([hole_offset,hole_offset,350+7-56]) top_front();
 
     translate([hole_offset, hole_offset, 7]) color("#ca8") cylinder(350, post_dia/2, post_dia/2, $fn=30);
 
-    #translate([hole_offset+200,hole_offset+2,350+7-56+10]) cube([38, 4.5, 9.8], true);
+    #translate([hole_offset+200,hole_offset+2,350+7-0+14]) cube([38, 4.5, 9.8], true);
 }
 
 module tc_jig()
@@ -64,12 +65,16 @@ module top_front()
     off = 12+tol;
     wid = 400-2*off;
 
+    arhi = 60;
+    arof = 5;
+    arwd = 20;
+
     difference() {
         translate([off,0,0]) linear_extrude(height=shi, convexity=5) {
             polygon([
-                [sdep+1, -swid/2],
-                [sdep+1, -swid/2-0.6],
-                [sdep, -swid/2-0.6],
+                //[sdep+2, -swid/2],
+                //[sdep+2, -swid/2-0.6],
+                [sdep, -swid/2-5],
 
                 [sdep, -swid/2],
                 [tdep, -swid/2],
@@ -88,7 +93,7 @@ module top_front()
                 [sdep+1,  stab/2],
 
                 [wid/2, stab/2],
-                [wid/2, -swid/2],
+                [wid/2, -swid/2-5],
 
                 /*
                 [wid-sdep, stab/2],
@@ -115,7 +120,36 @@ module top_front()
             translate([0,0,shi/2]) cube([cdep+0.6,cthi,cwid], true);
             translate([0,0,shi-10]) cube([cdep+0.6,cthi,cwid], true);
         }
+        fstep = 0.3;
+        soff = 5;
+        anarr = [for (san=[0:0.3:sqrt(90)-soff+1]) 90+(soff*soff)-((san+soff)*(san+soff))];
+        translate([off,tdep-1.99,0]) rotate([90,0,0]) {
+            linear_extrude(height=tdep+6.02, convexity=6) polygon(concat(
+                [ [arwd,-0.01],[wid/2+0.1,-0.01],[wid/2+0.1,arhi] ],
+                [for (an=anarr) [wid/2-cos(an)*(wid/2-arwd), arof+sin(an)*(arhi-arof)]]
+            ));
+        }
+        ddep1 = swid/2-11.01;
+        ddep2 = ddep1+4.01;
+        for (an=[0:2:len(anarr)-3]) {
+            polyhedron(convexity=6, points = [
+                [off+wid/2-cos(anarr[an])*(wid/2-arwd), ddep1, arof+sin(anarr[an])*(arhi-arof)],
+                [off+wid/2-cos(anarr[an+2])*(wid/2-arwd), ddep1, arof+sin(anarr[an+2])*(arhi-arof)],
+                [off+wid/2-cos(anarr[an+1])*(wid/2-arwd), ddep2, arof+sin(anarr[an+1])*(arhi-arof)],
+                [off+wid/2-cos(anarr[an+1])*(wid/2-arwd+6), ddep1, arof+5+sin(anarr[an+1])*(arhi-arof+10)]
+            ], faces = [
+                [0,2,1],[0,1,3],[1,2,3],[2,0,3]
+            ]
+            );
+        }
+        *#translate([off,-2,0]) rotate([90,0,0]) {
+            linear_extrude(height=6) polygon(concat(
+                [ [arwd, 0], [15, 0], [15, 80], [wid/2, 80] ],
+                [for (an=[90:-2:0]) [wid/2-cos(an)*(wid/2-arwd), arof+sin(an)*(arhi-arof)]]
+            ));
+        }
     }
+
     
 }
 
