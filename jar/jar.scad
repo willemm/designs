@@ -39,12 +39,18 @@ module inner_base(cp=def_cp)
                     }
                 }
             }
-            rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,2]) {
-                translate([0,0,-14]) cylinder(3, 11, 11, $fn=cp);
+            rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
+                *translate([0,0,-14]) cylinder(3, 11, 11, $fn=cp);
+                translate([-10.8,-11,-14]) cube([24.7,22,3]);
                 translate([0,0,-14-wad]) cylinder(4, 5, 5, $fn=cp);
+                intersection() {
+                    translate([-10,-5,-14-wad]) cube([18, 10, 4]);
+                    translate([-5,-5,-14-wad]) rotate([-45,0,0]) rotate([0,0,-64])
+                        translate([-7.5,-2.5,0]) cube([20,12.5,20]);
+                }
             }
         }
-        rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,2]) {
+        rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
             translate([0,0,-12]) cylinder(22, 10, 10, $fn=cp);
             translate([0,0,-11]) multmatrix(m = [
                 [1, 0, 0, 0],
