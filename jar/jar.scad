@@ -29,6 +29,8 @@ module inner_base(cp=def_cp)
 
     hst = 6;
 
+    drhei = 2;
+
     difference() {
         union() {
             linear_extrude(height=hei, convexity=20) difference() {
@@ -81,13 +83,13 @@ module inner_base(cp=def_cp)
             nstp = floor(d/(hst/1.5));
             stp = 89.5/nstp;
             for (an=[stp/2+0.25-stp/2:stp:90]) {
-                rotate([0,0,an]) translate([d,0,0]) rotate([90,0,0])
+                rotate([0,0,an]) translate([d,0,drhei]) rotate([90,0,0])
                     translate([0, 0, -hst*0.2]) cylinder(hst*0.4, 1, 1, $fn=4);
             }
         }
-        rotate([0,0,0]) translate([crad-1,hst/2+0.5,0]) rotate([0,90,0])
+        rotate([0,0,0]) translate([crad-1,hst/2+0.5,drhei]) rotate([0,90,0])
             cylinder(irad-crad-2, 1, 1, $fn=4);
-        rotate([0,0,90]) translate([crad-1,-hst/2-0.5,0]) rotate([0,90,0])
+        rotate([0,0,90]) translate([crad-1,-hst/2-0.5,drhei]) rotate([0,90,0])
             cylinder(irad-crad-2, 1, 1, $fn=4);
 
         rotate([0,0,29]) translate([crad-1,0,hei]) rotate([0,90,0]) {
