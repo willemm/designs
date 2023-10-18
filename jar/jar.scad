@@ -3,6 +3,8 @@ doitem = "";
 outer_dia = 190;
 def_cp = 60;
 
+choff = 1.5;
+
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,0]) inner_cap(cp=240); } 
 if (doitem == "") {
@@ -24,7 +26,7 @@ module inner_base(cp=def_cp)
     irad = outer_dia/2 - jthi;
     crad = 40;
     hei = 50;
-    wad = 50;
+    wad = 47.5;
     hmof = 10.4;
 
     hst = 6;
@@ -38,33 +40,42 @@ module inner_base(cp=def_cp)
                     [for (an=[0:360/cp:90]) [sin(an)*irad, cos(an)*irad]],
                     [for (an=[90:-360/cp:0]) [sin(an)*crad, cos(an)*crad]]
                 ));
-                for (d=[crad+hst-2.2: hst: irad-hst/2]) {
+                for (d=[crad+hst-2.1: hst: irad-hst/2]) {
                     nstp = floor(d/(hst/1.5));
-                    stp = 89.5/nstp;
-                    for (an=[stp/2+0.25:stp:90-stp/2]) {
-                        rotate([0,0,an]) translate([d,0,0]) rotate([0,0,45]) circle((hst*0.6), $fn=4);
+                    stp = (90-choff)/nstp;
+                    vst = d*3.141/nstp/2;
+                    by = hst*0.5-0.25;
+                    bx1 = vst*0.5-0.5;
+                    bx2 = vst*0.5-0.1;
+                    for (an=[stp/2+choff/2:stp:90-stp/2]) {
+                        rotate([0,0,an]) translate([d,0,0]) polygon([
+                            [-by, -bx1], [ by, -bx2],
+                            [ by,  bx2], [-by,  bx1]
+                        ]); 
+                        //square([hst*0.9, hst*0.99], true);
                     }
                 }
             }
             rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
-                *translate([0,0,-14]) cylinder(3, 11, 11, $fn=cp);
+                // #translate([0,0,-14]) cylinder(3, 11, 11, $fn=cp);
                 translate([-10.8,-11,-14]) cube([24.7,22,3]);
                 translate([0,0,-14-wad]) cylinder(4, 5, 5, $fn=cp);
                 intersection() {
                     translate([-10,-5,-14-wad]) cube([18, 10, 4]);
                     translate([-5,-5,-14-wad]) rotate([-45,0,0]) rotate([0,0,-64])
-                        translate([-7.5,-2.5,0]) cube([20,12.5,20]);
+                        translate([-8.5,-1.7,0]) cube([20,12.5,20]);
                 }
             }
             for (d=[crad+hst*2-2.2, crad+hst*7-2.2]) {
                 nstp = floor(d/(hst/1.5));
-                stp = 89.5/nstp;
+                stp = (90-choff)/nstp;
                 cwid = 5.8;
-                for (an=[89.75-stp/2, 0.25+stp/2]) {
+                chei = 6.1;
+                for (an=[(90-choff/2)-stp/2, (choff/2)+stp/2]) {
                     rotate([0,0,an]) translate([d,0,hei-12]) difference() {
-                        translate([-cwid/2,-cwid/2,0]) cube([cwid,cwid,12]);
+                        translate([-cwid/2,-chei/2,0]) cube([cwid,chei,12]);
                         translate([0,0,-0.01]) cylinder(12.02, 1.2, 1.2, $fn=cp/6);
-                        translate([0,0,-0.01]) rotate([0,0,45]) cylinder(4, 4.1, 1.2, $fn=4);
+                        translate([0,0,-0.01]) rotate([0,0,45]) cylinder(4, chei/sqrt(2)+0.1, 1.2, $fn=4);
                     }
                 }
             }
@@ -81,8 +92,8 @@ module inner_base(cp=def_cp)
         }
         for (d=[crad+hst-2.2: hst: irad-hst/2]) {
             nstp = floor(d/(hst/1.5));
-            stp = 89.5/nstp;
-            for (an=[stp/2+0.25-stp/2:stp:90]) {
+            stp = (90-choff)/nstp;
+            for (an=[stp/2+(choff/2)-stp/2:stp:90]) {
                 rotate([0,0,an]) translate([d,0,drhei]) rotate([90,0,0])
                     translate([0, 0, -hst*0.2]) cylinder(hst*0.4, 1, 1, $fn=4);
             }
@@ -126,10 +137,10 @@ module inner_cap(cp=def_cp)
                 }
                 for (d=[crad+hst-2.2: hst: irad-hst/2]) {
                     nstp = floor(d/(hst/1.5));
-                    stp = 89.5/nstp;
+                    stp = (90-choff)/nstp;
                     fstp = floor(nstp/2);
-                    for (an=[stp/2+0.25-fstp*stp:stp:45-stp/2]) {
-                        if (an < -4 || an > 4 || (d != crad+hst*2-2.2 && d != crad+hst*7-2.2)) {
+                    for (an=[stp/2+choff/2-fstp*stp:stp:45-stp/2]) {
+                        if (an < -5 || an > 5 || (d != crad+hst*2-2.2 && d != crad+hst*7-2.2)) {
                             rotate([0,0,an]) translate([d,0,-0.01]) cylinder(hei+0.02, 1, 3, $fn=cp/6);
                         }
                     }
@@ -143,26 +154,39 @@ module inner_cap(cp=def_cp)
             }
             for (d=[crad+hst*2-2.2, crad+hst*7-2.2]) {
                 nstp = floor(d/(hst/1.5));
-                stp = 89.5/nstp;
+                stp = (90-choff)/nstp;
                 fstp = floor(nstp/2);
-                for (an=[stp/2+0.25-fstp*stp, stp/2+0.25+(fstp-1)*stp]) {
-                    rotate([0,0,an]) translate([d,0,-5]) rotate([0,0,45]) difference() {
-                        cylinder(5, 3.4, 3.4, $fn=4);
-                        translate([0,0,-0.01]) cylinder(5.02, 2.5, 2.5, $fn=4);
-                    }
+                vst = d*3.141/nstp/2;
+                by = hst*0.5-0.25;
+                bx1 = vst*0.5-0.5;
+                bx2 = vst*0.5-0.1;
+                iy = by-0.5;
+                ix1 = bx1-0.5;
+                ix2 = bx2-0.5;
+                for (an=[stp/2+choff/2-fstp*stp, stp/2+choff/2+(fstp-1)*stp]) {
+                    rotate([0,0,an]) translate([d,0,-5]) linear_extrude(height=5) polygon(
+                        points=[ 
+                            [-by, -bx1], [ by, -bx2],
+                            [ by,  bx2], [-by,  bx1],
+                            [-iy, -ix1], [ iy, -ix2],
+                            [ iy,  ix2], [-iy,  ix1],
+                        ],
+                        paths=[[0,1,2,3],[4,5,6,7]]
+                    );
                 }
             }
         }
         for (d=[crad+hst*2-2.2, crad+hst*7-2.2]) {
             nstp = floor(d/(hst/1.5));
-            stp = 89.5/nstp;
-            for (an=[-0.25-stp/2, 0.25+stp/2]) {
+            stp = (90-choff)/nstp;
+            for (an=[choff/2-stp/2, choff/2+stp/2]) {
                 rotate([0,0,an]) translate([d,0,-0.01]) cylinder(hei+0.02, 1.5, 1.5, $fn=cp/6);
             }
         }
         rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, 0]) rotate([45,0,4]) {
             translate([0,0,-caphi+9.9]) cylinder(caphi+0.1, 7, 7, $fn=cp);
             translate([0,0,-22+10]) cylinder(4, 10, 10, $fn=cp);
+            translate([0,-5,-8]) rotate([90,0,0]) cylinder(5, 4, 4, $fn=cp);
         }
     }
 }
