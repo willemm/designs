@@ -1,16 +1,16 @@
 doitem = "";
 
-outer_dia = 190;
+outer_dia = 188;
 def_cp = 60;
 
 choff = 1.5;
 
-baseholes = [41,43,84,102];
-capholes = [34,47,90,91];
-cappins = [10,21,82,99];
+baseholes = [43,45,87,106];
+capholes = [36,49,93,94];
+cappins = [10,21,84,103];
 
 if (doitem == "inner_base") { inner_base(cp=240); } 
-if (doitem == "inner_cap") { rotate([180,0,0]) inner_cap(cp=240); } 
+if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
     *translate([0,0,150]) rotate([0,90,0]) brainL();
@@ -26,14 +26,14 @@ if (doitem == "") {
 
 module inner_base(cp=def_cp)
 {
-    jthi = 5;
+    jthi = 6;
     irad = outer_dia/2 - jthi;
     crad = 40;
     hei = 50;
     wad = 47.5;
     hmof = 10.4;
 
-    hst = 6;
+    hst = 5.8;
 
     drhei = 2;
 
@@ -68,12 +68,12 @@ module inner_base(cp=def_cp)
             }
             rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
                 // #translate([0,0,-14]) cylinder(3, 11, 11, $fn=cp);
-                translate([-10.8,-11,-14]) cube([24.7,22,3]);
-                translate([0,0,-14-wad]) cylinder(4, 5, 5, $fn=cp);
+                translate([-10.6,-11,-14]) cube([23.3,22,3]);
+                // #translate([0,0,-14-wad]) cylinder(4, 5, 5, $fn=cp);
                 intersection() {
-                    translate([-10,-5,-14-wad]) cube([18, 10, 4]);
+                    translate([-12,-5,-14-wad]) cube([19, 10, 4]);
                     translate([-5,-5,-14-wad]) rotate([-45,0,0]) rotate([0,0,-64])
-                        translate([-8.5,-1.7,0]) cube([20,12.5,20]);
+                        translate([-8.5,-2.0,0]) cube([20,12.0,20]);
                 }
             }
             for (h=baseholes) {
@@ -123,14 +123,14 @@ module inner_base(cp=def_cp)
 module inner_cap(cp=def_cp)
 {
     bhei = 50;
-    jthi = 5;
+    jthi = 6;
     irad = outer_dia/2 - jthi;
     crad = 40;
     hei = 2;
     wad = 50;
-    hmof = 10.4;
+    hmof = 9.0; 
 
-    hst = 6;
+    hst = 5.8;
 
     caphi = 22-3;
 
@@ -180,7 +180,8 @@ module inner_cap(cp=def_cp)
                 iy = by-0.5;
                 ix1 = bx1-0.5;
                 ix2 = bx2-0.5;
-                rotate([0,0,an]) translate([d,0,-5]) linear_extrude(height=5) polygon(
+                rotate([0,0,an]) translate([d,0,-5])
+                    linear_extrude(height=5, convexity=10) polygon(
                     points=[ 
                         [-by, -bx1], [ by, -bx2],
                         [ by,  bx2], [-by,  bx1],
