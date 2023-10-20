@@ -4,6 +4,7 @@ outer_dia = 188;
 def_cp = 60;
 
 choff = 1.5;
+hmof = 10.4;
 
 baseholes = [43,45,87,106];
 capholes = [36,49,93,94];
@@ -31,7 +32,6 @@ module inner_base(cp=def_cp)
     crad = 40;
     hei = 50;
     wad = 47.5;
-    hmof = 10.4;
 
     hst = 5.8;
 
@@ -128,7 +128,6 @@ module inner_cap(cp=def_cp)
     crad = 40;
     hei = 2;
     wad = 50;
-    hmof = 9.0; 
 
     hst = 5.8;
 
@@ -174,9 +173,9 @@ module inner_cap(cp=def_cp)
             for (h=cappins) {
                 d = holes[h][0];
                 an = holes[h][1];
-                by = holes[h][2];
-                bx1 = holes[h][3];
-                bx2 = holes[h][4];
+                by = holes[h][2]-0.2;
+                bx1 = holes[h][3]-0.2;
+                bx2 = holes[h][4]-0.2;
                 iy = by-0.5;
                 ix1 = bx1-0.5;
                 ix2 = bx2-0.5;
