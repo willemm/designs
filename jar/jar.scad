@@ -21,6 +21,14 @@ if (doitem == "") {
 
     color("#68c") inner_base(cp=60);
     color("#86c") inner_cap(cp=60);
+    #rotate([0,0,90]) {
+        color("#68c") inner_base(cp=60);
+        color("#86c") inner_cap(cp=60);
+    }
+    rotate([0,0,180]) {
+        color("#68c") inner_base(cp=60);
+        color("#86c") inner_cap(cp=60);
+    }
 
     *color("#ccc8") render(convexity=5) glassjar();
 }
@@ -148,8 +156,8 @@ module inner_cap(cp=def_cp)
             by = hst*0.5-0.25,
             bx1 = vst*0.5-0.5,
             bx2 = vst*0.5-0.1)
-        for (an=[stp/2+choff/2-fstp*stp:stp:45-stp/2])
-            [d, an, by, bx1, bx2]
+        for (an=[stp/2-choff/2-fstp*stp:stp:45-stp/2])
+            [d, an+(an > 0 ? choff : 0), by, bx1, bx2]
     ];
 
     translate([0,0,50.1]) difference() {
