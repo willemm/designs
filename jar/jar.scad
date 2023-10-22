@@ -5,10 +5,13 @@ def_cp = 60;
 
 choff = 1.5;
 hmof = 10.4;
+holeof = 2.2;
 
-baseholes = [43,45,87,106];
-capholes = [36,49,93,94];
-cappins = [10,21,84,103];
+baseholes = [39,42,81,99];
+capholes = [33,44,86,87];
+cappins = [10,19,78,95];
+
+humidang = 20;
 
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
@@ -21,11 +24,11 @@ if (doitem == "") {
 
     color("#68c") inner_base(cp=60);
     color("#86c") inner_cap(cp=60);
-    #rotate([0,0,90]) {
+    *#rotate([0,0,90]) {
         color("#68c") inner_base(cp=60);
         color("#86c") inner_cap(cp=60);
     }
-    rotate([0,0,180]) {
+    *rotate([0,0,180]) {
         color("#68c") inner_base(cp=60);
         color("#86c") inner_cap(cp=60);
     }
@@ -35,9 +38,9 @@ if (doitem == "") {
 
 module inner_base(cp=def_cp)
 {
-    jthi = 6;
+    jthi = 10;
     irad = outer_dia/2 - jthi;
-    crad = 40;
+    crad = 36;
     hei = 50;
     wad = 47.5;
 
@@ -45,7 +48,7 @@ module inner_base(cp=def_cp)
 
     drhei = 2;
 
-    holes = [for (d=[crad+hst-2.1: hst: irad-hst/2])
+    holes = [for (d=[crad+hst-holeof: hst: irad-hst/2])
         let(nstp = floor(d/(hst/1.5)),
             stp = (90-choff)/nstp,
             vst = d*3.141/nstp/2,
@@ -77,15 +80,26 @@ module inner_base(cp=def_cp)
                 }
             }
             // Block for humidifier element
-            rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
-                // #translate([0,0,-14]) cylinder(3, 11, 11, $fn=cp);
-                translate([-10.6,-11,-14]) cube([23.3,22,3]);
-                // #translate([0,0,-14-wad]) cylinder(4, 5, 5, $fn=cp);
-                intersection() {
-                    translate([-12,-5,-14-wad]) cube([19, 10, 4]);
-                    translate([-5,-5,-14-wad]) rotate([-45,0,0]) rotate([0,0,-64])
-                        translate([-8.5,-2.0,0]) cube([20,12.0,20]);
+            intersection() {
+                rotate([0,0,humidang]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
+                    translate([-12,-11,-14]) cube([26,22,3]);
                 }
+                linear_extrude(height=hei, convexity=20)
+                    polygon(concat(
+                        [for (an=[0:360/cp:90]) [sin(an)*(irad-0.1), cos(an)*(irad-0.1)]],
+                        [for (an=[90:-360/cp:0]) [sin(an)*(crad+hst*4.5-holeof), cos(an)*(crad+hst*4.5-holeof)]]
+                    ));
+            }
+            intersection() {
+                rotate([0,0,humidang]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
+                    translate([-13,-5,-14-wad]) cube([21, 10, 4]);
+                }
+                linear_extrude(height=hei, convexity=20)
+                    polygon(concat(
+                        [for (an=[0:360/cp:90]) [sin(an)*(irad-0.1), cos(an)*(irad-0.1)]],
+                        [for (an=[90:-360/cp:0]) [sin(an)*(crad+hst*6.5-holeof), cos(an)*(crad+hst*6.5-holeof)]]
+                    ));
+
             }
             // Screw hole inserts
             for (h=baseholes) {
@@ -101,7 +115,7 @@ module inner_base(cp=def_cp)
             }
         }
         // Cutouts for humidifier element
-        rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
+        rotate([0,0,humidang]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
             translate([0,0,-12]) cylinder(22, 10, 10, $fn=cp);
             translate([0,0,-11]) multmatrix(m = [
                 [1, 0, 0, 0],
@@ -138,9 +152,9 @@ module inner_base(cp=def_cp)
 module inner_cap(cp=def_cp)
 {
     bhei = 50;
-    jthi = 6;
+    jthi = 10;
     irad = outer_dia/2 - jthi;
-    crad = 40;
+    crad = 36;
     hei = 2;
     wad = 50;
 
@@ -148,7 +162,7 @@ module inner_cap(cp=def_cp)
 
     caphi = 22-3;
 
-    holes = [for (d=[crad+hst-2.1: hst: irad-hst/2])
+    holes = [for (d=[crad+hst-holeof: hst: irad-hst/2])
         let(nstp = floor(d/(hst/1.5)),
             stp = (90-choff)/nstp,
             vst = d*3.141/nstp/2,
@@ -177,13 +191,13 @@ module inner_cap(cp=def_cp)
                     if (len(search(h, capholes)) == 0) {
                         d = holes[h][0];
                         an = holes[h][1];
-                        rotate([0,0,an]) translate([d,0,-0.01]) cylinder(hei+0.02, 1, 3, $fn=cp/6);
+                        rotate([0,0,an]) translate([d,0,-0.01]) cylinder(hei+0.02, 1, 2.9, $fn=cp/6);
                     }
                 }
             }
             // Extrusion to hold humidifier
             translate([0,0,-hei]) intersection() {
-                rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
+                rotate([0,0,humidang]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
                     translate([0,0,-caphi+10]) cylinder(caphi+10, 10, 10, $fn=cp);
                 }
                 translate([50,1,2*hei-30]) cube([50, 50, 30]);
@@ -217,7 +231,7 @@ module inner_cap(cp=def_cp)
             rotate([0,0,an]) translate([d,0,-0.01]) cylinder(hei+0.02, 1.6, 1.6, $fn=cp/6);
         }
         // Hole for humidifier
-        rotate([0,0,20]) translate([(irad+crad)/2+hmof, 0, 0]) rotate([45,0,4]) {
+        rotate([0,0,humidang]) translate([(irad+crad)/2+hmof, 0, 0]) rotate([45,0,4]) {
             translate([0,0,-caphi+9.9]) cylinder(caphi+0.1, 7, 7, $fn=cp);
             translate([0,0,-22+10]) cylinder(4, 10.01, 10.01, $fn=cp);
             translate([0,-5,-8]) rotate([90,0,0]) cylinder(5, 4, 4, $fn=cp);
