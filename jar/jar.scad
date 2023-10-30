@@ -17,10 +17,15 @@ if (doitem == "inner_base") { inner_base(cp=240); }
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
-    *translate([0,0,160]) rotate([0,90,0]) brainL();
-    *translate([0,0,160]) rotate([0,-90,0]) brainR();
+    *color("#c46") translate([0,0,160]) rotate([0,90,0]) brainL();
+    *color("#c46") translate([0,0,160]) rotate([0,-90,0]) brainR();
 
-    color("#6c8") outer_base();
+    color("#789") render(convexity=10) outer_base();
+    color("#4a93") rotate([0,0,120]) render(convexity=10) outer_base();
+
+    color("#47c3") rotate([0,0,240]) render(convexity=10) outer_base();
+    *color("#789") outer_base();
+    *color("#789") outer_base_section();
 
     color("#68c") inner_base(cp=60, solid=true);
     *color("#86c") inner_cap(cp=60);
@@ -33,32 +38,58 @@ if (doitem == "") {
         color("#86c") inner_cap(cp=60);
     }
 
-    *color("#ccc8") render(convexity=5) glassjar();
+    *color("#ccc5") render(convexity=5) glassjar();
 
-    *color("#5954") translate([20,50,-26.2]) cube([250,200,2],true);
+    *color("#5954") translate([00,00,-26.2]) cube([250,200,2],true);
+}
+
+module outer_base_section(cp=def_cp, parts=3)
+{
+    rad = 150;
+    tang = 360/parts;
+    mang = 30;
+    stp = tang/ceil(tang/mang);
+    echo (tang, stp, mang);
+    intersection() {
+        outer_base(cp);
+        translate([0,0,-40]) linear_extrude(height=200, convexity=6) polygon(concat(
+            [[0,0]], [for (an=[0:stp:tang]) [rad*cos(an), rad*sin(an)]]));
+    }
 }
 
 module outer_base(cp=def_cp)
 {
     thick = 20;
-    irad = outer_dia/2;
-    orad = irad+thick;
     numedg = 12;
     stp = 32;
     bot = 25;
     bthi = 3;
 
+    irad = outer_dia/2;
+    orad = irad+thick;
+
     difference() {
         circles = generate_facet_circles(numedg, stp, orad, -bot, 30, 6);
+        ci = numedg*(len(circles)-2);
+        cc = numedg*len(circles);
 
         polyhedron(convexity=10
             , points = concat([for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ],
-                [[0, 0, bot+10]])
+                [[0, 0, 35], [0,0,-bot]])
             , faces = concat(
-                nbot(0,numedg),
-                [for (l=[0:len(circles)-3]) each nquad(l, numedg)],
-                [let (ci=numedg*(len(circles)-2), cc=numedg*len(circles))
-                 for (l=[0:numedg-1]) each [
+                //nbot(0,numedg),
+                [concat(cc+1, [for (an=[numedg/3-circles[0][3]:-1:-circles[0][3]]) an])],
+                [for (l=[0:len(circles)-2], an=[-circles[l][3]:numedg/3-circles[l][3]-1])
+                    [l*numedg+an,l*numedg+an+1,(l+1)*numedg+an]],
+                [for (l=[0:len(circles)-3], an=[-circles[l+1][3]+1:numedg/3-circles[l+1][3]])
+                    [l*numedg+an,(l+1)*numedg+an,(l+1)*numedg+an-1]],
+                [[-circles[0][3], cc, cc+1], [numedg/3-circles[0][3], cc+1, cc]],
+                [for (l=[0:len(circles)-3])
+                    [l*numedg-circles[l][3], (l+1)*numedg-circles[l+1][3], cc]],
+                [for (l=[0:len(circles)-3])
+                    [numedg/3+(l+1)*numedg-circles[l+1][3], numedg/3+l*numedg-circles[l][3], cc]],
+                //[for (l=[0:len(circles)-3]) each nquad(l, numedg)],
+                [for (l=[-circles[len(circles)-2][3]:numedg/3-circles[len(circles)-2][3]-1]) each [
                      [ci+l, ci+(l+1)%numedg, ci+l+numedg],
                      [ci+l, ci+l+numedg, cc],
                      [ci+(l+1)%numedg, cc, ci+l+numedg]
@@ -66,12 +97,12 @@ module outer_base(cp=def_cp)
             )
         );
         translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad, irad, $fn=cp);
-        #for (c=[1,2,3]) {
+        for (c=[2,3]) {
             circ = circles[c];
-            for (an=[circ[3]*(360/numedg):360/numedg:(numedg+circ[3]-1)*(360/numedg)]) {
+            for (an=[(circ[3]-floor(circ[3])-1)*(360/numedg):360/numedg:(numedg/3+(circ[3]-floor(circ[3])-2))*(360/numedg)]) {
                 rotate ([0,0,an+(360/numedg/2)]) {
                     translate([circ[1]*cos(360/numedg/2), 0, circ[0]]) rotate([0,270+circ[2],0])
-                        translate([0,0,-0.01]) cylinder(33,3,3,$fn=cp/3);
+                        translate([0,0,-0.01]) cylinder(33,5,5,$fn=cp/3);
                 }
             }
         }
