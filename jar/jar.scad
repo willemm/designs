@@ -13,48 +13,42 @@ cappins = [10,19,78,95];
 
 humidang = 20;
 
+postthi = 3;
+
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
-    *color("#c46") translate([0,0,160]) rotate([0,90,0]) brainL();
-    *color("#c46") translate([0,0,160]) rotate([0,-90,0]) brainR();
+    *color("#c46") translate([0,0,160]) rotate([0,90,0]) rotate([0,0,-15]) brainL();
+    *color("#c46") translate([0,0,160]) rotate([0,-90,0]) rotate([0,0,15]) brainR();
 
-    color("#789") render(convexity=10) outer_base();
-    color("#4a93") rotate([0,0,120]) render(convexity=10) outer_base();
+    color("#86c") inner_post(cp=60);
 
-    color("#47c3") rotate([0,0,240]) render(convexity=10) outer_base();
+    translate([0,0,postthi])  {
+        color("#68c") render(convexity=10) inner_base(cp=60);
+        color("#86c") render(convexity=10) inner_cap(cp=60);
+        rotate([0,0,90]) {
+            color("#68c4") render(convexity=10) inner_base(cp=60);
+            color("#86c4") render(convexity=10) inner_cap(cp=60);
+        }
+        rotate([0,0,180]) {
+            color("#68c") render(convexity=10) inner_base(cp=60);
+            color("#86c") render(convexity=10) inner_cap(cp=60);
+        }
+    }
+
+    *color("#789") render(convexity=10) outer_base();
+    *color("#4a93") rotate([0,0,90]) render(convexity=10) outer_base();
+    *color("#47c3") rotate([0,0,180]) render(convexity=10) outer_base();
+    *color("#4a93") rotate([0,0,270]) render(convexity=10) outer_base();
+
     *color("#789") outer_base();
     *color("#789") outer_base_section();
 
-    color("#68c") inner_base(cp=60, solid=true);
-    *color("#86c") inner_cap(cp=60);
-    *#rotate([0,0,90]) {
-        color("#68c") inner_base(cp=60);
-        color("#86c") inner_cap(cp=60);
-    }
-    *rotate([0,0,180]) {
-        color("#68c") inner_base(cp=60);
-        color("#86c") inner_cap(cp=60);
-    }
-
     *color("#ccc5") render(convexity=5) glassjar();
+    *color("#cc5") jackplugs();
 
     *color("#5954") translate([00,00,-26.2]) cube([250,200,2],true);
-}
-
-module outer_base_section(cp=def_cp, parts=3)
-{
-    rad = 150;
-    tang = 360/parts;
-    mang = 30;
-    stp = tang/ceil(tang/mang);
-    echo (tang, stp, mang);
-    intersection() {
-        outer_base(cp);
-        translate([0,0,-40]) linear_extrude(height=200, convexity=6) polygon(concat(
-            [[0,0]], [for (an=[0:stp:tang]) [rad*cos(an), rad*sin(an)]]));
-    }
 }
 
 module outer_base(cp=def_cp)
@@ -64,6 +58,7 @@ module outer_base(cp=def_cp)
     stp = 32;
     bot = 25;
     bthi = 3;
+    parts = 4;
 
     irad = outer_dia/2;
     orad = irad+thick;
@@ -73,39 +68,136 @@ module outer_base(cp=def_cp)
         ci = numedg*(len(circles)-2);
         cc = numedg*len(circles);
 
+        // Points spiral because of the way it's setup.
+        // Therefore some complicated trickery is needed to get the partial side
         polyhedron(convexity=10
             , points = concat([for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ],
                 [[0, 0, 35], [0,0,-bot]])
             , faces = concat(
-                //nbot(0,numedg),
-                [concat(cc+1, [for (an=[numedg/3-circles[0][3]:-1:-circles[0][3]]) an])],
-                [for (l=[0:len(circles)-2], an=[-circles[l][3]:numedg/3-circles[l][3]-1])
+                [concat(cc+1, [for (an=[numedg/parts-circles[0][3]:-1:-circles[0][3]]) an])],
+                [for (l=[0:len(circles)-2], an=[-circles[l][3]:numedg/parts-circles[l][3]-1])
                     [l*numedg+an,l*numedg+an+1,(l+1)*numedg+an]],
-                [for (l=[0:len(circles)-3], an=[-circles[l+1][3]+1:numedg/3-circles[l+1][3]])
+                [for (l=[0:len(circles)-3], an=[-circles[l+1][3]+1:numedg/parts-circles[l+1][3]])
                     [l*numedg+an,(l+1)*numedg+an,(l+1)*numedg+an-1]],
-                [[-circles[0][3], cc, cc+1], [numedg/3-circles[0][3], cc+1, cc]],
+                [[-circles[0][3], cc, cc+1], [numedg/parts-circles[0][3], cc+1, cc]],
                 [for (l=[0:len(circles)-3])
                     [l*numedg-circles[l][3], (l+1)*numedg-circles[l+1][3], cc]],
                 [for (l=[0:len(circles)-3])
-                    [numedg/3+(l+1)*numedg-circles[l+1][3], numedg/3+l*numedg-circles[l][3], cc]],
-                //[for (l=[0:len(circles)-3]) each nquad(l, numedg)],
-                [for (l=[-circles[len(circles)-2][3]:numedg/3-circles[len(circles)-2][3]-1]) each [
+                    [numedg/parts+(l+1)*numedg-circles[l+1][3], numedg/parts+l*numedg-circles[l][3], cc]],
+                [for (l=[-circles[len(circles)-2][3]:numedg/parts-circles[len(circles)-2][3]-1]) each [
                      [ci+l, ci+(l+1)%numedg, ci+l+numedg],
                      [ci+l, ci+l+numedg, cc],
                      [ci+(l+1)%numedg, cc, ci+l+numedg]
                      ]]
             )
         );
+        // Jar cutout
         translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad, irad, $fn=cp);
+        // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
+        // Bottom cutout
+        translate([0,0,-bot+2]) linear_extrude(height=bot-bthi-1.9, convexity=10) polygon([
+            [-0.1,-0.1],
+            [irad-22,-0.1], [irad-22, 13], [irad-42, 21],
+            [irad-32, 44], [irad-20,57],
+            [57, irad-20], [44, irad-32],
+            [21, irad-42], [13, irad-22], [-0.1, irad-22],
+        ]);
+        // Feet holes
+        for (an=[22.5,67.5]) {
+            rotate([0,0,an]) translate([irad-20,0,0]) rotate([0,0,0]) {
+                // *rotate([0,0,45]) translate([-10,-10,-bot+2]) cube([20,20, bot-bthi-1.9]);
+                // *translate([-5,-5,-bot-0.1]) cube([10,10, 2.2]);
+                translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, 7*sqrt(2), 10*sqrt(2), $fn=4);
+                translate([0,0,-bot-0.1]) cylinder(2.2, 3, 3, $fn=cp/3);
+            }
+        }
+        // Facet holes.
+        // Todo: actually make them fit whatever comes in them (leds, connectors, switches)
         for (c=[2,3]) {
             circ = circles[c];
-            for (an=[(circ[3]-floor(circ[3])-1)*(360/numedg):360/numedg:(numedg/3+(circ[3]-floor(circ[3])-2))*(360/numedg)]) {
+            for (an=[(circ[3]-floor(circ[3]))*(360/numedg):360/numedg:(numedg/parts+(circ[3]-floor(circ[3])-1))*(360/numedg)]) {
                 rotate ([0,0,an+(360/numedg/2)]) {
                     translate([circ[1]*cos(360/numedg/2), 0, circ[0]]) rotate([0,270+circ[2],0])
                         translate([0,0,-0.01]) cylinder(33,5,5,$fn=cp/3);
                 }
             }
         }
+        // Ledstrip slot (strip is 8x2mm)
+        translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
+        translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
+    }
+}
+
+module inner_post(cp=def_cp)
+{
+    jthi = 20;
+    irad = outer_dia/2 - jthi;
+    crad = 35.6;
+    prad = 17;
+    bhei = 50;
+    hei = 150;
+
+    brad = crad/sqrt(2);
+    bext = irad-brad;
+    difference() {
+        union() {
+            // Post
+            cylinder(hei, prad, prad, $fn=cp);
+            // Inside base
+            cylinder(bhei, crad, crad, $fn=cp);
+            // Bottom flange
+            rotate([0,0,45]) linear_extrude(height=postthi) polygon(concat(
+                [for (an=[-15:360/cp:180+15]) [sin(an)*brad+bext, cos(an)*brad]],
+                [[0,-6]],
+                [for (an=[180-15:360/cp:360+15]) [sin(an)*brad-bext, cos(an)*brad]],
+                [[0, 6]]
+            ));
+        }
+        corad = crad-3;
+        cirad = prad;
+        // Cutout base
+        translate([0,0,3]) for (xa=[90:90:360]) {
+            linear_extrude(height=bhei-2.9, convexity=10) polygon(concat(
+                [for (an=[ 3: 360/cp:90-3]) [sin(an+xa)*corad, cos(an+xa)*corad]],
+                [for (an=[90-3:-360/cp: 3]) [sin(an+xa)*cirad, cos(an+xa)*cirad]]
+            ));
+        }
+        // Cutout middle
+        translate([0,0,-0.1]) cylinder(hei+0.2, prad-2, prad-2, $fn=cp);
+
+        hhei = [14,22,38,30];
+        // Slits and connector holes for humidifier discs
+        for (an=[0:3]) rotate([0,0,45+an*90]) {
+            translate([prad-3.5,-2.5,bhei-15]) cube([3.6, 5, 25]);
+            rotate([0,0,45]) {
+                translate([prad-3.5,0,bhei+hhei[an]]) rotate([0,90,0]) cylinder(3.6, 3, 3, $fn=cp/3);
+                translate([prad-0.7,0,bhei+hhei[an]]) rotate([0,90,0]) cylinder(3.6, 5, 5, $fn=cp/3);
+            }
+        }
+
+        // Drainage holes
+        for (an=[90:90:360]) {
+            rotate([0,90,an+3]) {
+                translate([-3,3,prad-5]) cylinder(crad-prad+12, 3, 3, $fn=4);
+                translate([0,3,prad-5])
+                    rotate([0,0,45]) cylinder(crad-prad+12, 3*sqrt(2), 3*sqrt(2), $fn=4);
+            }
+            rotate([0,90,an-3]) {
+                translate([-3,-3,prad-5]) cylinder(crad-prad+12, 3, 3, $fn=4);
+                translate([0,-3,prad-5])
+                    rotate([0,0,45]) cylinder(crad-prad+12, 3*sqrt(2), 3*sqrt(2), $fn=4);
+            }
+        }
+    }
+}
+
+module jackplugs()
+{
+    hhei = [14,22,38,30];
+    prad = 19;
+    bhei = 50;
+    for (an=[0:3]) rotate([0,0,90+an*90]) {
+        translate([prad,0,bhei+hhei[an]]) rotate([0,-90,0]) cylinder(15, 1.75, 1.75, $fn=30);
     }
 }
 
@@ -221,7 +313,7 @@ module inner_base(cp=def_cp, solid=false)
         }
         // Cutout for humidifier cable
         rotate([0,0,29]) translate([crad-1,0,hei]) rotate([0,90,0]) {
-            rotate([0,0,30]) cylinder(irad-crad-22, 3, 3, $fn=6);
+            rotate([0,0,30]) cylinder(irad-crad-17.5, 3, 3, $fn=6);
         }
     }
 }
