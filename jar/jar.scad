@@ -48,15 +48,16 @@ if (doitem == "") {
         }
     }
 
-    *color("#cc53") jackplugs();
+    *color("#cc53") jackplugs_in();
     *color("#ccc5") render(convexity=5) glassjar();
+    *color("#cc53") jackplugs_out();
 
-    *color("#789") render(convexity=10) outer_base();
+    color("#789") render(convexity=10) outer_base();
     *color("#4a93") rotate([0,0,90]) render(convexity=10) outer_base();
     *color("#47c3") rotate([0,0,180]) render(convexity=10) outer_base();
     *color("#4a93") rotate([0,0,270]) render(convexity=10) outer_base();
 
-    color("#789") outer_base();
+    *color("#789") outer_base();
     *color("#789") outer_base_section();
 
 
@@ -124,15 +125,39 @@ module outer_base(cp=def_cp)
             }
         }
         // Facet holes.
+        holetypes = [
+            [],
+            [],
+            [ 0, 1, 0 ],
+            [ 0, 0, 0 ],
+            [],
+        ];
         // Todo: actually make them fit whatever comes in them (leds, connectors, switches)
         for (c=[2,3]) {
             circ = circles[c];
-            for (an=[(circ[3]-floor(circ[3]))*(360/numedg):360/numedg:(numedg/parts+(circ[3]-floor(circ[3])-1))*(360/numedg)]) {
-                rotate ([0,0,an+(360/numedg/2)]) {
-                    translate([circ[1]*cos(360/numedg/2), 0, circ[0]]) rotate([0,270+circ[2],0])
-                        translate([0,0,-0.01]) cylinder(33,5,5,$fn=cp/3);
-                }
+            for (a=[0:numedg/parts-1]) {
+                an = (circ[3]-floor(circ[3]))*(360/numedg)+a*360/numedg;
+                rotate ([0,0,an+(360/numedg/2)]) translate([circ[1]*cos(360/numedg/2), 0, circ[0]])
+                    rotate([0,270+circ[2],0]) {
+                        if (holetypes[c][a] == 0) {
+                            // todo
+                            translate([0,0,-0.01]) cylinder(33,5,5,$fn=cp/3);
+                        }
+                        if (holetypes[c][a] == 1) {
+                            // Jack socket
+                            translate([0,0,-0.01]) cylinder(2,3,3,$fn=cp/3);
+                            translate([0,0,1.5]) cylinder(33,5,5,$fn=cp/3);
+                            translate([-8,-3,1.5]) cube([8, 6, 20]);
+                        }
+                    }
             }
+        }
+        // Cable slot
+        rotate([0,0,45]) {
+            translate([irad-5, 12, 0]) rotate([90,0,0])
+                linear_extrude(height=24) polygon([
+                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,60], [0,77]
+                ]);
         }
         // Ledstrip slot (strip is 8x2mm)
         translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
@@ -211,7 +236,7 @@ module inner_post(cp=def_cp)
                 if (jackout < 1) {
                     translate([-0.5,0,0]) rotate([0,90,0]) cylinder(1.0,4.5,4.5, $fn=cp/3);
                 }
-                translate([-2.0,0,0]) rotate([0,-90,0]) cylinder(5.0,4.5,4.5, $fn=cp/3);
+                translate([-2.0,0,0]) rotate([0,-90,0]) cylinder(5.0,5,5, $fn=cp/3);
                 translate([-2.0-4,-3,-8]) cube([4, 6, 8]);
             }
         }
@@ -232,17 +257,45 @@ module inner_post(cp=def_cp)
     }
 }
 
-module jackplugs()
+module jackplug()
+{
+    render(convexity=10) rotate([0,-90,0]) {
+        difference() {
+            union() {
+                cylinder(7.5, 2.9, 2.9, $fn=30);
+                translate([0,0,0.6]) cylinder(1.4, 4, 4, $fn=30);
+                translate([0,0,3.6]) cylinder(3.9, 4.5, 4.5, $fn=30);
+                translate([-7,-3,3.8]) cube([7, 6, 12.7]);
+            }
+            cylinder(15, 1.75, 1.75, $fn=30);
+        }
+    }
+}
+
+module jackplugs_out(num=1)
+{
+    numedg = 12;
+    stp = 32;
+    thick = 20;
+    orad = outer_dia/2+thick;
+    bot = 25;
+    circles = generate_facet_circles(numedg, stp, orad, -bot, 30, 6);
+    for (c=[2]) {
+        circ = circles[c];
+        for (an=[(circ[3]-floor(circ[3])+1)*(360/numedg):90:(circ[3]-floor(circ[3])+(numedg*num/4)-1)*(360/numedg)]) {
+            rotate ([0,0,an+(360/numedg/2)]) {
+                translate([circ[1]*cos(360/numedg/2)+2, 0, circ[0]]) rotate([0,circ[2],0])
+                    jackplug();
+            }
+        }
+    }
+}
+
+module jackplugs_in()
 {
     bhei = 50;
     for (an=[0:3]) rotate([0,0,an*90]) translate([0,0,bhei+jackhi]) {
-        translate([prad+1.5+jackout,0,0]) rotate([0,-90,0]) cylinder(15, 1.75, 1.75, $fn=30);
-        render(convexity=10) translate([prad+1.5+jackout,0,0]) rotate([0,-90,0]) {
-            cylinder(7.5, 2.9, 2.9, $fn=30);
-            translate([0,0,0.6]) cylinder(1.4, 4, 4, $fn=30);
-            translate([0,0,3.6]) cylinder(3.9, 4.5, 4.5, $fn=30);
-            translate([-7,-3,3.8]) cube([7, 6, 12.7]);
-        }
+        translate([prad+1.5+jackout,0,0]) jackplug();
     }
 }
 
