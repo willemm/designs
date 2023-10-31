@@ -14,44 +14,51 @@ cappins = [10,19,78,95];
 humidang = 20;
 
 postthi = 3;
-
-doflange=false;
+prad = 16;
+jackout = 2;
+jackhi = 25;
 
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
+if (doitem == "outer_base") { outer_base(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
     *color("#c46") translate([0,0,160]) rotate([0,90,0]) rotate([0,0,-15]) brainL();
     *color("#c46") translate([0,0,160]) rotate([0,-90,0]) rotate([0,0,15]) brainR();
 
-    color("#86c") inner_post(cp=60);
+    *color("#86c") inner_post(cp=60);
 
     *color("#68c") inner_base(cp=60, solid=true);
     *color("#97c") inner_cap(cp=60);
-    translate([0,0,0])  {
+    *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
         rotate([0,0,90]) {
-            color("#68c4") render(convexity=10) inner_base(cp=60);
-            color("#86c4") render(convexity=10) inner_cap(cp=60);
+            color("#68c2") render(convexity=10) inner_base(cp=60);
+            color("#86c2") render(convexity=10) inner_cap(cp=60);
         }
         rotate([0,0,180]) {
             color("#68c") render(convexity=10) inner_base(cp=60);
             color("#86c") render(convexity=10) inner_cap(cp=60);
         }
+        rotate([0,0,270]) {
+            color("#68c2") render(convexity=10) inner_base(cp=60);
+            color("#86c2") render(convexity=10) inner_cap(cp=60);
+        }
     }
+
+    *color("#cc53") jackplugs();
+    *color("#ccc5") render(convexity=5) glassjar();
 
     *color("#789") render(convexity=10) outer_base();
     *color("#4a93") rotate([0,0,90]) render(convexity=10) outer_base();
     *color("#47c3") rotate([0,0,180]) render(convexity=10) outer_base();
     *color("#4a93") rotate([0,0,270]) render(convexity=10) outer_base();
 
-    *color("#789") outer_base();
+    color("#789") outer_base();
     *color("#789") outer_base_section();
 
-    *color("#ccc5") render(convexity=5) glassjar();
-    *color("#cc5") jackplugs();
 
     *color("#5954") translate([00,00,-26.2]) cube([250,200,2],true);
 }
@@ -138,7 +145,6 @@ module inner_post(cp=def_cp)
     jthi = 20;
     irad = outer_dia/2 - jthi;
     crad = 35.6;
-    prad = 17;
     bhei = 50;
     hei = 150;
 
@@ -146,7 +152,7 @@ module inner_post(cp=def_cp)
     bext = irad-brad;
     difference() {
         union() {
-            if (doflange) {
+            /*
             // Post
             cylinder(hei, prad, prad, $fn=cp);
             // Inside base
@@ -158,13 +164,31 @@ module inner_post(cp=def_cp)
                 [for (an=[180-15:360/cp:360+15]) [sin(an)*brad-bext, cos(an)*brad]],
                 [[0, 6]]
             ));
-            } else {
+            */
             translate([0,0,2]) {
                 // Post
                 cylinder(hei-2, prad, prad, $fn=cp);
                 // Inside base
                 cylinder(bhei-4.5, crad, crad, $fn=cp);
             }
+            // Outsets for connectors
+            if (jackout > 0) {
+                for (an=[0:3]) rotate([0,0,an*90]) {
+                    *translate([prad-2, 0, bhei+jackhi]) rotate([0,90,0])
+                        cylinder(jackout+1.5, 7, 4, $fn=cp/3);
+                    translate([prad-2, 0, bhei+jackhi]) polyhedron(convexity=10,
+                        points=concat(
+                            [for (an=[-90:360/cp: 90]) [0, sin(an)*6, cos(an)*6]],
+                            [for (an=[ 90:360/cp:270]) [0, sin(an)*6, cos(an)*6-8]],
+                            [for (an=[-90:360/cp: 90]) [jackout+1.5, sin(an)*4, cos(an)*4]],
+                            [for (an=[ 90:360/cp:270]) [jackout+1.5, sin(an)*4, cos(an)*4-6]]
+                        ), faces = concat(
+                            nbot(0, cp+2),
+                            nquad(0, cp+2),
+                            ntop(1, cp+2)
+                        )
+                    );
+                }
             }
         }
         corad = crad-3;
@@ -179,18 +203,21 @@ module inner_post(cp=def_cp)
         // Cutout middle
         translate([0,0,-0.1]) cylinder(hei+0.2, prad-2, prad-2, $fn=cp);
 
-        hhei = [14,22,38,30];
         // Slits and connector holes for humidifier discs
-        for (an=[0:3]) rotate([0,0,45+an*90]) {
-            translate([prad-3.5,-2.5,bhei-15]) cube([3.6, 5, 25]);
-            rotate([0,0,45]) {
-                translate([prad-3.5,0,bhei+hhei[an]]) rotate([0,90,0]) cylinder(3.6, 3, 3, $fn=cp/3);
-                translate([prad-0.7,0,bhei+hhei[an]]) rotate([0,90,0]) cylinder(3.6, 5, 5, $fn=cp/3);
+        for (an=[0:3]) rotate([0,0,an*90]) {
+            rotate([0,0,45]) translate([prad-3.5,-2.5,bhei-15]) cube([3.6, 5, 25]);
+            translate([prad+jackout,0,bhei+jackhi]) {
+                translate([-3.5,0,0]) rotate([0,90,0]) cylinder(3.6, 3, 3, $fn=cp/3);
+                if (jackout < 1) {
+                    translate([-0.5,0,0]) rotate([0,90,0]) cylinder(1.0,4.5,4.5, $fn=cp/3);
+                }
+                translate([-2.0,0,0]) rotate([0,-90,0]) cylinder(5.0,4.5,4.5, $fn=cp/3);
+                translate([-2.0-4,-3,-8]) cube([4, 6, 8]);
             }
         }
 
         // Drainage holes
-        translate([0,0,doflange?0:2]) for (an=[90:90:360]) {
+        translate([0,0,2]) for (an=[90:90:360]) {
             rotate([0,90,an+3]) {
                 translate([-3,3,prad-5]) cylinder(crad-prad+12, 3, 3, $fn=4);
                 translate([0,3,prad-5])
@@ -207,11 +234,15 @@ module inner_post(cp=def_cp)
 
 module jackplugs()
 {
-    hhei = [14,22,38,30];
-    prad = 19;
     bhei = 50;
-    for (an=[0:3]) rotate([0,0,90+an*90]) {
-        translate([prad,0,bhei+hhei[an]]) rotate([0,-90,0]) cylinder(15, 1.75, 1.75, $fn=30);
+    for (an=[0:3]) rotate([0,0,an*90]) translate([0,0,bhei+jackhi]) {
+        translate([prad+1.5+jackout,0,0]) rotate([0,-90,0]) cylinder(15, 1.75, 1.75, $fn=30);
+        render(convexity=10) translate([prad+1.5+jackout,0,0]) rotate([0,-90,0]) {
+            cylinder(7.5, 2.9, 2.9, $fn=30);
+            translate([0,0,0.6]) cylinder(1.4, 4, 4, $fn=30);
+            translate([0,0,3.6]) cylinder(3.9, 4.5, 4.5, $fn=30);
+            translate([-7,-3,3.8]) cube([7, 6, 12.7]);
+        }
     }
 }
 
@@ -297,14 +328,13 @@ module inner_base(cp=def_cp, solid=false)
                 }
             }
             }
-            if (!doflange) {
+            // Extra edge for under center post
             linear_extrude(height=2, convexity=20) {
                 polygon(concat(
                     [for (an=[15:360/cp:75]) [sin(an)*(crad+1), cos(an)*(crad+1)]],
                     [for (an=[72,18]) [sin(an)*(crad-7), cos(an)*(crad-7)]]
                 ));
 
-            }
             }
         }
         // Cutouts for humidifier element
@@ -377,14 +407,12 @@ module inner_cap(cp=def_cp)
                             [for (an=[135:-360/cp:45]) [sin(an)*(crad-1), cos(an)*(crad-1)]]
                         ));
                     }
-                    if (!doflange) {
                     // Edge to hold center post in place
                     translate([0,0,-2.5]) linear_extrude(height=hei+2.5, convexity=20) {
                         polygon(concat(
                             [for (an=[45:360/cp:135]) [sin(an)*(crad-0.2), cos(an)*(crad-0.2)]],
                             [for (an=[135:-360/cp:45]) [sin(an)*(crad-3), cos(an)*(crad-3)]]
                         ));
-                    }
                     }
                 }
                 // Water holes
@@ -437,11 +465,9 @@ module inner_cap(cp=def_cp)
             translate([0,0,-22+10]) cylinder(4, 10.01, 10.01, $fn=cp);
             translate([0,-5,-8]) rotate([90,0,0]) cylinder(5, 4, 4, $fn=cp);
         }
-        if (!doflange) {
         // Hole for humidifier cable
         rotate([0,0,29]) translate([crad-4,0,hei-5]) rotate([0,90,0]) {
             rotate([0,0,30]) cylinder(5, 3, 3, $fn=6);
-        }
         }
     }
 }
@@ -500,6 +526,7 @@ module glassjar()
         faces = faces
     );
 }
+
 
 // Generate diamond facets going up and inward from a cerrain radius
 function generate_facet_circles(numedg, stp, rad, hei, an, num) = (num <= 0) ? [] : let(
