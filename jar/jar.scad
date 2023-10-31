@@ -15,8 +15,11 @@ humidang = 20;
 
 postthi = 3;
 
+doflange=false;
+
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
+if (doitem == "inner_post") { inner_post(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
     *color("#c46") translate([0,0,160]) rotate([0,90,0]) rotate([0,0,-15]) brainL();
@@ -24,7 +27,9 @@ if (doitem == "") {
 
     color("#86c") inner_post(cp=60);
 
-    translate([0,0,postthi])  {
+    *color("#68c") inner_base(cp=60, solid=true);
+    *color("#97c") inner_cap(cp=60);
+    translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
         rotate([0,0,90]) {
@@ -141,6 +146,7 @@ module inner_post(cp=def_cp)
     bext = irad-brad;
     difference() {
         union() {
+            if (doflange) {
             // Post
             cylinder(hei, prad, prad, $fn=cp);
             // Inside base
@@ -152,6 +158,14 @@ module inner_post(cp=def_cp)
                 [for (an=[180-15:360/cp:360+15]) [sin(an)*brad-bext, cos(an)*brad]],
                 [[0, 6]]
             ));
+            } else {
+            translate([0,0,2]) {
+                // Post
+                cylinder(hei-2, prad, prad, $fn=cp);
+                // Inside base
+                cylinder(bhei-4.5, crad, crad, $fn=cp);
+            }
+            }
         }
         corad = crad-3;
         cirad = prad;
@@ -176,7 +190,7 @@ module inner_post(cp=def_cp)
         }
 
         // Drainage holes
-        for (an=[90:90:360]) {
+        translate([0,0,doflange?0:2]) for (an=[90:90:360]) {
             rotate([0,90,an+3]) {
                 translate([-3,3,prad-5]) cylinder(crad-prad+12, 3, 3, $fn=4);
                 translate([0,3,prad-5])
@@ -283,6 +297,15 @@ module inner_base(cp=def_cp, solid=false)
                 }
             }
             }
+            if (!doflange) {
+            linear_extrude(height=2, convexity=20) {
+                polygon(concat(
+                    [for (an=[15:360/cp:75]) [sin(an)*(crad+1), cos(an)*(crad+1)]],
+                    [for (an=[72,18]) [sin(an)*(crad-7), cos(an)*(crad-7)]]
+                ));
+
+            }
+            }
         }
         // Cutouts for humidifier element
         rotate([0,0,humidang]) translate([(irad+crad)/2+hmof, 0, hei]) rotate([45,0,4]) {
@@ -351,8 +374,17 @@ module inner_cap(cp=def_cp)
                     linear_extrude(height=hei, convexity=20) {
                         polygon(concat(
                             [for (an=[45:360/cp:135]) [sin(an)*irad, cos(an)*irad]],
-                            [for (an=[135:-360/cp:45]) [sin(an)*crad, cos(an)*crad]]
+                            [for (an=[135:-360/cp:45]) [sin(an)*(crad-1), cos(an)*(crad-1)]]
                         ));
+                    }
+                    if (!doflange) {
+                    // Edge to hold center post in place
+                    translate([0,0,-2.5]) linear_extrude(height=hei+2.5, convexity=20) {
+                        polygon(concat(
+                            [for (an=[45:360/cp:135]) [sin(an)*(crad-0.2), cos(an)*(crad-0.2)]],
+                            [for (an=[135:-360/cp:45]) [sin(an)*(crad-3), cos(an)*(crad-3)]]
+                        ));
+                    }
                     }
                 }
                 // Water holes
@@ -404,6 +436,12 @@ module inner_cap(cp=def_cp)
             translate([0,0,-caphi+9.9]) cylinder(caphi+0.1, 7, 7, $fn=cp);
             translate([0,0,-22+10]) cylinder(4, 10.01, 10.01, $fn=cp);
             translate([0,-5,-8]) rotate([90,0,0]) cylinder(5, 4, 4, $fn=cp);
+        }
+        if (!doflange) {
+        // Hole for humidifier cable
+        rotate([0,0,29]) translate([crad-4,0,hei-5]) rotate([0,90,0]) {
+            rotate([0,0,30]) cylinder(5, 3, 3, $fn=6);
+        }
         }
     }
 }
