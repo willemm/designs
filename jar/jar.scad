@@ -11,6 +11,10 @@ baseholes = [39,42,81,99];
 capholes = [33,44,86,87];
 cappins = [10,19,78,95];
 
+// Facet holes.
+// outled, jack, spinner, button, rocker, rotaryswitch, stopbutton
+holetypesmid = [6,6,6,3,2,2,2,7,2,2,2,3];
+
 humidang = 20;
 
 postthi = 3;
@@ -24,15 +28,15 @@ if (doitem == "inner_post") { inner_post(cp=240); }
 if (doitem == "outer_base") { outer_base(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
-    *color("#c46") translate([0,0,160]) rotate([0,90,0]) rotate([0,0,-15]) brainL();
-    *color("#c46") translate([0,0,160]) rotate([0,-90,0]) rotate([0,0,15]) brainR();
+    color("#c46") translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15]) brainL();
+    color("#c46") translate([0,0,160]) rotate([-45,-90,0]) rotate([0,0,15]) brainR();
 
     *color("#86c") inner_post(cp=60);
-    *color("#86c") render(convexity=10) inner_post(cp=60);
+    color("#86c") render(convexity=10) inner_post(cp=60);
 
     *color("#68c") inner_base(cp=60, solid=true);
-    *color("#97c") inner_cap(cp=60);
-    *translate([0,0,0])  {
+    *color("#97c") inner_cap(cp=60, solid=true);
+    translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
         rotate([0,0,90]) {
@@ -50,24 +54,30 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    *color("#ccc5") render(convexity=5) glassjar();
-    *color("#cc53") jackplugs_out();
+    color("#cc53") connectors_out();
 
-    *color("#789") render(convexity=10) outer_base();
-    *color("#4a93") rotate([0,0,90]) render(convexity=10) outer_base();
-    *color("#47c3") rotate([0,0,180]) render(convexity=10) outer_base();
-    *color("#4a93") rotate([0,0,270]) render(convexity=10) outer_base();
+    color("#7899") render(convexity=10) outer_base(side=0);
+    color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
+    color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
+    color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
 
-    color("#789") outer_base();
+    *color("#7899") outer_base(side=0);
+    *color("#4a99") rotate([0,0,90]) outer_base(side=1);
+    *color("#47c9") rotate([0,0,180]) outer_base(side=2);
+    *color("#4a99") rotate([0,0,270]) outer_base(side=3);
 
+    *color("#789") outer_base();
+
+    color("#ccc5") render(convexity=5) glassjar();
 
     *color("#5954") translate([00,00,-26.2]) cube([250,200,2],true);
 }
 
-module outer_base(cp=def_cp)
+module outer_base(cp=def_cp, side=0)
 {
-    thick = 20;
     numedg = 12;
+    thick = 30;
+    sang = 28.5;
     stp = 32;
     bot = 25;
     bthi = 3;
@@ -77,7 +87,7 @@ module outer_base(cp=def_cp)
     orad = irad+thick;
 
     difference() {
-        circles = generate_facet_circles(numedg, stp, orad, -bot, 30, 6);
+        circles = generate_facet_circles(numedg, stp, orad, -bot, sang, 6);
         ci = numedg*(len(circles)-2);
         cc = numedg*len(circles);
 
@@ -130,11 +140,10 @@ module outer_base(cp=def_cp)
                 translate([0,0,-bot-0.1]) cylinder(2.2, 3, 3, $fn=cp/3);
             }
         }
-        // Facet holes.
         holetypes = [
             [],
             [],
-            [ 4, 2, 5 ],
+            [for (i=[side*3:side*3+2]) holetypesmid[i]],
             [ 1, 1, 1 ],
             [],
         ];
@@ -150,25 +159,26 @@ module outer_base(cp=def_cp)
                         }
                         if (holetypes[c][a] == 1) {
                             // Outward rgb led
-                            translate([0,0,-0.01]) cylinder(24.02,8,3.6,$fn=cp/3);
-                            translate([0,0,24]) cylinder(8,6,6,$fn=cp/3);
+                            translate([0,0,-0.01]) cylinder(28.02,11,3.6,$fn=cp/3);
+                            translate([0,0,28]) cylinder(8,6,6,$fn=cp/3);
                         }
                         if (holetypes[c][a] == 2) {
                             // Jack socket
                             translate([0,0,-0.01]) cylinder(2,3,3,$fn=cp/3);
                             translate([0,0,1.5]) rotate([0,0,180/8]) cylinder(33,6,6,$fn=8);
                             translate([-8,-3,1.5]) cube([8, 6, 20]);
+                            translate([0,0,10]) rotate([0,0,180/8]) cylinder(31, 14, 14, $fn=8);
                         }
                         if (holetypes[c][a] == 3) {
                             // Rotary encoder
                             translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
                             translate([-16/2,-13/2,3]) cube([16, 13, 6.01]);
-                            translate([0,0,9]) rotate([0,0,180/8]) cylinder(25, 14, 14, $fn=8);
+                            translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
                         }
                         if (holetypes[c][a] == 4) {
                             // Big pushbutton
                             translate([0,0,-0.01]) cylinder(3.02,8,8,$fn=cp/3);
-                            translate([0,0,3]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
+                            translate([0,0,3]) rotate([0,0,180/8]) cylinder(38, 14, 14, $fn=8);
                         }
                         if (holetypes[c][a] == 5) {
                             // Rocker switch
@@ -185,12 +195,22 @@ module outer_base(cp=def_cp)
                             translate([0, 9, -0.01]) linear_extrude(height=10.02) 
                                 polygon([[-1.1, 0], [-1.1, 2.1], [1.1, 2.1], [3.0, 0]]);
                         }
+                        if (holetypes[c][a] == 6) {
+                            // 22mm rotary switch
+                            translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            translate([0,0,3]) rotate([0,0,180/8]) cylinder(38, 18, 18, $fn=8);
+                        }
+                        if (holetypes[c][a] == 7) {
+                            // 22mm emergency stop
+                            translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            translate([0,0,3]) rotate([0,0,180/8]) cylinder(38, 18, 18, $fn=8);
+                        }
                     }
             }
         }
         // Led cable slot
-        translate([0,0,51]) cylinder(10, irad+3, irad+3, $fn=cp);
-        translate([0,0,60.99]) cylinder(3, irad+3, irad, $fn=cp);
+        translate([0,0,49]) cylinder(10, irad+3, irad+3, $fn=cp);
+        translate([0,0,58.99]) cylinder(3, irad+3, irad, $fn=cp);
         // Cable slot
         rotate([0,0,45]) {
             translate([irad-5, 12, 0]) rotate([90,0,0])
@@ -206,7 +226,7 @@ module outer_base(cp=def_cp)
             translate([irad+2, 0, 1.5]) rotate([ 45,0,-15]) rotate([0,0,-135]) cube([8.5, 8.5, 52]);
         }
         // Ledstrip slot (strip is 8x2mm)
-        echo (2*(irad+2)*PI);
+        // echo ("Circumference of led strip", 2*(irad+2)*PI);
         translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
         translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
     }
@@ -317,6 +337,39 @@ module inner_post(cp=def_cp)
     }
 }
 
+module connectors_out(sides=[0,1,2,3])
+{
+    numedg = 12;
+    thick = 30;
+    sang = 28.5;
+    stp = 32;
+    orad = outer_dia/2+thick;
+    bot = 25;
+    circles = generate_facet_circles(numedg, stp, orad, -bot, sang, 6);
+    for (c=[2]) {
+        circ = circles[c];
+        for (s=sides, a=[s*3:s*3+2]) {
+            an = (circ[3]-floor(circ[3])+a)*(360/numedg);
+            rotate ([0,0,an+(360/numedg/2)]) {
+                translate([circ[1]*cos(360/numedg/2)+2, 0, circ[0]]) rotate([0,circ[2],0]) {
+                    if (holetypesmid[a] == 2) {
+                        jackplug();
+                    }
+                    if (holetypesmid[a] == 3) {
+                        spinner();
+                    }
+                    if (holetypesmid[a] == 6) {
+                        rotary_switch();
+                    }
+                    if (holetypesmid[a] == 7) {
+                        stop_button();
+                    }
+                }
+            }
+        }
+    }
+}
+
 module jackplug()
 {
     render(convexity=10) rotate([0,-90,0]) {
@@ -332,22 +385,28 @@ module jackplug()
     }
 }
 
-module jackplugs_out(num=1)
-{
-    numedg = 12;
-    stp = 32;
-    thick = 20;
-    orad = outer_dia/2+thick;
-    bot = 25;
-    circles = generate_facet_circles(numedg, stp, orad, -bot, 30, 6);
-    for (c=[2]) {
-        circ = circles[c];
-        for (an=[(circ[3]-floor(circ[3])+1)*(360/numedg):90:(circ[3]-floor(circ[3])+(numedg*num/4)-1)*(360/numedg)]) {
-            rotate ([0,0,an+(360/numedg/2)]) {
-                translate([circ[1]*cos(360/numedg/2)+2, 0, circ[0]]) rotate([0,circ[2],0])
-                    jackplug();
-            }
-        }
+module spinner() {
+    render(convexity=10) rotate([0,-90,0]) {
+        translate([0,0,-10]) cylinder(15, 3, 3, $fn=30);
+        translate([-15/2,-13/2,5]) cube([15, 13, 6]);
+    }
+}
+
+module rotary_switch() {
+    render(convexity=10) rotate([0,-90,0]) {
+        translate([0,0,0]) cylinder(38.5, 7, 7, $fn=30);
+        translate([0,0,0]) cylinder(20, 11, 11, $fn=30);
+        translate([0,0,-2]) cylinder(2, 15, 15, $fn=30);
+        translate([0,0,3]) cylinder(2, 14.25, 14.25, $fn=6);
+    }
+}
+
+module stop_button() {
+    render(convexity=10) rotate([0,-90,0]) {
+        translate([0,0,0]) cylinder(31, 7, 7, $fn=30);
+        translate([0,0,-2]) cylinder(17, 11, 11, $fn=30);
+        translate([0,0,-14]) cylinder(12, 14, 14, $fn=30);
+        translate([0,0,3]) cylinder(2, 14.25, 14.25, $fn=6);
     }
 }
 
@@ -484,7 +543,7 @@ module inner_base(cp=def_cp, solid=false)
     }
 }
 
-module inner_cap(cp=def_cp)
+module inner_cap(cp=def_cp, solid=false)
 {
     bhei = 50;
     jthi = 10;
@@ -544,6 +603,7 @@ module inner_cap(cp=def_cp)
                         ));
                     }
                 }
+                if (!solid) {
                 // Water holes
                 for (h=[0:len(holes)-1]) {
                     if (len(search(h, capholes)) == 0) {
@@ -551,6 +611,7 @@ module inner_cap(cp=def_cp)
                         an = holes[h][1];
                         rotate([0,0,an]) translate([d,0,-0.01]) cylinder(hei+0.02, 1, 2.9, $fn=cp/6);
                     }
+                }
                 }
             }
             // Extrusion to hold humidifier
