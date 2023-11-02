@@ -28,15 +28,15 @@ if (doitem == "inner_post") { inner_post(cp=240); }
 if (doitem == "outer_base") { outer_base(cp=240); } 
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
-    color("#c46") translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15]) brainL();
-    color("#c46") translate([0,0,160]) rotate([-45,-90,0]) rotate([0,0,15]) brainR();
+    *color("#c46") translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15]) brainL();
+    *color("#c46") translate([0,0,160]) rotate([-45,-90,0]) rotate([0,0,15]) brainR();
 
     *color("#86c") inner_post(cp=60);
-    color("#86c") render(convexity=10) inner_post(cp=60);
+    *color("#86c") render(convexity=10) inner_post(cp=60);
 
     *color("#68c") inner_base(cp=60, solid=true);
     *color("#97c") inner_cap(cp=60, solid=true);
-    translate([0,0,0])  {
+    *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
         rotate([0,0,90]) {
@@ -68,9 +68,10 @@ if (doitem == "") {
 
     *color("#789") outer_base();
 
-    color("#ccc5") render(convexity=5) glassjar();
+    *color("#ccc5") render(convexity=5) glassjar();
 
-    *color("#5954") translate([00,00,-26.2]) cube([250,200,2],true);
+    // Build plate size indicartion
+    *color("#5954") translate([50,60,-26.2]) cube([250,200,2],true);
 }
 
 module outer_base(cp=def_cp, side=0)
@@ -93,7 +94,8 @@ module outer_base(cp=def_cp, side=0)
 
         // Points spiral because of the way it's setup.
         // Therefore some complicated trickery is needed to get the partial side
-        polyhedron(convexity=10
+        union() {
+            polyhedron(convexity=10
             , points = concat([for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ],
                 [[0, 0, 35], [0,0,-bot]])
             , faces = concat(
@@ -113,7 +115,25 @@ module outer_base(cp=def_cp, side=0)
                      [ci+(l+1)%numedg, cc, ci+l+numedg]
                      ]]
             )
-        );
+            );
+            // Slats to help gluing together
+            translate([irad+18,15,47]) rotate([0,-90,0]) linear_extrude(height=4) polygon([
+                [0,0],[17.5,20],[35,0]
+            ]);
+            translate([irad+18,15,-10]) rotate([0,-90,0]) linear_extrude(height=4) polygon([
+                [0,0],[17.5,20],[35,0]
+            ]);
+        }
+        // Slats to help gluing together
+        rotate([0,0,90]) {
+            tol = 0.2;
+            translate([irad+18+tol,15,47]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
+                [0,-tol],[17.5,20],[35,-tol]
+            ]);
+            translate([irad+18+tol,15,-10]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
+                [0,-tol],[17.5,20],[35,-tol]
+            ]);
+        }
         // Jar cutout
         translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad, irad, $fn=cp);
         // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
@@ -172,7 +192,7 @@ module outer_base(cp=def_cp, side=0)
                         if (holetypes[c][a] == 3) {
                             // Rotary encoder
                             translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
-                            translate([-16/2,-13/2,3]) cube([16, 13, 6.01]);
+                            translate([-16/2,-13.2/2,3]) cube([16, 13.2, 6.01]);
                             translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
                         }
                         if (holetypes[c][a] == 4) {
@@ -229,6 +249,7 @@ module outer_base(cp=def_cp, side=0)
         // echo ("Circumference of led strip", 2*(irad+2)*PI);
         translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
         translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
+
     }
 }
 
@@ -351,7 +372,7 @@ module connectors_out(sides=[0,1,2,3])
         for (s=sides, a=[s*3:s*3+2]) {
             an = (circ[3]-floor(circ[3])+a)*(360/numedg);
             rotate ([0,0,an+(360/numedg/2)]) {
-                translate([circ[1]*cos(360/numedg/2)+2, 0, circ[0]]) rotate([0,circ[2],0]) {
+                translate([circ[1]*cos(360/numedg/2), 0, circ[0]]) rotate([0,circ[2],0]) {
                     if (holetypesmid[a] == 2) {
                         jackplug();
                     }
@@ -373,7 +394,7 @@ module connectors_out(sides=[0,1,2,3])
 module jackplug()
 {
     render(convexity=10) rotate([0,-90,0]) {
-        difference() {
+        translate([0,0,-2]) difference() {
             union() {
                 cylinder(7.5, 2.9, 2.9, $fn=30);
                 translate([0,0,0.6]) cylinder(1.4, 4, 4, $fn=30);
@@ -388,7 +409,7 @@ module jackplug()
 module spinner() {
     render(convexity=10) rotate([0,-90,0]) {
         translate([0,0,-10]) cylinder(15, 3, 3, $fn=30);
-        translate([-15/2,-13/2,5]) cube([15, 13, 6]);
+        translate([-15/2,-13/2,3]) cube([15, 13, 6]);
     }
 }
 
