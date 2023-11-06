@@ -25,7 +25,12 @@ jackhi = 35;
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
-if (doitem == "outer_base") { outer_base(cp=240); } 
+if (doitem == "outer_base_n") { outer_base(side=0, cp=240); } 
+if (doitem == "outer_base_e") { outer_base(side=1, cp=240); } 
+if (doitem == "outer_base_s") { outer_base(side=2, cp=240); } 
+if (doitem == "outer_base_w") { outer_base(side=3, cp=240); } 
+if (doitem == "testring_out") { testring_out(); }
+if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
     *color("#c46") translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15]) brainL();
@@ -34,7 +39,7 @@ if (doitem == "") {
     *color("#86c") inner_post(cp=60);
     *color("#86c") render(convexity=10) inner_post(cp=60);
 
-    *color("#68c") inner_base(cp=60, solid=true);
+    color("#68c") inner_base(cp=60, solid=true);
     *color("#97c") inner_cap(cp=60, solid=true);
     *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
@@ -54,12 +59,12 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    color("#cc53") connectors_out();
+    *color("#cc53") connectors_out();
 
     color("#7899") render(convexity=10) outer_base(side=0);
-    color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
-    color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
-    color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
+    *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
+    *color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
+    *color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
 
     *color("#7899") outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) outer_base(side=1);
@@ -68,10 +73,12 @@ if (doitem == "") {
 
     *color("#789") outer_base();
 
+    testring_in();
+    testring_out();
     *color("#ccc5") render(convexity=5) glassjar();
 
     // Build plate size indicartion
-    *color("#5954") translate([50,60,-26.2]) cube([250,200,2],true);
+    color("#5954") translate([50,60,-26.2]) cube([250,200,2],true);
 }
 
 module outer_base(cp=def_cp, side=0)
@@ -738,6 +745,24 @@ module glassjar()
     );
 }
 
+module testring_out()
+{
+    or = outer_dia/2;
+    linear_extrude(height=20) difference() {
+        circle(or+2, $fn=240);
+        circle(or, $fn=240);
+    }
+}
+
+module testring_in()
+{
+    jthi = 10;
+    ir = outer_dia/2 - jthi;
+    linear_extrude(height=20) difference() {
+        circle(ir, $fn=240);
+        circle(ir-1.6, $fn=240);
+    }
+}
 
 // Generate diamond facets going up and inward from a cerrain radius
 function generate_facet_circles(numedg, stp, rad, hei, an, num) = (num <= 0) ? [] : let(

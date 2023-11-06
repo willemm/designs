@@ -1,2 +1,9 @@
-openscad -D doitem=\"inner_base\" -o jar-inner_base.stl jar.scad
-openscad -D doitem=\"inner_cap\" -o jar-inner_cap.stl jar.scad
+openscad -D doitem=\"inner_base\"   -o jar-inner_base.stl   jar.scad
+openscad -D doitem=\"inner_cap\"    -o jar-inner_cap.stl    jar.scad
+openscad -D doitem=\"inner_post\"   -o jar-inner_post.stl   jar.scad
+openscad -D doitem=\"outer_base_n\" -o jar-outer_base_n.stl jar.scad
+openscad -D doitem=\"outer_base_e\" -o jar-outer_base_e.stl jar.scad
+openscad -D doitem=\"outer_base_s\" -o jar-outer_base_s.stl jar.scad
+openscad -D doitem=\"outer_base_w\" -o jar-outer_base_w.stl jar.scad
+openscad -D doitem=\"testring_in\"  -o jar-testring_in.stl  jar.scad
+openscad -D doitem=\"testring_out\" -o jar-testring_out.stl jar.scad
