@@ -39,8 +39,8 @@ if (doitem == "") {
     *color("#86c") inner_post(cp=60);
     *color("#86c") render(convexity=10) inner_post(cp=60);
 
-    color("#68c") inner_base(cp=60, solid=true);
-    *color("#97c") inner_cap(cp=60, solid=true);
+    color("#68c") inner_base(cp=60, solid=false);
+    color("#97c") inner_cap(cp=60, solid=false);
     *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
@@ -73,8 +73,8 @@ if (doitem == "") {
 
     *color("#789") outer_base();
 
-    testring_in();
-    testring_out();
+    translate([0,0,30]) testring_in();
+    translate([0,0,30]) testring_out();
     *color("#ccc5") render(convexity=5) glassjar();
 
     // Build plate size indicartion
@@ -142,7 +142,7 @@ module outer_base(cp=def_cp, side=0)
             ]);
         }
         // Jar cutout
-        translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad, irad, $fn=cp);
+        translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad+0.2, irad+0.2, $fn=cp);
         // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
         // Bottom cutout, around feet
         translate([0,0,-bot+2]) linear_extrude(height=bot-bthi-1.9, convexity=10) polygon([
@@ -575,6 +575,7 @@ module inner_cap(cp=def_cp, solid=false)
 {
     bhei = 50;
     jthi = 10;
+    jout = 5;
     irad = outer_dia/2 - jthi;
     crad = 36;
     hei = 2;
@@ -603,7 +604,7 @@ module inner_cap(cp=def_cp, solid=false)
                 union() {
                     linear_extrude(height=hei, convexity=20) {
                         polygon(concat(
-                            [for (an=[45:360/cp:135]) [sin(an)*irad, cos(an)*irad]],
+                            [for (an=[45:360/cp:135]) [sin(an)*(irad+jout), cos(an)*(irad+jout)]],
                             [for (an=[135:-360/cp:45]) [sin(an)*(crad-1), cos(an)*(crad-1)]]
                         ));
                     }
@@ -749,7 +750,7 @@ module testring_out()
 {
     or = outer_dia/2;
     linear_extrude(height=20) difference() {
-        circle(or+2, $fn=240);
+        circle(or+1.6, $fn=240);
         circle(or, $fn=240);
     }
 }
@@ -760,7 +761,7 @@ module testring_in()
     ir = outer_dia/2 - jthi;
     linear_extrude(height=20) difference() {
         circle(ir, $fn=240);
-        circle(ir-1.6, $fn=240);
+        circle(ir-1.2, $fn=240);
     }
 }
 
