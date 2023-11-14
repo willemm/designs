@@ -42,10 +42,10 @@ if (doitem == "") {
     *color("#86c") inner_post(cp=60);
     *color("#86c") render(convexity=10) inner_post(cp=60);
 
-    *color("#68c") inner_base(cp=60, solid=false);
+    color("#68c") inner_base(cp=60, solid=false);
     *color("#97c") inner_base_foot();
-    *color("#97c") inner_cap(cp=60, solid=false);
-    *translate([0,0,20]) inner_base_ring(cp=60);
+    color("#97c") inner_cap(cp=60, solid=false);
+    translate([0,0,20]) inner_base_ring(cp=60);
     *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
@@ -719,7 +719,7 @@ module inner_cap(cp=def_cp, solid=false)
 {
     bhei = 50;
     jthi = 10;
-    jout = 5;
+    jout = 4;
     irad = outer_dia/2 - jthi;
     crad = 36;
     hei = 2;
@@ -883,10 +883,10 @@ module glassjar()
 module inner_base_ring(cp=def_cp)
 {
     jthi = 10;
-    jout = 5;
-    ir = outer_dia/2 - jthi+0.2;
+    jout = 4;
+    ir = outer_dia/2 - jthi+0.4;
     ir2 = ir+1.2;
-    or = outer_dia/2 - jout;
+    or = outer_dia/2 - jthi + jout;
     ost = ceil(cp*(12/360));
     nstp = 4;
     hlf = floor(cp/(nstp*2))*(360/cp);
