@@ -29,7 +29,8 @@ if (doitem == "outer_base_n") { outer_base(side=0, cp=240); }
 if (doitem == "outer_base_e") { outer_base(side=1, cp=240); } 
 if (doitem == "outer_base_s") { outer_base(side=2, cp=240); } 
 if (doitem == "outer_base_w") { outer_base(side=3, cp=240); } 
-if (doitem == "basering") { basering(cp=240); }
+if (doitem == "inner_base_ring") { inner_base_ring(cp=240); }
+if (doitem == "inner_base_foot") { inner_base_foot(); }
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
@@ -40,9 +41,10 @@ if (doitem == "") {
     *color("#86c") inner_post(cp=60);
     *color("#86c") render(convexity=10) inner_post(cp=60);
 
-    color("#68c") inner_base(cp=60, solid=false);
-    color("#97c") inner_cap(cp=60, solid=false);
-    translate([0,0,20]) basering(cp=60);
+    *color("#68c") inner_base(cp=60, solid=false);
+    *color("#97c") inner_base_foot();
+    *color("#97c") inner_cap(cp=60, solid=false);
+    *translate([0,0,20]) inner_base_ring(cp=60);
     *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
@@ -63,12 +65,17 @@ if (doitem == "") {
     *color("#cc53") jackplugs_in();
     *color("#cc53") connectors_out();
 
-    *color("#7899") render(convexity=10) outer_base(side=0);
+    color("#7899") render(convexity=10) outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
     *color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
     *color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
 
-    *color("#7899") outer_base(side=0);
+    for (an=[22.5:45:360]) rotate([0,0,an]) {
+        color("#987") outer_foot_stem();
+        color("#987") outer_foot();
+    }
+
+    *color("#789") outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) outer_base(side=1);
     *color("#47c9") rotate([0,0,180]) outer_base(side=2);
     *color("#4a99") rotate([0,0,270]) outer_base(side=3);
@@ -148,13 +155,6 @@ module outer_base(cp=def_cp, side=0)
         // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
         // Bottom cutout, around feet
         translate([0,0,-bot+2]) linear_extrude(height=bot-bthi-1.9, convexity=10) polygon([
-            /*
-            [-0.1,-0.1],
-            [irad-22,-0.1], [irad-22, 13], [irad-42, 21],
-            [irad-32, 44], [irad-20,57],
-            [57, irad-20], [44, irad-32],
-            [21, irad-42], [13, irad-22], [-0.1, irad-22],
-            */
             [-0.1,-0.1],
             [irad-27,-0.1], [irad-42, 35],
             [irad-20,57], [57, irad-20],
@@ -166,7 +166,7 @@ module outer_base(cp=def_cp, side=0)
                 // *rotate([0,0,45]) translate([-10,-10,-bot+2]) cube([20,20, bot-bthi-1.9]);
                 // *translate([-5,-5,-bot-0.1]) cube([10,10, 2.2]);
                 translate([0,0,-bot+2]) rotate([0,0,45]) cylinder(bot-bthi-1.9, 7*sqrt(2), 10*sqrt(2), $fn=4);
-                translate([0,0,-bot-0.1]) cylinder(2.2, 3, 3, $fn=cp/3);
+                translate([0,0,-bot-0.1]) cylinder(2.2, 1.8, 1.8, $fn=cp/3);
             }
         }
         holetypes = [
@@ -248,7 +248,7 @@ module outer_base(cp=def_cp, side=0)
                 ]);
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=4) polygon([
-                    [0,72], [30,42], [30,50], [0,80]
+                    [0,72], [20,52], [20,62], [0,82]
                 ]);
 
             translate([irad+2, 0, 1.5]) rotate([-45,0,15]) rotate([0,0,45]) cube([8.5, 8.5, 52]);
@@ -256,9 +256,45 @@ module outer_base(cp=def_cp, side=0)
         }
         // Ledstrip slot (strip is 8x2mm)
         // echo ("Circumference of led strip", 2*(irad+2)*PI);
-        translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
-        translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
+        //translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
+        //translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
+        // RGB-Ledstrip slot (strip is 9.5x2mm)
+        translate([0,0,65]) polyhedron(convexity=10,
+            points = [for (an=[360/cp:360/cp:360]) each [
+                [sin(an)*(irad+1.5), cos(an)*(irad+1.5), 1.5],
+                [sin(an)*(irad-0.1), cos(an)*(irad-0.1), 1.5],
+                [sin(an)*(irad-0.1), cos(an)*(irad-0.1), 10+3.1],
+                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 10],
+                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 0],
+                [sin(an)*(irad+2.4), cos(an)*(irad+3.0), 0],
+                ]],
+            faces = [for (c=[0:cp-1]) each nquad(c, 6, cp)]);
+    }
+}
 
+module outer_foot_stem(cp=def_cp)
+{
+    bot = 25;
+    bthi = 3;
+
+    irad = outer_dia/2;
+    translate([irad-20,0,0]) difference() {
+        translate([0,0,-bot+2.2]) rotate([0,0,45]) cylinder(bot-bthi-2.2-0.3, 6.8*sqrt(2), 9.6*sqrt(2), $fn=4);
+        translate([0,0,-bot+1.9]) cylinder(21, 1.3, 1.3, $fn=cp/3);
+    }
+}
+
+module outer_foot(cp=def_cp)
+{
+    bot = 25;
+    bthi = 3;
+    fthi = 5;
+
+    irad = outer_dia/2;
+    translate([irad-20,0,0]) difference() {
+        translate([0,0,-bot-fthi-0.1]) cylinder(fthi, 10, 14, $fn=cp);
+        translate([0,0,-bot-fthi-0.11]) cylinder(fthi+0.12, 1.6, 1.6, $fn=cp/3);
+        translate([0,0,-bot-fthi-0.11]) cylinder(fthi-1+0.01, 5, 4, $fn=cp/3);
     }
 }
 
@@ -448,6 +484,49 @@ module jackplugs_in()
     }
 }
 
+// Hole for screws that act as adjustable feet
+// Will glue into one of the vertical square(ish) at the bottom
+module inner_base_foot()
+{
+    jthi = 10;
+    irad = outer_dia/2 - jthi;
+    crad = 36;
+    hei = 50;
+    wad = 47.5;
+
+    hst = 5.8;
+
+    drhei = 2;
+
+    holes = innerholes(crad-holeof, irad, hst, choff);
+    hole = holes[72];
+    d = hole[0];
+    an = hole[1];
+    by = hole[2]-0.1;
+    bx1 = hole[3]-0.1;
+    bx2 = hole[4]-0.1;
+    rotate([0, 0, an]) translate([d,0,0]) linear_extrude(height=10,convexity=10) difference() {
+        polygon([
+            [-by, -bx1], [ by, -bx2],
+            [ by,  bx2], [-by,  bx1]
+        ]);
+        circle(1.3, $fn=30);
+    }
+}
+
+function innerholes(srad, erad, hst, choff, offs=0) =
+    [for (d=[srad+hst: hst: erad-hst/2])
+        let(nstp = floor(d/(hst/1.5)),
+            stp = (90-choff)/nstp,
+            vst = d*PI/nstp/2,
+            fstp = floor(nstp/2)*offs,
+            by = hst*0.5-0.25,
+            bx1 = vst*0.5-0.5,
+            bx2 = vst*0.5-0.1)
+        for (an=[stp/2-choff*offs+choff/2-fstp*stp:stp:90-stp/2-45*offs])
+            [d, an+offs*(an > 0 ? choff : 0), by, bx1, bx2]
+    ];
+
 module inner_base(cp=def_cp, solid=false)
 {
     jthi = 10;
@@ -460,16 +539,7 @@ module inner_base(cp=def_cp, solid=false)
 
     drhei = 2;
 
-    holes = [for (d=[crad+hst-holeof: hst: irad-hst/2])
-        let(nstp = floor(d/(hst/1.5)),
-            stp = (90-choff)/nstp,
-            vst = d*3.141/nstp/2,
-            by = hst*0.5-0.25,
-            bx1 = vst*0.5-0.5,
-            bx2 = vst*0.5-0.1)
-        for (an=[stp/2+choff/2:stp:90-stp/2])
-            [d, an, by, bx1, bx2]
-    ];
+    holes = innerholes(crad-holeof, irad, hst, choff);
     difference() {
         union() {
             linear_extrude(height=hei, convexity=20) difference() {
@@ -529,6 +599,19 @@ module inner_base(cp=def_cp, solid=false)
                     translate([0,0,-0.01]) rotate([0,0,45]) cylinder(4, chei/sqrt(2)+0.1, 1.2, $fn=4);
                 }
             }
+            // Botton screw hole (foot)
+            d = holes[72][0];
+            an = holes[72][1];
+            by = holes[72][2]+0.1;
+            bx1 = holes[72][3]+0.1;
+            bx2 = holes[72][4]+0.1;
+            rotate([0,0,an]) translate([d,0,0]) linear_extrude(height=15,convexity=10) difference() {
+                polygon([
+                    [-by, -bx1], [ by, -bx2],
+                    [ by,  bx2], [-by,  bx1]
+                ]);
+                circle(1.3, $fn=30);
+            }
             }
             // Extra edge for under center post
             linear_extrude(height=2, convexity=20) {
@@ -587,17 +670,7 @@ module inner_cap(cp=def_cp, solid=false)
 
     caphi = 22-3;
 
-    holes = [for (d=[crad+hst-holeof: hst: irad-hst/2])
-        let(nstp = floor(d/(hst/1.5)),
-            stp = (90-choff)/nstp,
-            vst = d*3.141/nstp/2,
-            fstp = floor(nstp/2),
-            by = hst*0.5-0.25,
-            bx1 = vst*0.5-0.5,
-            bx2 = vst*0.5-0.1)
-        for (an=[stp/2-choff/2-fstp*stp:stp:45-stp/2])
-            [d, an+(an > 0 ? choff : 0), by, bx1, bx2]
-    ];
+    holes = innerholes(crad-holeof, irad, hst, choff, 1);
 
     translate([0,0,50.1]) difference() {
         union() {
@@ -748,7 +821,7 @@ module glassjar()
     );
 }
 
-module basering(cp=def_cp)
+module inner_base_ring(cp=def_cp)
 {
     jthi = 10;
     jout = 5;
@@ -812,9 +885,9 @@ function circX(z, d, of=0, cp=def_cp) = [for (an=[of*(360/cp):360/cp:(cp+of-1)*(
     [sin(an)*d, cos(an)*d, z]
 ];
 
-function nquad(l, cp=def_cp) = [for (an=[0:cp-1]) each [
-    [l*cp + an, l*cp + (an+1)%cp, (l+1)*cp + an],
-    [(l+1)*cp + an, l*cp + (an+1)%cp, (l+1)*cp + (an+1)%cp]
+function nquad(l, cp=def_cp, md=99999) = [for (an=[0:cp-1]) each [
+    [l*cp + an, l*cp + (an+1)%cp, (l+1)%md*cp + an],
+    [(l+1)%md*cp + an, l*cp + (an+1)%cp, (l+1)%md*cp + (an+1)%cp]
 ]];
 
 function ntop(l,cp=def_cp) = [[for (an=[0:cp-1]) l*cp+an]];
