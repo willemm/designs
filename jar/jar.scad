@@ -29,6 +29,7 @@ if (doitem == "outer_base_n") { outer_base(side=0, cp=240); }
 if (doitem == "outer_base_e") { outer_base(side=1, cp=240); } 
 if (doitem == "outer_base_s") { outer_base(side=2, cp=240); } 
 if (doitem == "outer_base_w") { outer_base(side=3, cp=240); } 
+if (doitem == "basering") { basering(cp=240); }
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
@@ -41,6 +42,7 @@ if (doitem == "") {
 
     color("#68c") inner_base(cp=60, solid=false);
     color("#97c") inner_cap(cp=60, solid=false);
+    translate([0,0,20]) basering(cp=60);
     *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
@@ -61,7 +63,7 @@ if (doitem == "") {
     *color("#cc53") jackplugs_in();
     *color("#cc53") connectors_out();
 
-    color("#7899") render(convexity=10) outer_base(side=0);
+    *color("#7899") render(convexity=10) outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
     *color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
     *color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
@@ -73,12 +75,12 @@ if (doitem == "") {
 
     *color("#789") outer_base();
 
-    translate([0,0,30]) testring_in();
-    translate([0,0,30]) testring_out();
+    *translate([0,0,30]) testring_in();
+    *translate([0,0,30]) testring_out();
     *color("#ccc5") render(convexity=5) glassjar();
 
     // Build plate size indicartion
-    color("#5954") translate([50,60,-26.2]) cube([250,200,2],true);
+    *color("#5954") translate([50,60,-26.2]) cube([250,200,2],true);
 }
 
 module outer_base(cp=def_cp, side=0)
@@ -744,6 +746,37 @@ module glassjar()
         points = points,
         faces = faces
     );
+}
+
+module basering(cp=def_cp)
+{
+    jthi = 10;
+    jout = 5;
+    ir = outer_dia/2 - jthi+0.2;
+    ir2 = ir+1.2;
+    or = outer_dia/2 - jout;
+    ost = ceil(cp*(12/360));
+    nstp = 4;
+    hlf = floor(cp/(nstp*2))*(360/cp);
+    linear_extrude(height=30) difference() {
+        polygon([for (stp=[0:nstp-1]) each
+            let(a1=stp*(360/nstp),
+                a2=a1+ost*360/cp,
+                a3=a1+hlf,
+                a4=a3+ost*360/cp,
+                a5=(stp+1)*(360/nstp))
+            concat(
+                [for (an=[a1:360/cp:a2]) [sin(an)*or, cos(an)*or]],
+                [for (an=[a2:360/cp:a3]) [sin(an)*ir2, cos(an)*ir2]],
+                [for (an=[a3:360/cp:a4]) [sin(an)*or, cos(an)*or]],
+                [for (an=[a4:360/cp:a5]) [sin(an)*ir2, cos(an)*ir2]]
+            )]);
+        /*polygon([for (an=[360/cp:360/cp:360]) let (r=(an%90 < 10) ? or : ir2)
+            [sin(an)*r, cos(an)*r]
+        ]);*/
+        circle(ir, $fn=cp);
+    }
+
 }
 
 module testring_out()
