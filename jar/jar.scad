@@ -25,6 +25,7 @@ jackhi = 35;
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
+if (doitem == "outer_led_cover") { outer_led_cover(cp=240); } 
 if (doitem == "outer_base_n") { outer_base(side=0, cp=240); } 
 if (doitem == "outer_base_e") { outer_base(side=1, cp=240); } 
 if (doitem == "outer_base_s") { outer_base(side=2, cp=240); } 
@@ -65,20 +66,22 @@ if (doitem == "") {
     *color("#cc53") jackplugs_in();
     *color("#cc53") connectors_out();
 
-    color("#7899") render(convexity=10) outer_base(side=0);
+    *color("#ccd") outer_led_cover_set();
+
+    *color("#7899") render(convexity=10) outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
     *color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
     *color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
 
-    for (an=[22.5:45:360]) rotate([0,0,an]) {
+    *for (an=[22.5:45:360]) rotate([0,0,an]) {
         color("#987") outer_foot_stem();
         color("#987") outer_foot();
     }
 
     *color("#789") outer_base(side=0);
-    *color("#4a99") rotate([0,0,90]) outer_base(side=1);
-    *color("#47c9") rotate([0,0,180]) outer_base(side=2);
-    *color("#4a99") rotate([0,0,270]) outer_base(side=3);
+    *color("#4a9") rotate([0,0,90]) outer_base(side=1);
+    color("#47c") rotate([0,0,180]) outer_base(side=2);
+    *color("#4a9") rotate([0,0,270]) outer_base(side=3);
 
     *color("#789") outer_base();
 
@@ -170,21 +173,20 @@ module outer_base(cp=def_cp, side=0)
             }
         }
         holetypes = [
-            [],
-            [],
+            (side == 2 ? [0, 10, 0] : [ 0, 0, 0 ]),
+            (side == 2 ? [0, 8, 0] : [ 0, 0, 0 ]),
             [for (i=[side*3:side*3+2]) holetypesmid[i]],
             [ 1, 1, 1 ],
             [],
         ];
-        for (c=[2,3]) {
+        for (c=[0,2,3]) {
             circ = circles[c];
             for (a=[0:numedg/parts-1]) {
                 an = (circ[3]-floor(circ[3]))*(360/numedg)+a*360/numedg;
                 rotate ([0,0,an+(360/numedg/2)]) translate([circ[1]*cos(360/numedg/2), 0, circ[0]])
                     rotate([0,270+circ[2],0]) {
                         if (holetypes[c][a] == 0) {
-                            // todo
-                            #translate([0,0,-0.01]) cylinder(33,5,5,$fn=cp/3);
+                            // nothing
                         }
                         if (holetypes[c][a] == 1) {
                             // Outward rgb led
@@ -233,6 +235,28 @@ module outer_base(cp=def_cp, side=0)
                             // 22mm emergency stop
                             translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
                             translate([0,0,3]) rotate([0,0,180/8]) cylinder(38, 18, 18, $fn=8);
+                        }
+                        if (holetypes[c][a] == 8) {
+                            // 22mm usb-c connector
+                            translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            translate([0,0,3]) rotate([0,0,180/8]) cylinder(42, 18, 18, $fn=8);
+                        }
+                        if (holetypes[c][a] == 9) {
+                            // 11mm usb-c connector
+                            translate([15,0,-0.01]) cylinder(3.02,5.5,5.5,$fn=cp/3);
+                            translate([15,0,3]) rotate([0,0,180/8]) cylinder(42, 12.9, 12.9, $fn=8);
+                        }
+                        if (holetypes[c][a] == 10) {
+                            // oblong usb-c connector
+                            translate([15,0,-0.01]) {
+                                translate([-3.5,-10,0]) cube([7,20,5.01]);
+                                translate([-5,-5,0]) cube([10,10,5.01]);
+                            }
+                            translate([15,0,5-0.01]) {
+                                translate([-5,-5,0]) cube([10,10,30]);
+                                translate([0, 17.5/2,0]) cylinder(20, 1.3, 1.3, $fn=cp/6);
+                                translate([0,-17.5/2,0]) cylinder(20, 1.3, 1.3, $fn=cp/6);
+                            }
                         }
                     }
             }
@@ -295,6 +319,41 @@ module outer_foot(cp=def_cp)
         translate([0,0,-bot-fthi-0.1]) cylinder(fthi, 10, 14, $fn=cp);
         translate([0,0,-bot-fthi-0.11]) cylinder(fthi+0.12, 1.6, 1.6, $fn=cp/3);
         translate([0,0,-bot-fthi-0.11]) cylinder(fthi-1+0.01, 5, 4, $fn=cp/3);
+    }
+}
+
+module outer_led_cover_set(cp=def_cp)
+{
+    numedg = 12;
+    thick = 30;
+    sang = 28.5;
+    stp = 32;
+    orad = outer_dia/2+thick;
+    bot = 25;
+    circles = generate_facet_circles(numedg, stp, orad, -bot, sang, 6);
+
+    for (c=[3]) {
+        circ = circles[c];
+        echo(circ);
+        for (a=[0:11]) {
+            an = (circ[3]-floor(circ[3])+a)*(360/numedg);
+            rotate ([0,0,an+(360/numedg/2)]) {
+                translate([circ[1]*cos(360/numedg/2), 0, circ[0]]) rotate([0,circ[2]-90,0]) {
+                    outer_led_cover(cp);
+                }
+            }
+        }
+    }
+}
+
+module outer_led_cover(cp=def_cp)
+{
+    translate([0,0,-0.5]) difference() {
+        intersection() {
+            translate([0,0,-0.01]) cylinder(28.02,11.1,3.7,$fn=cp/3);
+            translate([0,0,0]) cylinder(15, 10.2, 25.2, $fn=cp/3);
+        }
+        translate([0,0,0.5]) cylinder(28.02,10.0,2.5,$fn=cp/3);
     }
 }
 
