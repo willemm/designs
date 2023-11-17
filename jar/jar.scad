@@ -12,8 +12,8 @@ capholes = [33,44,86,87];
 cappins = [10,19,78,95];
 
 // Facet holes.
-// outled, jack, spinner, button, rocker, rotaryswitch, stopbutton
-holetypesmid = [6,6,6,3,2,2,2,7,2,2,2,3];
+// outled, jack, spinner, button, rocker, rotaryswitch, stopbutton, usbc, usbc, usbc, pot
+holetypesmid = [6,6,6,11,2,2,2,7,2,2,2,11];
 
 humidang = 20;
 
@@ -42,10 +42,10 @@ if (doitem == "") {
     *color("#86c") inner_post(cp=60);
     *color("#86c") render(convexity=10) inner_post(cp=60);
 
-    color("#68c") inner_base(cp=60, solid=false);
+    *color("#68c") inner_base(cp=60, solid=false);
     *color("#97c") inner_base_foot();
-    color("#97c") inner_cap(cp=60, solid=false);
-    translate([0,0,20]) inner_base_ring(cp=60);
+    *color("#97c") inner_cap(cp=60, solid=false);
+    *translate([0,0,20]) inner_base_ring(cp=60);
     *translate([0,0,0])  {
         color("#68c") render(convexity=10) inner_base(cp=60);
         color("#86c") render(convexity=10) inner_cap(cp=60);
@@ -64,7 +64,7 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    *color("#cc53") connectors_out();
+    color("#cc53") connectors_out(sides=[1]);
 
     *color("#ccd") outer_led_cover_set();
 
@@ -79,8 +79,8 @@ if (doitem == "") {
     }
 
     *color("#789") outer_base(side=0);
-    *color("#4a9") rotate([0,0,90]) outer_base(side=1);
-    color("#47c") rotate([0,0,180]) outer_base(side=2);
+    color("#4a9") rotate([0,0,90]) outer_base(side=1);
+    *color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
 
     *color("#789") outer_base();
@@ -111,69 +111,72 @@ module outer_base(cp=def_cp, side=0)
         ci = numedg*(len(circles)-2);
         cc = numedg*len(circles);
 
-        // Points spiral because of the way it's setup.
-        // Therefore some complicated trickery is needed to get the partial side
-        union() {
-            polyhedron(convexity=10
-            , points = concat([for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ],
-                [[0, 0, 35], [0,0,-bot]])
-            , faces = concat(
-                [concat(cc+1, [for (an=[numedg/parts-circles[0][3]:-1:-circles[0][3]]) an])],
-                [for (l=[0:len(circles)-2], an=[-circles[l][3]:numedg/parts-circles[l][3]-1])
-                    [l*numedg+an,l*numedg+an+1,(l+1)*numedg+an]],
-                [for (l=[0:len(circles)-3], an=[-circles[l+1][3]+1:numedg/parts-circles[l+1][3]])
-                    [l*numedg+an,(l+1)*numedg+an,(l+1)*numedg+an-1]],
-                [[-circles[0][3], cc, cc+1], [numedg/parts-circles[0][3], cc+1, cc]],
-                [for (l=[0:len(circles)-3])
-                    [l*numedg-circles[l][3], (l+1)*numedg-circles[l+1][3], cc]],
-                [for (l=[0:len(circles)-3])
-                    [numedg/parts+(l+1)*numedg-circles[l+1][3], numedg/parts+l*numedg-circles[l][3], cc]],
-                [for (l=[-circles[len(circles)-2][3]:numedg/parts-circles[len(circles)-2][3]-1]) each [
-                     [ci+l, ci+(l+1)%numedg, ci+l+numedg],
-                     [ci+l, ci+l+numedg, cc],
-                     [ci+(l+1)%numedg, cc, ci+l+numedg]
-                     ]]
-            )
-            );
+        render(convexity=10) difference() {
+
+            // Points spiral because of the way it's setup.
+            // Therefore some complicated trickery is needed to get the partial side
+            union() {
+                polyhedron(convexity=10
+                , points = concat([for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ],
+                    [[0, 0, 35], [0,0,-bot]])
+                , faces = concat(
+                    [concat(cc+1, [for (an=[numedg/parts-circles[0][3]:-1:-circles[0][3]]) an])],
+                    [for (l=[0:len(circles)-2], an=[-circles[l][3]:numedg/parts-circles[l][3]-1])
+                        [l*numedg+an,l*numedg+an+1,(l+1)*numedg+an]],
+                    [for (l=[0:len(circles)-3], an=[-circles[l+1][3]+1:numedg/parts-circles[l+1][3]])
+                        [l*numedg+an,(l+1)*numedg+an,(l+1)*numedg+an-1]],
+                    [[-circles[0][3], cc, cc+1], [numedg/parts-circles[0][3], cc+1, cc]],
+                    [for (l=[0:len(circles)-3])
+                        [l*numedg-circles[l][3], (l+1)*numedg-circles[l+1][3], cc]],
+                    [for (l=[0:len(circles)-3])
+                        [numedg/parts+(l+1)*numedg-circles[l+1][3], numedg/parts+l*numedg-circles[l][3], cc]],
+                    [for (l=[-circles[len(circles)-2][3]:numedg/parts-circles[len(circles)-2][3]-1]) each [
+                         [ci+l, ci+(l+1)%numedg, ci+l+numedg],
+                         [ci+l, ci+l+numedg, cc],
+                         [ci+(l+1)%numedg, cc, ci+l+numedg]
+                         ]]
+                )
+                );
+                // Slats to help gluing together
+                translate([irad+18,15,47]) rotate([0,-90,0]) linear_extrude(height=4) polygon([
+                    [0,0],[17.5,20],[35,0]
+                ]);
+                translate([irad+18,15,-10]) rotate([0,-90,0]) linear_extrude(height=4) polygon([
+                    [0,0],[17.5,20],[35,0]
+                ]);
+            }
             // Slats to help gluing together
-            translate([irad+18,15,47]) rotate([0,-90,0]) linear_extrude(height=4) polygon([
-                [0,0],[17.5,20],[35,0]
+            rotate([0,0,90]) {
+                tol = 0.2;
+                translate([irad+18+tol,15,47]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
+                    [0,-tol],[17.5,20],[35,-tol]
+                ]);
+                translate([irad+18+tol,15,-10]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
+                    [0,-tol],[17.5,20],[35,-tol]
+                ]);
+            }
+            // Jar cutout
+            translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad+0.2, irad+0.2, $fn=cp);
+            // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
+            // Bottom cutout, around feet
+            translate([0,0,-bot+2]) linear_extrude(height=bot-bthi-1.9, convexity=10) polygon([
+                [-0.1,-0.1],
+                [irad-27,-0.1], [irad-42, 35],
+                [irad-20,57], [57, irad-20],
+                [35, irad-42], [-0.1, irad-27]
             ]);
-            translate([irad+18,15,-10]) rotate([0,-90,0]) linear_extrude(height=4) polygon([
-                [0,0],[17.5,20],[35,0]
-            ]);
-        }
-        // Slats to help gluing together
-        rotate([0,0,90]) {
-            tol = 0.2;
-            translate([irad+18+tol,15,47]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
-                [0,-tol],[17.5,20],[35,-tol]
-            ]);
-            translate([irad+18+tol,15,-10]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
-                [0,-tol],[17.5,20],[35,-tol]
-            ]);
-        }
-        // Jar cutout
-        translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad+0.2, irad+0.2, $fn=cp);
-        // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
-        // Bottom cutout, around feet
-        translate([0,0,-bot+2]) linear_extrude(height=bot-bthi-1.9, convexity=10) polygon([
-            [-0.1,-0.1],
-            [irad-27,-0.1], [irad-42, 35],
-            [irad-20,57], [57, irad-20],
-            [35, irad-42], [-0.1, irad-27]
-        ]);
-        // Feet holes
-        for (an=[22.5,67.5]) {
-            rotate([0,0,an]) translate([irad-20,0,0]) rotate([0,0,0]) {
-                // *rotate([0,0,45]) translate([-10,-10,-bot+2]) cube([20,20, bot-bthi-1.9]);
-                // *translate([-5,-5,-bot-0.1]) cube([10,10, 2.2]);
-                translate([0,0,-bot+2]) rotate([0,0,45]) cylinder(bot-bthi-1.9, 7*sqrt(2), 10*sqrt(2), $fn=4);
-                translate([0,0,-bot-0.1]) cylinder(2.2, 1.8, 1.8, $fn=cp/3);
+            // Feet holes
+            for (an=[22.5,67.5]) {
+                rotate([0,0,an]) translate([irad-20,0,0]) rotate([0,0,0]) {
+                    // *rotate([0,0,45]) translate([-10,-10,-bot+2]) cube([20,20, bot-bthi-1.9]);
+                    // *translate([-5,-5,-bot-0.1]) cube([10,10, 2.2]);
+                    translate([0,0,-bot+2]) rotate([0,0,45]) cylinder(bot-bthi-1.9, 7*sqrt(2), 10*sqrt(2), $fn=4);
+                    translate([0,0,-bot-0.1]) cylinder(2.2, 1.8, 1.8, $fn=cp/3);
+                }
             }
         }
         holetypes = [
-            (side == 2 ? [0, 10, 0] : [ 0, 0, 0 ]),
+            (side == 2 ? [0, 9, 0] : [ 0, 0, 0 ]),
             (side == 2 ? [0, 8, 0] : [ 0, 0, 0 ]),
             [for (i=[side*3:side*3+2]) holetypesmid[i]],
             [ 1, 1, 1 ],
@@ -204,6 +207,13 @@ module outer_base(cp=def_cp, side=0)
                             // Rotary encoder
                             translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
                             translate([-16/2,-13.2/2,3]) cube([16, 13.2, 6.01]);
+                            translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
+                        }
+                        if (holetypes[c][a] == 11) {
+                            // potentiometer
+                            translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
+                            translate([0,0,3]) cylinder(6.01, 18/2, 18/2, $fn=cp/3);
+                            translate([0, -17/2, 3]) cube([18,17,30]);
                             translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
                         }
                         if (holetypes[c][a] == 4) {
@@ -243,7 +253,12 @@ module outer_base(cp=def_cp, side=0)
                         }
                         if (holetypes[c][a] == 9) {
                             // 11mm usb-c connector
-                            translate([15,0,-0.01]) cylinder(3.02,5.5,5.5,$fn=cp/3);
+                            translate([15,0,-0.01]) {
+                                intersection() {
+                                    cylinder(3.02,5.5,5.5,$fn=cp/3);
+                                    translate([-9.5/2, -11/2, -1]) cube([9.5, 11, 5]);
+                                }
+                            }
                             translate([15,0,3]) rotate([0,0,180/8]) cylinder(42, 12.9, 12.9, $fn=8);
                         }
                         if (holetypes[c][a] == 10) {
@@ -262,13 +277,14 @@ module outer_base(cp=def_cp, side=0)
             }
         }
         // Led cable slot
-        translate([0,0,49]) cylinder(10, irad+3, irad+3, $fn=cp);
-        translate([0,0,58.99]) cylinder(3, irad+3, irad, $fn=cp);
+        // Rolled into rgb strip slot
+        // *translate([0,0,49]) cylinder(10, irad+3, irad+3, $fn=cp);
+        // *translate([0,0,58.99]) cylinder(3, irad+3, irad, $fn=cp);
         // Cable slot
         rotate([0,0,45]) {
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=24) polygon([
-                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,43], [0,73]
+                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,43], [0,74]
                 ]);
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=4) polygon([
@@ -283,16 +299,27 @@ module outer_base(cp=def_cp, side=0)
         //translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
         //translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
         // RGB-Ledstrip slot (strip is 9.5x2mm)
+        // Together with led cable slot
+        est = ceil(18/(360/cp));
+        nst = cp/4+est;
         translate([0,0,65]) polyhedron(convexity=10,
-            points = [for (an=[360/cp:360/cp:360]) each [
-                [sin(an)*(irad+1.5), cos(an)*(irad+1.5), 1.5],
-                [sin(an)*(irad-0.1), cos(an)*(irad-0.1), 1.5],
+            points = [for (an=[-est*360/cp:360/cp:90]) each [
                 [sin(an)*(irad-0.1), cos(an)*(irad-0.1), 10+3.1],
                 [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 10],
                 [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 0],
-                [sin(an)*(irad+2.4), cos(an)*(irad+3.0), 0],
+                [sin(an)*(irad+2.5), cos(an)*(irad+2.5), 0],
+                [sin(an)*(irad+2.5), cos(an)*(irad+2.5), 1.0],
+                [sin(an)*(irad+1.3), cos(an)*(irad+1.3), 1.0],
+                [sin(an)*(irad+1.3), cos(an)*(irad+1.3), -4.3],
+                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), -6],
+                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), -16],
+                [sin(an)*(irad-0.1), cos(an)*(irad-0.1), -16],
                 ]],
-            faces = [for (c=[0:cp-1]) each nquad(c, 6, cp)]);
+            faces = concat(
+                nbot(0, 10),
+                [for (c=[0:nst-1]) each nquad(c, 10)],
+                ntop(nst, 10)
+            ));
     }
 }
 
@@ -483,6 +510,9 @@ module connectors_out(sides=[0,1,2,3])
                     if (holetypesmid[a] == 3) {
                         spinner();
                     }
+                    if (holetypesmid[a] == 11) {
+                        potentiometer();
+                    }
                     if (holetypesmid[a] == 6) {
                         rotary_switch();
                     }
@@ -492,6 +522,32 @@ module connectors_out(sides=[0,1,2,3])
                 }
             }
         }
+    }
+    for (c=[0]) {
+        circ = circles[c];
+        for (s=sides, a=[s*3:s*3+2]) {
+            if (a == 7) {
+                an = (circ[3]-floor(circ[3])+a)*(360/numedg);
+                rotate ([0,0,an+(360/numedg/2)]) {
+                    translate([circ[1]*cos(360/numedg/2), 0, circ[0]]) rotate([0,circ[2],0]) {
+                        usbc_11mm();
+                    }
+                }
+            }
+        }
+    }
+}
+
+module usbc_11mm()
+{
+    translate([0,0,15]) render(convexity=10) rotate([0,-90,0]) {
+        intersection() {
+            translate([0,0,0]) cylinder(16.5, 11/2, 11/2, $fn=30);
+            translate([-9.25/2, -11/2, -1]) cube([9.25, 11, 18]);
+        }
+        translate([0,0,-2.2]) cylinder(2.2, 7, 7, $fn=30);
+        translate([-2.5/2, -8/2, 16.5]) cube([2.5, 8, 15]);
+        translate([0,0,3]) cylinder(3, 14/sqrt(3), 14/sqrt(3), $fn=6);
     }
 }
 
@@ -513,7 +569,22 @@ module jackplug()
 module spinner() {
     render(convexity=10) rotate([0,-90,0]) {
         translate([0,0,-10]) cylinder(15, 3, 3, $fn=30);
-        translate([-15/2,-13/2,3]) cube([15, 13, 6]);
+        translate([-15/2,-13/2,3]) cube([15, 13, 6.1]);
+        translate([0,0,-2.5]) cylinder(2, 10/sqrt(3), 10/sqrt(3), $fn=6);
+        translate([0,0,-0.5]) cylinder(0.4, 6, 6, $fn=30);
+    }
+}
+
+module potentiometer() {
+    render(convexity=10) rotate([0,-90,0]) {
+        translate([0,0,-10]) cylinder(15, 3, 3, $fn=30);
+        translate([0,0,3]) cylinder(9.2, 17/2, 17/2, $fn=30);
+        translate([0,-16/2,3]) cube([12.5, 16, 4]);
+        translate([12.5,-5-1/2,6]) cube([4, 1, 1]);
+        translate([12.5, 0-1/2,6]) cube([4, 1, 1]);
+        translate([12.5, 5-1/2,6]) cube([4, 1, 1]);
+        translate([0,0,-2.5]) cylinder(2, 10/sqrt(3), 10/sqrt(3), $fn=6);
+        translate([0,0,-0.5]) cylinder(0.4, 6, 6, $fn=30);
     }
 }
 
@@ -522,7 +593,7 @@ module rotary_switch() {
         translate([0,0,0]) cylinder(38.5, 7, 7, $fn=30);
         translate([0,0,0]) cylinder(20, 11, 11, $fn=30);
         translate([0,0,-2]) cylinder(2, 15, 15, $fn=30);
-        translate([0,0,3]) cylinder(2, 14.25, 14.25, $fn=6);
+        translate([0,0,3]) cylinder(2, 25/sqrt(3), 25/sqrt(3), $fn=6);
     }
 }
 
@@ -531,7 +602,7 @@ module stop_button() {
         translate([0,0,0]) cylinder(31, 7, 7, $fn=30);
         translate([0,0,-2]) cylinder(17, 11, 11, $fn=30);
         translate([0,0,-14]) cylinder(12, 14, 14, $fn=30);
-        translate([0,0,3]) cylinder(2, 14.25, 14.25, $fn=6);
+        translate([0,0,3]) cylinder(2, 25/sqrt(3), 25/sqrt(3), $fn=6);
     }
 }
 
