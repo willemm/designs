@@ -32,6 +32,8 @@ if (doitem == "outer_base_s") { outer_base(side=2, cp=240); }
 if (doitem == "outer_base_w") { outer_base(side=3, cp=240); } 
 if (doitem == "inner_base_ring") { inner_base_ring(cp=240); }
 if (doitem == "inner_base_foot") { inner_base_foot(); }
+if (doitem == "pipespanner25") { pipespanner(size=25); }
+if (doitem == "pipespanner14") { pipespanner(size=14); }
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
@@ -64,7 +66,7 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    color("#cc53") connectors_out(sides=[1]);
+    color("#cc53") connectors_out(sides=[0,2]);
 
     *color("#ccd") outer_led_cover_set();
 
@@ -78,9 +80,9 @@ if (doitem == "") {
         color("#987") outer_foot();
     }
 
-    *color("#789") outer_base(side=0);
-    color("#4a9") rotate([0,0,90]) outer_base(side=1);
-    *color("#47c") rotate([0,0,180]) outer_base(side=2);
+    color("#789") outer_base(side=0);
+    *color("#4a9") rotate([0,0,90]) outer_base(side=1);
+    color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
 
     *color("#789") outer_base();
@@ -548,7 +550,9 @@ module usbc_11mm()
         translate([0,0,-2.2]) cylinder(2.2, 7, 7, $fn=30);
         translate([-2.5/2, -8/2, 16.5]) cube([2.5, 8, 15]);
         translate([0,0,3]) cylinder(3, 14/sqrt(3), 14/sqrt(3), $fn=6);
+
     }
+    #translate([0,0,15]) rotate([0,-90,0]) translate([0,0,4]) pipespanner(14);
 }
 
 module jackplug()
@@ -594,6 +598,17 @@ module rotary_switch() {
         translate([0,0,0]) cylinder(20, 11, 11, $fn=30);
         translate([0,0,-2]) cylinder(2, 15, 15, $fn=30);
         translate([0,0,3]) cylinder(2, 25/sqrt(3), 25/sqrt(3), $fn=6);
+
+    }
+    #rotate([0,-90,0]) translate([0,0,3.5]) pipespanner(25);
+}
+
+module pipespanner(size=25, cp=def_cp)
+{
+    thick = 1.6;
+    render(convexity=10) linear_extrude(height=60) difference() {
+        circle(size/sqrt(3)+thick, $fn=cp);
+        circle(size/sqrt(3), $fn=6);
     }
 }
 
@@ -603,7 +618,9 @@ module stop_button() {
         translate([0,0,-2]) cylinder(17, 11, 11, $fn=30);
         translate([0,0,-14]) cylinder(12, 14, 14, $fn=30);
         translate([0,0,3]) cylinder(2, 25/sqrt(3), 25/sqrt(3), $fn=6);
+
     }
+    #rotate([0,-90,0]) translate([0,0,4]) pipespanner(25);
 }
 
 module jackplugs_in()
