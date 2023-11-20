@@ -66,7 +66,7 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    color("#cc53") connectors_out(sides=[0,2]);
+    *color("#cc53") connectors_out(sides=[0,2]);
 
     *color("#ccd") outer_led_cover_set();
 
@@ -80,9 +80,9 @@ if (doitem == "") {
         color("#987") outer_foot();
     }
 
-    *color("#789") outer_base(side=0);
+    color("#789") outer_base(side=0);
     *color("#4a9") rotate([0,0,90]) outer_base(side=1);
-    color("#47c") rotate([0,0,180]) outer_base(side=2);
+    *color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
 
     *color("#789") outer_base();
@@ -113,14 +113,14 @@ module outer_base(cp=def_cp, side=0)
         ci = numedg*(len(circles)-2);
         cc = numedg*len(circles);
 
+        circlepoints = [for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ];
         render(convexity=10) difference() {
 
             // Points spiral because of the way it's setup.
             // Therefore some complicated trickery is needed to get the partial side
             union() {
                 polyhedron(convexity=10
-                , points = concat([for (circ=circles) each circX(circ[0], circ[1], circ[3], numedg) ],
-                    [[0, 0, 35], [0,0,-bot]])
+                , points = concat(circlepoints, [[0, 0, 35], [0,0,-bot]])
                 , faces = concat(
                     [concat(cc+1, [for (an=[numedg/parts-circles[0][3]:-1:-circles[0][3]]) an])],
                     [for (l=[0:len(circles)-2], an=[-circles[l][3]:numedg/parts-circles[l][3]-1])
@@ -133,7 +133,6 @@ module outer_base(cp=def_cp, side=0)
                     [for (l=[0:len(circles)-3])
                         [numedg/parts+(l+1)*numedg-circles[l+1][3], numedg/parts+l*numedg-circles[l][3], cc]],
                     [for (l=[-circles[len(circles)-2][3]:numedg/parts-circles[len(circles)-2][3]-1]) each [
-                         [ci+l, ci+(l+1)%numedg, ci+l+numedg],
                          [ci+l, ci+l+numedg, cc],
                          [ci+(l+1)%numedg, cc, ci+l+numedg]
                          ]]
@@ -147,14 +146,27 @@ module outer_base(cp=def_cp, side=0)
                     [0,0],[17.5,20],[35,0]
                 ]);
             }
+            // Chamfered facet edges
+            // I think this will look ugly...
+            /*
+            *for (l=[1:len(circles)-2], an=[-circles[l][3]:numedg/parts-circles[l][3]-1]) {
+                chamferedge([
+                    circlepoints[(l+1)*numedg+an],
+                    circlepoints[l*numedg+an],
+                    circlepoints[(l-1)*numedg+an+1],
+                    circlepoints[l*numedg+an+1]
+                    ]);
+            }
+            */
             // Slats to help gluing together
             rotate([0,0,90]) {
-                tol = 0.2;
+                tol = 0.1;
+                itol = 0.4;
                 translate([irad+18+tol,15,47]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
-                    [0,-tol],[17.5,20],[35,-tol]
+                    [0,-itol],[17.5,20],[35,-itol]
                 ]);
                 translate([irad+18+tol,15,-10]) rotate([0,-90,0]) linear_extrude(height=4+tol*2) polygon([
-                    [0,-tol],[17.5,20],[35,-tol]
+                    [0,-itol],[17.5,20],[35,-itol]
                 ]);
             }
             // Jar cutout
@@ -317,7 +329,32 @@ module outer_base(cp=def_cp, side=0)
                 [for (c=[0:nst-1]) each nquad(c, len(profile))],
                 ntop(nst, len(profile))
             ));
+        // On the north side, there is some collapsing overhand because of the large cutout
+        // So cut a bit more
+        if (side==0) {
+            rotate([0,0,6]) translate([irad,0,0]) {
+                rotate([90,0,0]) linear_extrude(height=10, convexity=10) polygon([
+                    [9.25,25.25],[-0.75,35.35],[0,25]
+                ]);
+            }
+        }
     }
+}
+
+module chamferedge(corners, tol=0.5)
+{
+    offset = let(vect = cross(corners[1]-corners[0], corners[2]-corners[1])) tol*vect/norm(vect);
+    inset = [for (c=[0:len(corners)-1]) let(vect=corners[(c+2)%len(corners)]-corners[c])
+            tol*vect/norm(vect)];
+    lc = len(corners);
+    polyhedron(points = concat(
+            [for (c=[0:lc-1]) corners[c]-offset+inset[c]*2],
+            [for (c=[0:lc-1]) corners[c]+offset+inset[c]*0.18],
+            [for (c=[0:lc-1]) corners[c]-offset*2-inset[c]]
+        ),
+        faces = concat(
+            nbot(0,4), nquad(0,4), nquad(1,4), ntop(2,4)
+        ));
 }
 
 module capped_hole(dia, thi=3, cap=0.3, ang=40, off=0.1, cp=def_cp)
