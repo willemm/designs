@@ -307,23 +307,16 @@ module outer_base(cp=def_cp, side=0)
         // Together with led cable slot
         est = ceil(18/(360/cp));
         nst = cp/4+est;
+        profile = [[0.4, 10+3.6], [4.0, 10], [4.0, 0], [3.5, 0], [3.5, 1],
+                   [1.8, 1], [1.8, -4.3], [3.5, -6], [3.5, -16], [0.4, -16]];
         translate([0,0,65]) polyhedron(convexity=10,
-            points = [for (an=[-est*360/cp:360/cp:90]) each [
-                [sin(an)*(irad+0.4), cos(an)*(irad+0.4), 10+3.1],
-                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), 10],
-                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), 0],
-                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 0],
-                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 1.0],
-                [sin(an)*(irad+1.8), cos(an)*(irad+1.8), 1.0],
-                [sin(an)*(irad+1.8), cos(an)*(irad+1.8), -4.3],
-                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), -6],
-                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), -16],
-                [sin(an)*(irad+0.4), cos(an)*(irad+0.4), -16],
-                ]],
+            points = [for (an=[-est*360/cp:360/cp:90]) each
+                [ for (p=profile) [sin(an)*(irad+p[0]), cos(an)*(irad+p[0]), p[1]] ]
+                ],
             faces = concat(
-                nbot(0, 10),
-                [for (c=[0:nst-1]) each nquad(c, 10)],
-                ntop(nst, 10)
+                nbot(0, len(profile)),
+                [for (c=[0:nst-1]) each nquad(c, len(profile))],
+                ntop(nst, len(profile))
             ));
     }
 }
