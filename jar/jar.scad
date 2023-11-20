@@ -66,7 +66,7 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    color("#cc53") connectors_out(sides=[0,2]);
+    *color("#cc53") connectors_out(sides=[0,2]);
 
     *color("#ccd") outer_led_cover_set();
 
@@ -80,7 +80,7 @@ if (doitem == "") {
         color("#987") outer_foot();
     }
 
-    color("#789") outer_base(side=0);
+    *color("#789") outer_base(side=0);
     *color("#4a9") rotate([0,0,90]) outer_base(side=1);
     color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
@@ -158,7 +158,7 @@ module outer_base(cp=def_cp, side=0)
                 ]);
             }
             // Jar cutout
-            translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad+0.2, irad+0.2, $fn=cp);
+            translate([0,0,-bthi]) cylinder(circles[len(circles)-1][0]+0.01+bthi, irad+0.5, irad+0.5, $fn=cp);
             // *translate([0,0,-bot+2]) cylinder(bot-bthi-1.9, irad-20, irad-20, $fn=8);
             // Bottom cutout, around feet
             translate([0,0,-bot+2]) linear_extrude(height=bot-bthi-1.9, convexity=10) polygon([
@@ -213,7 +213,8 @@ module outer_base(cp=def_cp, side=0)
                         }
                         if (holetypes[c][a] == 11) {
                             // potentiometer
-                            translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
+                            // translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
+                            capped_hole(7.2, 3, cp=cp/3);
                             translate([0,0,3]) cylinder(6.01, 18/2, 18/2, $fn=cp/3);
                             translate([0, -17/2, 3]) cube([18,17,30]);
                             translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
@@ -240,25 +241,27 @@ module outer_base(cp=def_cp, side=0)
                         }
                         if (holetypes[c][a] == 6) {
                             // 22mm rotary switch
-                            translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            // #translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            capped_hole(22, 3, cp=cp/3);
                             translate([0,0,3]) rotate([0,0,180/8]) cylinder(38, 18, 18, $fn=8);
                         }
                         if (holetypes[c][a] == 7) {
                             // 22mm emergency stop
-                            translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            capped_hole(22, 3, cp=cp/3);
                             translate([0,0,3]) rotate([0,0,180/8]) cylinder(38, 18, 18, $fn=8);
                         }
                         if (holetypes[c][a] == 8) {
                             // 22mm usb-c connector
-                            translate([0,0,-0.01]) cylinder(3.02,11,11,$fn=cp/3);
+                            capped_hole(22, 3, cp=cp/3);
                             translate([0,0,3]) rotate([0,0,180/8]) cylinder(42, 18, 18, $fn=8);
                         }
                         if (holetypes[c][a] == 9) {
                             // 11mm usb-c connector
                             translate([15,0,-0.01]) {
                                 intersection() {
-                                    cylinder(3.02,5.5,5.5,$fn=cp/3);
-                                    translate([-9.5/2, -11/2, -1]) cube([9.5, 11, 5]);
+                                    //*cylinder(3.02,5.5,5.5,$fn=cp/3);
+                                    capped_hole(11, cp=cp/3);
+                                    translate([-9.6/2, -11/2, -1]) cube([10, 11, 5]);
                                 }
                             }
                             translate([15,0,3]) rotate([0,0,180/8]) cylinder(42, 12.9, 12.9, $fn=8);
@@ -286,7 +289,7 @@ module outer_base(cp=def_cp, side=0)
         rotate([0,0,45]) {
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=24) polygon([
-                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,43], [0,74]
+                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,43], [0,75]
                 ]);
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=4) polygon([
@@ -306,16 +309,16 @@ module outer_base(cp=def_cp, side=0)
         nst = cp/4+est;
         translate([0,0,65]) polyhedron(convexity=10,
             points = [for (an=[-est*360/cp:360/cp:90]) each [
-                [sin(an)*(irad-0.1), cos(an)*(irad-0.1), 10+3.1],
-                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 10],
+                [sin(an)*(irad+0.4), cos(an)*(irad+0.4), 10+3.1],
+                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), 10],
+                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), 0],
                 [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 0],
-                [sin(an)*(irad+2.5), cos(an)*(irad+2.5), 0],
-                [sin(an)*(irad+2.5), cos(an)*(irad+2.5), 1.0],
-                [sin(an)*(irad+1.3), cos(an)*(irad+1.3), 1.0],
-                [sin(an)*(irad+1.3), cos(an)*(irad+1.3), -4.3],
-                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), -6],
-                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), -16],
-                [sin(an)*(irad-0.1), cos(an)*(irad-0.1), -16],
+                [sin(an)*(irad+3.0), cos(an)*(irad+3.0), 1.0],
+                [sin(an)*(irad+1.8), cos(an)*(irad+1.8), 1.0],
+                [sin(an)*(irad+1.8), cos(an)*(irad+1.8), -4.3],
+                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), -6],
+                [sin(an)*(irad+3.5), cos(an)*(irad+3.5), -16],
+                [sin(an)*(irad+0.4), cos(an)*(irad+0.4), -16],
                 ]],
             faces = concat(
                 nbot(0, 10),
@@ -323,6 +326,23 @@ module outer_base(cp=def_cp, side=0)
                 ntop(nst, 10)
             ));
     }
+}
+
+module capped_hole(dia, thi=3, cap=0.3, ang=40, off=0.1, cp=def_cp)
+{
+    rd = dia/2;
+    // stp <= 360/cp
+    // (360-2*ang) / stp = integer
+    stp = (360-2*ang)/ceil((360-2*ang)/(360/cp));
+    capy = cap + (1-cos(ang))*rd;
+    capx = capy / tan(ang);
+    echo(capy, capx);
+    translate([0,0,-off]) linear_extrude(height=thi+off*2, convexity=10) polygon(
+        concat(
+            [for (an=[ang:stp:360-ang]) [cos(an)*rd, sin(an)*rd]],
+            [[cos(ang)*rd+capy, -sin(ang)*rd+capx],
+             [cos(ang)*rd+capy, sin(ang)*rd-capx]]
+        ));
 }
 
 module outer_foot_stem(cp=def_cp)
