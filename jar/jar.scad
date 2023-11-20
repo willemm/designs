@@ -300,19 +300,18 @@ module outer_base(cp=def_cp, side=0)
             translate([irad+2, 0, 1.5]) rotate([ 45,0,-15]) rotate([0,0,-135]) cube([8.5, 8.5, 52]);
         }
         // Ledstrip slot (strip is 8x2mm)
-        // echo ("Circumference of led strip", 2*(irad+2)*PI);
+        // echo ("Circumference of led strip", 2*(irad+4.2)*PI);
         //translate([0,0,65]) cylinder(8, irad+3, irad+3, $fn=cp);
         //translate([0,0,72.99]) cylinder(3, irad+3, irad, $fn=cp);
         // RGB-Ledstrip slot (strip is 9.5x2mm)
         // Together with led cable slot
         est = ceil(18/(360/cp));
         nst = cp/4+est;
-        profile = [[0.4, 10+3.6], [4.0, 10], [4.0, 0], [3.5, 0], [3.5, 1],
+        profile = [[0.4, 10+3.8], [4.2, 10], [4.2, 0], [3.7, 0], [3.7, 1],
                    [1.8, 1], [1.8, -4.3], [3.5, -6], [3.5, -16], [0.4, -16]];
         translate([0,0,65]) polyhedron(convexity=10,
             points = [for (an=[-est*360/cp:360/cp:90]) each
-                [ for (p=profile) [sin(an)*(irad+p[0]), cos(an)*(irad+p[0]), p[1]] ]
-                ],
+                [ for (p=profile) [sin(an)*(irad+p[0]), cos(an)*(irad+p[0]), p[1]] ] ],
             faces = concat(
                 nbot(0, len(profile)),
                 [for (c=[0:nst-1]) each nquad(c, len(profile))],
