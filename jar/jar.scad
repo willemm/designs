@@ -32,8 +32,8 @@ if (doitem == "outer_base_s") { outer_base(side=2, cp=240); }
 if (doitem == "outer_base_w") { outer_base(side=3, cp=240); } 
 if (doitem == "inner_base_ring") { inner_base_ring(cp=240); }
 if (doitem == "inner_base_foot") { inner_base_foot(); }
-if (doitem == "pipespanner25") { pipespanner(size=25); }
-if (doitem == "pipespanner14") { pipespanner(size=14); }
+if (doitem == "spanner25") { rotate([180,0,0]) pipespanner(size=25); }
+if (doitem == "spanner14") { rotate([180,0,0]) pipespanner(size=14); }
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
@@ -66,7 +66,7 @@ if (doitem == "") {
     }
 
     *color("#cc53") jackplugs_in();
-    *color("#cc53") connectors_out(sides=[0,2]);
+    color("#cc53") connectors_out(sides=[0,2]);
 
     *color("#ccd") outer_led_cover_set();
 
@@ -336,7 +336,6 @@ module capped_hole(dia, thi=3, cap=0.3, ang=40, off=0.1, cp=def_cp)
     stp = (360-2*ang)/ceil((360-2*ang)/(360/cp));
     capy = cap + (1-cos(ang))*rd;
     capx = capy / tan(ang);
-    echo(capy, capx);
     translate([0,0,-off]) linear_extrude(height=thi+off*2, convexity=10) polygon(
         concat(
             [for (an=[ang:stp:360-ang]) [cos(an)*rd, sin(an)*rd]],
@@ -626,9 +625,20 @@ module rotary_switch() {
 module pipespanner(size=25, cp=def_cp)
 {
     thick = 1.6;
-    render(convexity=10) linear_extrude(height=60) difference() {
-        circle(size/sqrt(3)+thick, $fn=cp);
-        circle(size/sqrt(3), $fn=6);
+    ord = size/sqrt(3)+thick;
+    hrd = ord+2;
+    ext = 1;
+    render(convexity=10) {
+        linear_extrude(height=60) difference() {
+            circle(ord, $fn=cp);
+            circle(size/sqrt(3), $fn=6);
+        }
+        translate([0,0,60-10]) linear_extrude(height=10) difference() {
+            polygon(
+                [for (an=[0:6:360]) [sin(an)*(hrd+sin(an*12)*ext), cos(an)*(hrd+sin(an*12)*ext)]]
+            );
+            circle(size/sqrt(3), $fn=6);
+        }
     }
 }
 
