@@ -80,8 +80,8 @@ if (doitem == "") {
         color("#987") outer_foot();
     }
 
-    color("#789") outer_base(side=0);
-    *color("#4a9") rotate([0,0,90]) outer_base(side=1);
+    *color("#789") outer_base(side=0);
+    color("#4a9") rotate([0,0,90]) outer_base(side=1);
     *color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
 
@@ -212,24 +212,29 @@ module outer_base(cp=def_cp, side=0)
                         }
                         if (holetypes[c][a] == 2) {
                             // Jack socket
-                            translate([0,0,-0.01]) cylinder(2,3,3,$fn=cp/3);
+                            capped_hole(6, 2, 0.1, cp=cp/3);
+                            //translate([0,0,-0.01]) cylinder(2,3,3,$fn=cp/3);
                             translate([0,0,1.5]) rotate([0,0,180/8]) cylinder(33,6,6,$fn=8);
                             translate([-8,-3,1.5]) cube([8, 6, 20]);
                             translate([0,0,10]) rotate([0,0,180/8]) cylinder(31, 14, 14, $fn=8);
+                            translate([12,-10.72/2,30]) rotate([0,-circ[2],0]) cube([0.5,10.72,10]);
                         }
                         if (holetypes[c][a] == 3) {
                             // Rotary encoder
-                            translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
+                            capped_hole(7.2, 3, cp=cp/3);
+                            //translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
                             translate([-16/2,-13.2/2,3]) cube([16, 13.2, 6.01]);
                             translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
+                            translate([12,-10.72/2,30]) rotate([0,-circ[2],0]) cube([0.5,10.72,10]);
                         }
                         if (holetypes[c][a] == 11) {
                             // potentiometer
                             // translate([0,0,-0.01]) cylinder(3.02,3.6,3.6,$fn=cp/3);
-                            capped_hole(7.2, 3, cp=cp/3);
+                            capped_hole(7.2, 3, 0.2, cp=cp/3);
                             translate([0,0,3]) cylinder(6.01, 18/2, 18/2, $fn=cp/3);
                             translate([0, -17/2, 3]) cube([18,17,30]);
                             translate([0,0,9]) rotate([0,0,180/8]) cylinder(32, 14, 14, $fn=8);
+                            translate([12,-10.72/2,30]) rotate([0,-circ[2],0]) cube([0.5,10.72,10]);
                         }
                         if (holetypes[c][a] == 4) {
                             // Big pushbutton
@@ -301,7 +306,7 @@ module outer_base(cp=def_cp, side=0)
         rotate([0,0,45]) {
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=24) polygon([
-                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,43], [0,75]
+                    [0,-bthi-20], [4,-bthi-20], [30,10], [30,43], [0,75.5]
                 ]);
             translate([irad-5, 12, 0]) rotate([90,0,0])
                 linear_extrude(height=4) polygon([
