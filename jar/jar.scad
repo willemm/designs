@@ -26,6 +26,7 @@ if (doitem == "inner_base") { inner_base(cp=240); }
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
 if (doitem == "outer_led_cover") { outer_led_cover(cp=240); } 
+if (doitem == "inner_led_cover") { inner_led_cover(cp=240); } 
 if (doitem == "outer_base_n") { outer_base(side=0, cp=240); } 
 if (doitem == "outer_base_e") { outer_base(side=1, cp=240); } 
 if (doitem == "outer_base_s") { outer_base(side=2, cp=240); } 
@@ -69,6 +70,7 @@ if (doitem == "") {
     *color("#cc53") connectors_out(sides=[0,2]);
 
     *color("#ccd") outer_led_cover_set();
+    color("#ccd") inner_led_cover();
 
     *color("#7899") render(convexity=10) outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
@@ -334,7 +336,7 @@ module outer_base(cp=def_cp, side=0)
                 [for (c=[0:nst-1]) each nquad(c, len(profile))],
                 ntop(nst, len(profile))
             ));
-        // On the north side, there is some collapsing overhand because of the large cutout
+        // On the north side, there is some collapsing overhang because of the large cutout
         // So cut a bit more
         if (side==0) {
             rotate([0,0,6]) translate([irad,0,0]) {
@@ -344,6 +346,20 @@ module outer_base(cp=def_cp, side=0)
             }
         }
     }
+}
+
+module inner_led_cover(cp=def_cp)
+{
+    irad = outer_dia/2;
+    /*profile = [[0.4, 10+3.8], [4.2, 10], [4.2, 0], [3.7, 0], [3.7, 1],
+               [1.8, 1], [1.8, -4.3], [3.5, -6], [3.5, -16], [0.4, -16]];
+               */
+    profile = [[3.4, -16], [0.4,-16], [0.4,10+3.6], [1.6, 10+2.4], [1.6, -15], [3.4, -15]];
+    translate([0,0,65]) polyhedron(convexity=10,
+        points = [for (an=[360/cp:360/cp:360]) each
+            [ for (p=profile) [sin(an)*(irad+p[0]), cos(an)*(irad+p[0]), p[1]] ] ],
+        faces = [for (c=[0:cp-1]) each nquad(c, len(profile), cp)]
+        );
 }
 
 module chamferedge(corners, tol=0.5)
