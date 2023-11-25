@@ -22,6 +22,8 @@ prad = 16;
 jackout = 2;
 jackhi = 35;
 
+if (doitem == "brain_left") { brain_left(cp=240); } 
+if (doitem == "brain_right") { brain_right(cp=240); } 
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
@@ -38,12 +40,12 @@ if (doitem == "spanner14") { rotate([180,0,0]) pipespanner(size=14); }
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
-    //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brainL();
-    *color("#c46") translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15]) brainL();
-    *color("#c46") translate([0,0,160]) rotate([-45,-90,0]) rotate([0,0,15]) brainR();
+    //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brain_left();
+    *color("#c46") brain_left();
+    *color("#c46") brain_right();
 
-    *color("#86c") inner_post(cp=60);
-    *color("#86c") render(convexity=10) inner_post(cp=60);
+    color("#86c") inner_post(cp=60);
+    *color("#86c3") render(convexity=10) inner_post(cp=60);
 
     *color("#68c") inner_base(cp=60, solid=false);
     *color("#97c") inner_base_foot();
@@ -70,7 +72,7 @@ if (doitem == "") {
     *color("#cc53") connectors_out(sides=[0,2]);
 
     *color("#ccd") outer_led_cover_set();
-    color("#ccd") inner_led_cover();
+    *color("#ccd") inner_led_cover();
 
     *color("#7899") render(convexity=10) outer_base(side=0);
     *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
@@ -83,7 +85,7 @@ if (doitem == "") {
     }
 
     *color("#789") outer_base(side=0);
-    color("#4a9") rotate([0,0,90]) outer_base(side=1);
+    *color("#4a9") rotate([0,0,90]) outer_base(side=1);
     *color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
 
@@ -1004,14 +1006,54 @@ module brain()
     render(convexity=5) scale(4.95) import("brain.stl");
 }
 
-module brainL()
+module brain_holes(cp=def_cp)
 {
-    translate([-110, -150, 0]) import("brain A.stl", convexity=5);
+    ptol = 0.4;
+    mtol = 0.2;
+    ang = 40;
+    cap = 0.3;
+    stp = (180-2*ang)/ceil((180-2*ang)/(180/cp));
+    rd = prad+ptol;
+    capy = cap + (1-cos(ang))*rd;
+    capx = capy / tan(ang);
+    translate([0,0,100]) rotate([0,0,-45]) linear_extrude(height=50, convexity=10) difference() {
+        //circle(prad+ptol, $fn=cp);
+        polygon(concat(
+            [for (an=[ang:stp:180-ang]) [cos(an)*rd, sin(an)*rd]],
+            [[-(cos(ang)*rd+capy), sin(ang)*rd-capx],
+             [-(cos(ang)*rd+capy), -sin(ang)*rd+capx]],
+            [for (an=[180+ang:stp:360-ang]) [cos(an)*rd, sin(an)*rd]],
+            [[cos(ang)*rd+capy, -sin(ang)*rd+capx],
+             [cos(ang)*rd+capy, sin(ang)*rd-capx]]
+        ));
+        circle(prad-2-ptol, $fn=cp);
+    }
+    translate([0,0,100]) cylinder(26, rd-0.1, rd-0.1, $fn=cp);
+    magnets = [
+        [40,-15], [35,20], [0,40], [-35,15], [-40,-20]
+    ];
+    translate([0,0,150]) rotate([90,0,45]) {
+        for (pos=magnets)
+            translate([pos.x,pos.y,-(1.8+mtol)]) cylinder(2*(1.8+mtol), 5+mtol, 5+mtol, $fn=cp/3);
+    }
 }
 
-module brainR()
+module brain_left(cp=def_cp)
 {
-    rotate([0,0,180]) translate([-224, -200, 0]) import("brain B.stl", convexity=5);
+    render(convexity=10) difference() {
+        translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15])
+            translate([-110, -150, 0]) import("brain A.stl", convexity=5);
+        #brain_holes(cp);
+    }
+}
+
+module brain_right(cp=def_cp)
+{
+    render(convexity=10) difference() {
+        translate([0,0,160]) rotate([-45,-90,0]) rotate([0,0,15]) 
+            rotate([0,0,180]) translate([-224, -200, 0]) import("brain B.stl", convexity=5);
+        #brain_holes(cp);
+    }
 }
 
 module glassjar()
