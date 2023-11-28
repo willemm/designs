@@ -22,8 +22,10 @@ prad = 16;
 jackout = 2;
 jackhi = 35;
 
-if (doitem == "brain_left") { brain_left(cp=240); } 
-if (doitem == "brain_right") { brain_right(cp=240); } 
+//if (doitem == "brain_left") { brain_left(cp=60); } 
+//if (doitem == "brain_right") { brain_right(cp=60); } 
+if (doitem == "brain_left") { rotate([90,45,0]) brain_half(cp=60,side=0); } 
+if (doitem == "brain_right") { rotate([90,225,0]) brain_right(cp=60,side=1); } 
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
@@ -41,8 +43,11 @@ if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brain_left();
-    *color("#c46") brain_left();
-    *color("#c46") brain_right();
+    //*color("#c46") brain_left();
+    color("#c46") brain_half(side=0);
+    color("#c46") brain_half(side=1);
+
+    *color("#c46") translate([-56,-10,240]) rotate([0,90,0]) translate([0,0,-100]) rotate([0,0,-45]) brain_half(side=0);
 
     color("#86c") inner_post(cp=60);
     *color("#86c3") render(convexity=10) inner_post(cp=60);
@@ -1009,15 +1014,14 @@ module brain()
 module brain_holes(cp=def_cp)
 {
     ptol = 0.4;
-    mtol = 0.2;
+    mtol = 0.4;
     ang = 40;
     cap = 0.3;
     stp = (180-2*ang)/ceil((180-2*ang)/(180/cp));
     rd = prad+ptol;
     capy = cap + (1-cos(ang))*rd;
     capx = capy / tan(ang);
-    translate([0,0,100]) rotate([0,0,-45]) linear_extrude(height=50, convexity=10) difference() {
-        //circle(prad+ptol, $fn=cp);
+    translate([0,0,100]) rotate([0,0,-45]) linear_extrude(height=50, convexity=10) /* difference() */ {
         polygon(concat(
             [for (an=[ang:stp:180-ang]) [cos(an)*rd, sin(an)*rd]],
             [[-(cos(ang)*rd+capy), sin(ang)*rd-capx],
@@ -1026,9 +1030,9 @@ module brain_holes(cp=def_cp)
             [[cos(ang)*rd+capy, -sin(ang)*rd+capx],
              [cos(ang)*rd+capy, sin(ang)*rd-capx]]
         ));
-        circle(prad-2-ptol, $fn=cp);
+        //*circle(prad-2-ptol, $fn=cp);
     }
-    translate([0,0,100]) cylinder(26, rd-0.1, rd-0.1, $fn=cp);
+    //translate([0,0,100]) cylinder(50, rd, rd, $fn=cp);
     magnets = [
         [40,-15], [35,20], [0,40], [-35,15], [-40,-20]
     ];
@@ -1038,13 +1042,27 @@ module brain_holes(cp=def_cp)
     }
 }
 
+module brain_half(cp=def_cp, side=0)
+{
+    //render(convexity=10)
+    difference() {
+        translate([-63.5,-63.5,100]) rotate([100,0,135])
+        intersection() {
+            scale(5.1) translate([-12,0,0]) import("brain-100k.stl", convexity=5);
+            translate([-100 * side,0,0]) cube([100,150,180]);
+        }
+        brain_holes(cp);
+    }
+}
+
+/*
 module brain_left(cp=def_cp)
 {
-    render(convexity=10) difference() {
+    //render(convexity=10) difference() {
         translate([0,0,160]) rotate([45,90,0]) rotate([0,0,-15])
             translate([-110, -150, 0]) import("brain A.stl", convexity=5);
-        #brain_holes(cp);
-    }
+    //    #brain_holes(cp);
+   // }
 }
 
 module brain_right(cp=def_cp)
@@ -1055,6 +1073,7 @@ module brain_right(cp=def_cp)
         #brain_holes(cp);
     }
 }
+*/
 
 module glassjar()
 {
