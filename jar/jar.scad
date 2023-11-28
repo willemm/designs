@@ -25,7 +25,7 @@ jackhi = 35;
 //if (doitem == "brain_left") { brain_left(cp=60); } 
 //if (doitem == "brain_right") { brain_right(cp=60); } 
 if (doitem == "brain_left") { rotate([90,45,0]) brain_half(cp=60,side=0); } 
-if (doitem == "brain_right") { rotate([90,225,0]) brain_right(cp=60,side=1); } 
+if (doitem == "brain_right") { rotate([90,225,0]) brain_half(cp=60,side=1); } 
 if (doitem == "inner_base") { inner_base(cp=240); } 
 if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); } 
 if (doitem == "inner_post") { inner_post(cp=240); } 
@@ -39,6 +39,8 @@ if (doitem == "inner_base_ring") { inner_base_ring(cp=240); }
 if (doitem == "inner_base_foot") { inner_base_foot(); }
 if (doitem == "spanner25") { rotate([180,0,0]) pipespanner(size=25); }
 if (doitem == "spanner14") { rotate([180,0,0]) pipespanner(size=14); }
+if (doitem == "outer_foot") { outer_foot(cp=240); } 
+if (doitem == "outer_foot_stem") { outer_foot_stem(cp=240); } 
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
