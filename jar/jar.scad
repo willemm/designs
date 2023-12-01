@@ -46,12 +46,12 @@ if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
     //translate([-15,-1,300]) rotate([70,0,0]) rotate([0,90,0]) brain_left();
     //*color("#c46") brain_left();
-    color("#c46") brain_half(side=0);
-    color("#c46") brain_half(side=1);
+    *color("#c46") brain_half(side=0);
+    *color("#c46") brain_half(side=1);
 
     *color("#c46") translate([-56,-10,240]) rotate([0,90,0]) translate([0,0,-100]) rotate([0,0,-45]) brain_half(side=0);
 
-    color("#86c") inner_post(cp=60);
+    *color("#86c") inner_post(cp=60);
     *color("#86c3") render(convexity=10) inner_post(cp=60);
 
     *color("#68c") inner_base(cp=60, solid=false);
@@ -81,17 +81,19 @@ if (doitem == "") {
     *color("#ccd") outer_led_cover_set();
     *color("#ccd") inner_led_cover();
 
-    *color("#7899") render(convexity=10) outer_base(side=0);
-    *color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
-    *color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
-    *color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
+    *translate([ 0.1, 0.1,0]) color("#7899") render(convexity=10) outer_base(side=0);
+    *translate([-0.1, 0.1,0]) color("#4a99") rotate([0,0,90]) render(convexity=10) outer_base(side=1);
+    *translate([-0.1,-0.1,0]) color("#47c9") rotate([0,0,180]) render(convexity=10) outer_base(side=2);
+    *translate([ 0.1,-0.1,0]) color("#4a99") rotate([0,0,270]) render(convexity=10) outer_base(side=3);
+
+    color("#74c") outer_bottom();
 
     *for (an=[22.5:45:360]) rotate([0,0,an]) {
         color("#987") outer_foot_stem();
         color("#987") outer_foot();
     }
 
-    *color("#789") outer_base(side=0);
+    color("#789") outer_base(side=0);
     *color("#4a9") rotate([0,0,90]) outer_base(side=1);
     *color("#47c") rotate([0,0,180]) outer_base(side=2);
     *color("#4a9") rotate([0,0,270]) outer_base(side=3);
@@ -105,6 +107,76 @@ if (doitem == "") {
     // Build plate size indicartion
     *color("#5954") translate([50,60,-26.2]) cube([250,200,2],true);
 }
+
+module outer_bottom(cp=def_cp)
+{
+    irad = outer_dia/2;
+    bot = 25;
+    tol = 0.2;
+    thick = 2;
+    height = 1;
+
+    edang = atan(15/35);
+
+    cwid = 23;
+
+    humidpos = [-22,25];
+    esppos = [5,-10];
+
+    translate([0,0,-bot+2]) {
+        linear_extrude(height=height, convexity=10) difference() {
+            polygon(rotate4x([
+                [irad-27, 0], [irad-42-tol/3, 35+tol*(2/3)],
+                [irad-20-tol/2, 57+tol/2], [57+tol/2, irad-20-tol/2],
+                [35+tol*(2/3), irad-42-tol/3]
+            ]));
+            *polygon(rotate4x([
+                [irad-37, 0], [39+2/3, 39+2/3],
+            ]));
+            rotate([0,0,-edang]) translate(humidpos) {
+                translate([5,30-4]) square([50-2*5,3]);
+            }
+            rotate([0,0,180-edang]) translate(esppos) {
+                // usb-c conn
+                translate([-tol, (23-10)/2]) square([9,10]);
+                // buttons
+                translate([13, (23-17)/2]) square([8,17]);
+            }
+        }
+        // Humidifier module
+        linear_extrude(height=10, convexity=10) {
+            // 12.5, 18-28
+            rotate([0,0,-edang]) translate(humidpos) difference() {
+                translate([-thick-tol,-thick-tol]) square([50+2*(thick+tol), 30+2*(thick+tol)]);
+                translate([-tol,-tol]) square([50+2*tol,30+2*tol]);
+                translate([-thick-tol-0.1,0]) square([thick+0.2, 12.5]);
+                translate([22,-thick-tol-0.1]) square([10, thick+0.2]);
+            }
+        }
+        // luatos esp32-c module
+        linear_extrude(height=10, convexity=10) {
+            // 12.5, 18-28
+            rotate([0,0,180-edang]) translate(esppos) difference() {
+                translate([-thick-tol,-thick-tol]) square([52+2*(thick+tol), 23+2*(thick+tol)]);
+                translate([-tol,-tol]) square([52+2*tol,23+2*tol]);
+            }
+        }
+        // Cable ducts to side
+        for (an=[0:90:270]) rotate([0,0,an+45]) {
+            translate([0,irad-1.4,0]) {
+                difference() {
+                    translate([-cwid/2,-15,0]) cube([cwid,15,19]);
+                    translate([-(cwid-4)/2,-15.01,height]) cube([cwid-4,15.02,18-height]);
+                }
+            }
+        }
+    }
+}
+
+// Extend an array of 2d points four times, rotating 90 degrees each time
+function rotate4x(points) = [for (an=[0:90:270]) each
+        [for (p=points) [p.x*sin(an) + p.y*cos(an), p.y*sin(an) - p.x*cos(an)]]
+    ];
 
 module outer_base(cp=def_cp, side=0)
 {
