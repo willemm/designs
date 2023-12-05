@@ -17,3 +17,4 @@ rem openscad -D doitem=\"brain_right\"     -o jar-brain_right.stl       jar.scad
 rem openscad -D doitem=\"brain_left\"      -o jar-brain_left.stl        jar.scad
 openscad -D doitem=\"outer_foot\"      -o jar-outer_foot.stl        jar.scad
 openscad -D doitem=\"outer_foot_stem\" -o jar-outer_foot_stem.stl   jar.scad
+openscad -D doitem=\"outer_bottom\"    -o jar-outer_bottom.stl      jar.scad

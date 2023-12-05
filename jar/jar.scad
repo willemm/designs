@@ -31,6 +31,7 @@ if (doitem == "inner_cap") { rotate([180,0,45]) inner_cap(cp=240); }
 if (doitem == "inner_post") { inner_post(cp=240); } 
 if (doitem == "outer_led_cover") { outer_led_cover(cp=240); } 
 if (doitem == "inner_led_cover") { inner_led_cover(cp=240); } 
+if (doitem == "outer_bottom") { outer_bottom(); } 
 if (doitem == "outer_base_n") { outer_base(side=0, cp=240); } 
 if (doitem == "outer_base_e") { outer_base(side=1, cp=240); } 
 if (doitem == "outer_base_s") { outer_base(side=2, cp=240); } 
@@ -39,8 +40,8 @@ if (doitem == "inner_base_ring") { inner_base_ring(cp=240); }
 if (doitem == "inner_base_foot") { inner_base_foot(); }
 if (doitem == "spanner25") { rotate([180,0,0]) pipespanner(size=25); }
 if (doitem == "spanner14") { rotate([180,0,0]) pipespanner(size=14); }
-if (doitem == "outer_foot") { outer_foot(cp=240); } 
-if (doitem == "outer_foot_stem") { outer_foot_stem(cp=240); } 
+if (doitem == "outer_foot") { rotate([180,0,0]) outer_foot(cp=240); } 
+if (doitem == "outer_foot_stem") { rotate([180,0,0]) outer_foot_stem(cp=240); } 
 if (doitem == "testring_out") { testring_out(); }
 if (doitem == "testring_in") { testring_in(); }
 if (doitem == "") {
@@ -88,7 +89,7 @@ if (doitem == "") {
 
     color("#74c") outer_bottom();
 
-    *for (an=[22.5:45:360]) rotate([0,0,an]) {
+    for (an=[22.5:45:360]) rotate([0,0,an]) {
         color("#987") outer_foot_stem();
         color("#987") outer_foot();
     }
@@ -120,8 +121,9 @@ module outer_bottom(cp=def_cp)
 
     cwid = 23;
 
-    humidpos = [-22,25];
-    esppos = [5,-10];
+    humidpos = [-29,24];
+    esppos = [6,-3];
+    connspos = [-30,-47];
 
     translate([0,0,-bot+2]) {
         linear_extrude(height=height, convexity=10) difference() {
@@ -133,10 +135,10 @@ module outer_bottom(cp=def_cp)
             *polygon(rotate4x([
                 [irad-37, 0], [39+2/3, 39+2/3],
             ]));
-            rotate([0,0,-edang]) translate(humidpos) {
+            rotate([0,0,edang]) translate(humidpos) {
                 translate([5,30-4]) square([50-2*5,3]);
             }
-            rotate([0,0,180-edang]) translate(esppos) {
+            rotate([0,0,edang]) translate(esppos) {
                 // usb-c conn
                 translate([-tol, (23-10)/2]) square([9,10]);
                 // buttons
@@ -146,7 +148,7 @@ module outer_bottom(cp=def_cp)
         // Humidifier module
         linear_extrude(height=10, convexity=10) {
             // 12.5, 18-28
-            rotate([0,0,-edang]) translate(humidpos) difference() {
+            rotate([0,0,edang]) translate(humidpos) difference() {
                 translate([-thick-tol,-thick-tol]) square([50+2*(thick+tol), 30+2*(thick+tol)]);
                 translate([-tol,-tol]) square([50+2*tol,30+2*tol]);
                 translate([-thick-tol-0.1,0]) square([thick+0.2, 12.5]);
@@ -155,10 +157,17 @@ module outer_bottom(cp=def_cp)
         }
         // luatos esp32-c module
         linear_extrude(height=10, convexity=10) {
-            // 12.5, 18-28
-            rotate([0,0,180-edang]) translate(esppos) difference() {
+            rotate([0,0,edang]) translate(esppos) difference() {
                 translate([-thick-tol,-thick-tol]) square([52+2*(thick+tol), 23+2*(thick+tol)]);
                 translate([-tol,-tol]) square([52+2*tol,23+2*tol]);
+            }
+        }
+        // perfboard connections and led chips etc
+        perfsize = [61.5,40.8];
+        linear_extrude(height=10, convexity=10) {
+            rotate([0,0,edang]) translate(connspos) difference() {
+                translate([-thick-tol,-thick-tol]) square([perfsize.x+2*(thick+tol), perfsize.y+2*(thick+tol)]);
+                translate([-tol,-tol]) square([perfsize.x+2*tol,perfsize.y+2*tol]);
             }
         }
         // Cable ducts to side
@@ -495,9 +504,10 @@ module outer_foot(cp=def_cp)
 
     irad = outer_dia/2;
     translate([irad-20,0,0]) difference() {
-        translate([0,0,-bot-fthi-0.1]) cylinder(fthi, 10, 14, $fn=cp);
+        translate([0,0,-bot-fthi-0.1]) cylinder(fthi, 10.5, 14, $fn=cp);
         translate([0,0,-bot-fthi-0.11]) cylinder(fthi+0.12, 1.6, 1.6, $fn=cp/3);
         translate([0,0,-bot-fthi-0.11]) cylinder(fthi-1+0.01, 5, 4, $fn=cp/3);
+        translate([0,0,-bot-fthi-0.11]) cylinder(2.11, 19.3/2, 19.3/2, $fn=cp);
     }
 }
 
