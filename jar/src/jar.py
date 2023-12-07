@@ -1,6 +1,7 @@
 from machine import PWM, Pin, ADC
 from neopixel import NeoPixel
 from time import sleep_ms, ticks_ms, ticks_add, ticks_diff
+from random import randint
 
 leds = NeoPixel(Pin(20), 51);
 btn_stop = Pin(13, Pin.IN, Pin.PULL_UP)
@@ -16,8 +17,13 @@ pot2 = ADC(Pin(0))
 
 pwms = [PWM(Pin(p), 108000, duty=0) for p in [8,9,4,5]]
 
+lights = [0,0,0,0,0,0,0,0,0,0,0,0]
+curswitch = [1,1,1,1,1,1]
+lcols = [ (0,0,0), (255,40,0), (0,220,40), (60,0,255), (255,255,0), (0,220,255), (200,0,255) ]
+
 def floatto255(x):
-    return 0 if x < 0 else 255 if x > 1 else int(x*255)
+    fv = int(255*x)
+    return 0 if fv < 0 else 255 if fv > 255 else fv
 
 def noodstop():
     return btn_stop.value() == 1
@@ -43,7 +49,7 @@ def startup_sequence():
         if noodstop():
             break
         leds[0] = (0,0,255)
-        leds[1] = ( 255 if ftick > 0.1 and ftick < 0.3  else 0
+        leds[1] = ( 255 if ftick > 0.1 and ftick < 0.3 else 0
                   , 255 if ftick > 0.4 and ftick < 0.6 else 0
                   , 255 if ftick > 0.7 and ftick < 0.9 else 0 )
         for p in range(12):
@@ -107,13 +113,24 @@ def switchcolor(left, right, phase):
     return 0
 
 def lightcolor(pos, phase):
-    if (pos % 4 == 0):
-        return (255,0,0)
-    if (pos % 4 == 1):
-        return (0,255,0)
-    if (pos % 4 == 2):
-        return (0,0,255)
-    return (0,0,0)
+    li = lights[pos]
+    if li >= len(lcols):
+        if (phase%1.0) < 0.6:
+            li = 0
+        else:
+            li = li-len(lcols)
+    if li >= len(lcols):
+        li = len(lcols)-1
+    return lcols[li]
+
+# Change random lights to random setting
+def rand_switches():
+    global curswitch,lights
+    getsw = get_switches()
+    for i in range(len(curswitch)):
+        if curswitch[i] != getsw[i]:
+            lights[randint(0,11)] = randint(0,12)
+            curswitch[i] = getsw[i]
 
 def insidecolor(pos, phase):
     fpos = (phase+pos)%1.0
@@ -121,14 +138,19 @@ def insidecolor(pos, phase):
     if fpos < 0.0:
         fpos = -fpos
     pv = pot1val()
-    bri1 = pv * 0.3 + fpos * 0.7
+    bri1 = pv * 0.4 + fpos * 0.6
     bri2 = pv - fpos * 0.3
     return ( floatto255(bri1)
            , floatto255(bri2*0.2)
            , floatto255(bri2*0.4) )
 
+def get_switches():
+    return [ sw_1l.value(), sw_1r.value(), sw_2l.value(), sw_2r.value(), sw_3l.value(), sw_3r.value() ]
+
 def running_sequence():
+    global lights
     tick = 0
+    lights = [3,8,0,0,0,0,0,0,0,0,1,2]
     while True:
         if noodstop():
             return
@@ -139,8 +161,10 @@ def running_sequence():
                   , switchcolor(sw_1l, sw_1r, ftick*20.0+0.333)
                   , switchcolor(sw_3l, sw_3r, ftick*20.0+0.666) )
 
+        rand_switches()
+
         for p in range(12):
-            leds[p+2] = lightcolor(p, ftick)
+            leds[p+2] = lightcolor(p, (p/5.0+ftick)*25.0)
 
         for p in range(37):
             leds[p+14] = insidecolor(p/37.0, ftick)
