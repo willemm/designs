@@ -52,6 +52,7 @@ volatile uint8_t irstate = 0, irdone = 0;
 
 int main(void) {
     DDRB |= (1 << LEDPIN);
+    PORTB |= (1 << LEDPIN);
     PORTB |= 1 << PB2;
     GIMSK |= 1 << INT0;
     MCUCR |= 1 << ISC00;
@@ -91,14 +92,14 @@ int main(void) {
                 uint16_t keycode = newcode & 0xFFFF;
                 send_key(keycode);
             }
-            press_timeout = 100; // Release after 100ms
+            press_timeout = 200; // Release after 200ms
         } else {
             if (press_timeout > 0) {
                 press_timeout--;
             } else {
                 // Unpress key
                 TrinketHidCombo.pressKey(0, 0);
-                PORTB |= (1 << LEDPIN);
+                PORTB &= ~(1 << LEDPIN);
             }
             _delay_ms(1);
             TrinketHidCombo.poll();
@@ -276,5 +277,5 @@ void send_key(uint16_t keycode)
 #endif // DEBUG
       
   }
-  PORTB &= ~(1 << LEDPIN);
+  PORTB |= (1 << LEDPIN);
 }
