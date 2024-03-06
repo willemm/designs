@@ -6,11 +6,11 @@ from random import randint
 leds = NeoPixel(Pin(20), 51);
 btn_stop = Pin(13, Pin.IN, Pin.PULL_UP)
 sw_1l = Pin(12, Pin.IN, Pin.PULL_UP)
-sw_1r = Pin(2, Pin.IN, Pin.PULL_UP)
-sw_2l = Pin(6, Pin.IN, Pin.PULL_UP)
-sw_2r = Pin(7, Pin.IN, Pin.PULL_UP)
+sw_1r = Pin( 2, Pin.IN, Pin.PULL_UP)
+sw_2l = Pin( 6, Pin.IN, Pin.PULL_UP)
+sw_2r = Pin( 7, Pin.IN, Pin.PULL_UP)
 sw_3l = Pin(10, Pin.IN, Pin.PULL_UP)
-sw_3r = Pin(3, Pin.IN, Pin.PULL_UP)
+sw_3r = Pin( 3, Pin.IN, Pin.PULL_UP)
 
 pot1 = ADC(Pin(1))
 pot2 = ADC(Pin(0))

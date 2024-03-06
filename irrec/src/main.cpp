@@ -8,8 +8,10 @@ void ms_delay(uint16_t x);
 
 #define REPEAT_DELAY 220
 
-#define DEBUG 1
-//#define EXTRADEBUG 1
+//#define DEBUG
+//#define EXTRADEBUG
+
+#define LEDPIN DDB1
 
 /*
 OK:    10005C
@@ -23,8 +25,21 @@ STOP:  110031
 PREV:  10002B
 NEXT:  110028
 BACK:  10000A
+POWER: 10000C
 
 */
+
+#define REMOTE_UP     0x0058
+#define REMOTE_DOWN   0x0059
+#define REMOTE_LEFT   0x005A
+#define REMOTE_RIGHT  0x005B
+#define REMOTE_OK     0x005C
+#define REMOTE_POWER  0x000C
+#define REMOTE_RETURN 0x000A
+#define REMOTE_PREV   0x002B
+#define REMOTE_NEXT   0x0028
+#define REMOTE_PLAY   0x002C
+#define REMOTE_PAUSE  0x0030
 
 #ifdef EXTRADEBUG
 volatile uint8_t times[180];
@@ -36,7 +51,7 @@ uint8_t irbit;
 volatile uint8_t irstate = 0, irdone = 0;
 
 int main(void) {
-    DDRB |= (1 << DDB1);
+    DDRB |= (1 << LEDPIN);
     PORTB |= 1 << PB2;
     GIMSK |= 1 << INT0;
     MCUCR |= 1 << ISC00;
@@ -46,37 +61,12 @@ int main(void) {
     TIMSK = 1 << TOIE0; //interrupt Timer/Counter1 Overflow  enable
     TrinketHidCombo.begin();
 
+    uint8_t press_timeout = 0;
+
+    uint32_t lastcode = 0;
     for (;;) {
-        /*
-        bool pressed = 0;
-        if (rc5_ok) {
-            uint16_t keycode = rc5_code;
-            rc5_ok = 0;
-            rc5_state = 0;
-            TCCR0B = 0;
-            // uint8_t toggle_bit = bitRead(keycode, 11);
-            // uint8_t address = (keycode >> 6) & 0x1F;
-            // uint8_t command = keycode & 0x3F;
-            pressed = 1;
-            send_key(keycode);
-            GIMSK |= 1 << INT0; //interrupt int0 enable
-            ms_delay(REPEAT_DELAY);
-        } else if (pressed) {
-            PORTB |= (1 << DDB1);
-            TrinketHidCombo.pressKey(0, 0);
-            pressed = 0;
-        } else {
-            _delay_ms(1);
-            TrinketHidCombo.poll();
-        }
-        */
-        if (irdone) {
-            uint32_t keycode = ircode;
-            irdone = 0;
-            TrinketHidCombo.println(keycode, HEX);
-        }
 #ifdef EXTRADEBUG
-        else if (time_got) {
+        if (time_got) {
             for (uint8_t i = 0; i < timeptr; i += 4) {
                 TrinketHidCombo.print(times[i], DEC);
                 TrinketHidCombo.print(',');
@@ -91,7 +81,25 @@ int main(void) {
             timeptr = 0;
         }
 #endif // EXTRADEBUG
-        else {
+        if (irdone) {
+            uint32_t newcode = ircode;
+            irdone = 0;
+            if (lastcode != newcode) {
+                if (press_timeout > 0) TrinketHidCombo.pressKey(0, 0);
+
+                lastcode = newcode;
+                uint16_t keycode = newcode & 0xFFFF;
+                send_key(keycode);
+            }
+            press_timeout = 100; // Release after 100ms
+        } else {
+            if (press_timeout > 0) {
+                press_timeout--;
+            } else {
+                // Unpress key
+                TrinketHidCombo.pressKey(0, 0);
+                PORTB |= (1 << LEDPIN);
+            }
             _delay_ms(1);
             TrinketHidCombo.poll();
         }
@@ -226,7 +234,6 @@ void send_key(uint16_t keycode)
 {
   switch (keycode)
   {
-      /*
     case REMOTE_OK:
       TrinketHidCombo.pressKey(0, KEYCODE_ENTER);
       break;
@@ -260,58 +267,14 @@ void send_key(uint16_t keycode)
     case REMOTE_PAUSE:
       TrinketHidCombo.pressMultimediaKey(MMKEY_PLAYPAUSE);
       break;
-      */
 
     default:
-      if(DEBUG)
-        TrinketHidCombo.println(keycode, HEX);
-      else
-        return;
+#ifdef DEBUG
+      TrinketHidCombo.println(keycode, HEX);
+#else
+      return;
+#endif // DEBUG
       
   }
-  PORTB &= ~(1 << DDB1);
+  PORTB &= ~(1 << LEDPIN);
 }
-
-/* Results
-
-State:
-
-
-
-321211111221111111111111111122211112111,39
-3212111133111111111111111122211112111,37
-
-3212111112211111111111111111222112112,37
-32121111331111111111111111222112112,35
-
-3212111112211111111111111111222112211,37
-32121111331111111111111111222112211,35
-
-321211111221111111111111111122211211111,39
-3212111133111111111111111122211211111,37
-
-3212111112211111111111111111222112221,37
-32121111331111111111111111222112221,35
-
-
-
-3212111133111111111111111122211112111,37
-3212111133111111111111111122211112111,38
-3212111133111111111111111122211112111,38
-3212111133111111111111111122211112111,38
-
----  -  - - ---   - - - - - - - - --  -- - -  - -
-   -- -- - -   --- - - - - - - - -  --  - - -- - 
-S....S.0.0.0.1...0.0.0.0.0.0.0.0.0.1.0.1.1.1.0.0.
-
-321211111221111111111111111122211112111,39
-321211111221111111111111111122211112111,40
-321211111221111111111111111122211112111,40
-321211111221111111111111111122211112111,40
-
----  -  - - -  -- - - - - - - - - --  -- - -  - -
-   -- -- - - --  - - - - - - - - -  --  - - -- - 
-S....S.0.0.0.0...0.0.0.0.0.0.0.0.0.1.0.1.1.1.0.0.
-
-
-*/
