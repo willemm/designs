@@ -250,9 +250,9 @@ void send_key(uint16_t keycode)
     case REMOTE_UP:
       TrinketHidCombo.pressKey(0, KEYCODE_ARROW_UP);
       break;
-    case REMOTE_POWER:
-      TrinketHidCombo.pressSystemCtrlKey(SYSCTRLKEY_POWER);
-      break;
+//    case REMOTE_POWER:
+//      TrinketHidCombo.pressSystemCtrlKey(SYSCTRLKEY_POWER);
+//      break;
     case REMOTE_RETURN:
       TrinketHidCombo.pressKey(0, KEYCODE_BACKSPACE);
       break;

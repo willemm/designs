@@ -8,7 +8,7 @@ module grille()
     width = 400;
     height = 280;
     dia = 200;
-    thick = 1.4;
+    thick = 3.0;
 
     backoff = 60;
 
@@ -16,10 +16,12 @@ module grille()
     triinr = 5;
     inof = 32;
 
-    tritop = 300;
+    tritop = 250;
     tribot = 100;
 
-    holeoff = dia/2+7.5;
+    trislopeang = atan((tritop-tribot) / height);
+
+    holeoff = dia/2+10;
 
     ssteps = ceil(cp/2);
 
@@ -39,6 +41,8 @@ module grille()
     cangs = [slopeang/2, 180, 360-slopeang/2];
     corners = [[width/2-trirad, trirad, 0], [0, (height-trirad), 0], [-(width/2-trirad), trirad, 0]];
     cornersof = [for (sd=[0:2]) corners[sd]-[inof*sin(cangs[sd]), -inof*cos(cangs[sd]), 0]];
+    //cornerssl = [for (sd=[0:2]) corners[sd]-[(inof-triinr-0.1)*sin(cangs[sd]), -(inof-triinr-0.1)*cos(cangs[sd]), 0]];
+    //*#polyhedron(points=slopey(tribot, tritop, height, cornerssl), faces=[[0,1,2]]);
 
     /*
     translate([0,holeoff,-60]) linear_extrude(height=60, convexity=6) difference() {
@@ -83,18 +87,68 @@ module grille()
 
         []
     );
-    polyhedron(convexity=8,
-        points=spoints,
-        faces=concat(
-            nquads(0, sidecnt, sidecnt, 0),
-            nquads(sidecnt, sidecnt, sidecnt, 0),
-            nquads(sidecnt*2, sidecnt, sidecnt, 0),
-            nquads(sidecnt*3, sidecnt, sidecnt, 0),
-            nquads(sidecnt*4, sidecnt, sidecnt, 0),
-            nquads(sidecnt*5, sidecnt, sidecnt, 0),
-            nquads(sidecnt*6, sidecnt, -sidecnt*6, 0),
-            []
+    rotate([180-trislopeang, 0, 0]) {
+        polyhedron(convexity=8,
+            points=spoints,
+            faces=concat(
+                nquads(0, sidecnt, sidecnt, 0),
+                nquads(sidecnt, sidecnt, sidecnt, 0),
+                nquads(sidecnt*2, sidecnt, sidecnt, 0),
+                nquads(sidecnt*3, sidecnt, sidecnt, 0),
+                nquads(sidecnt*4, sidecnt, sidecnt, 0),
+                nquads(sidecnt*5, sidecnt, sidecnt, 0),
+                nquads(sidecnt*6, sidecnt, -sidecnt*6, 0),
+                []
         ));
+
+        slats(corners, 20, 0.4, 2.0, tribot, tritop, height);
+    }
+}
+
+module slats(corners, num, so, eo, tribot, tritop, height, thick=3, ang=20)
+{
+    // Calculate factor for desired y thickness
+    toff = thick/(corners[1].y-corners[0].y)/2;
+    for (sl=[1:num-1]) {
+        fact = (sl+so)/(num+so+eo);
+        fact2 = fact+((1.5-(sl*2.0/num))/num);
+        pts = concat(
+            slopey(tribot-50, tritop-100, height, [
+                [ corners[0].x + (corners[1].x - corners[0].x)*(fact2-toff)
+                , corners[0].y + (corners[1].y - corners[0].y)*(fact2-toff)
+                , corners[0].z + (corners[1].z - corners[0].z)*(fact2-toff) ],
+                [ corners[0].x + (corners[1].x - corners[0].x)*(fact2+toff)
+                , corners[0].y + (corners[1].y - corners[0].y)*(fact2+toff)
+                , corners[0].z + (corners[1].z - corners[0].z)*(fact2+toff) ],
+                [ corners[2].x + (corners[1].x - corners[2].x)*(fact2+toff)
+                , corners[2].y + (corners[1].y - corners[2].y)*(fact2+toff)
+                , corners[2].z + (corners[1].z - corners[2].z)*(fact2+toff) ],
+                [ corners[2].x + (corners[1].x - corners[2].x)*(fact2-toff)
+                , corners[2].y + (corners[1].y - corners[2].y)*(fact2-toff)
+                , corners[2].z + (corners[1].z - corners[2].z)*(fact2-toff) ]
+            ]),
+            slopey(tribot, tritop, height, [
+                [ corners[0].x + (corners[1].x - corners[0].x)*(fact-toff)
+                , corners[0].y + (corners[1].y - corners[0].y)*(fact-toff)
+                , corners[0].z + (corners[1].z - corners[0].z)*(fact-toff) ],
+                [ corners[0].x + (corners[1].x - corners[0].x)*(fact+toff)
+                , corners[0].y + (corners[1].y - corners[0].y)*(fact+toff)
+                , corners[0].z + (corners[1].z - corners[0].z)*(fact+toff) ],
+                [ corners[2].x + (corners[1].x - corners[2].x)*(fact+toff)
+                , corners[2].y + (corners[1].y - corners[2].y)*(fact+toff)
+                , corners[2].z + (corners[1].z - corners[2].z)*(fact+toff) ],
+                [ corners[2].x + (corners[1].x - corners[2].x)*(fact-toff)
+                , corners[2].y + (corners[1].y - corners[2].y)*(fact-toff)
+                , corners[2].z + (corners[1].z - corners[2].z)*(fact-toff) ]
+            ]));
+        polyhedron(convexity=6,
+            points = pts,
+            faces = concat(
+                [[0,1,2,3],
+                [7,6,5,4]],
+                nquads(0, 4, 4, 0)
+        ));
+    }
 }
 
 // Array of points that form half of a line between two points
@@ -118,4 +172,6 @@ function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
     [s+(i+1)%n+o,s+i,s+i+o]
 ]];
 
-color("#5954") translate([125,100,-2/2-1]) cube([250,210,2],true);
+color("#5954") translate([100,-85,-90]) cube([210,250,2],true);
+color("#9554") translate([-100,-85,-90]) cube([210,250,2],true);
+color("#5594") translate([0,-305,-90]) cube([250,210,2],true);
