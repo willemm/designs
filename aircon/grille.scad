@@ -5,8 +5,8 @@ module grille()
 {
     lcp = 60;
     cp = 60;
-    width = 400;
-    height = 280;
+    width = 580;
+    height = 300;
     dia = 200;
     thick = 3.0;
 
@@ -21,7 +21,8 @@ module grille()
 
     trislopeang = atan((tritop-tribot) / height);
 
-    holeoff = dia/2+10;
+    holeoff = [-30, dia/2+10, 0];
+
 
     ssteps = ceil(cp/2);
 
@@ -45,7 +46,7 @@ module grille()
     //*#polyhedron(points=slopey(tribot, tritop, height, cornerssl), faces=[[0,1,2]]);
 
     /*
-    translate([0,holeoff,-60]) linear_extrude(height=60, convexity=6) difference() {
+    translate([holeoff.x,holeoff.y,-60]) linear_extrude(height=60, convexity=6) difference() {
         circle(dia/2, $fn=sidecnt);
         circle(dia/2-thick, $fn=sidecnt);
     }
@@ -80,10 +81,10 @@ module grille()
             cornersof[sd]+[sin(an)*triinr, -cos(an)*triinr, 0]
         ]],
         */
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [sin(an)*(dia/2-thick), holeoff-cos(an)*(dia/2-thick), 0]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [sin(an)*(dia/2-thick), holeoff-cos(an)*(dia/2-thick), -backoff]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [sin(an)*(dia/2), holeoff-cos(an)*(dia/2), -backoff]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [sin(an)*(dia/2), holeoff-cos(an)*(dia/2), 0]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), 0]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), -backoff]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), -backoff]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), 0]],
 
         []
     );
@@ -172,6 +173,8 @@ function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
     [s+(i+1)%n+o,s+i,s+i+o]
 ]];
 
-color("#5954") translate([100,-85,-90]) cube([210,250,2],true);
-color("#9554") translate([-100,-85,-90]) cube([210,250,2],true);
-color("#5594") translate([0,-305,-90]) cube([250,210,2],true);
+color("#5954") translate([200,-90,-90]) cube([210,250,2],true);
+color("#9554") translate([0,-90,-90]) cube([210,250,2],true);
+color("#5594") translate([-200,-90,-90]) cube([210,250,2],true);
+color("#5954") translate([-100,-300,-90]) cube([250,210,2],true);
+color("#5594") translate([100,-300,-90]) cube([250,210,2],true);
