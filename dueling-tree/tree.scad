@@ -63,41 +63,84 @@ module foot()
 
     tol = 0.5;
 
-    // Foot
-    color("#a85") difference() {
-        translate([-wid/2, off+pthi, -hi+ovl]) cube([wid, pthi, hi]);
-        translate([-(thi)/2-tol, off+pthi-0.1, -hi+ovl-0.1]) cube([thi+tol*2, pthi+0.2, cwid+0.1]);
+    if (false) {
+        // Foot
+        color("#a85") difference() {
+            translate([-wid/2, off+pthi, -hi+ovl]) cube([wid, pthi, hi]);
+            translate([-(thi)/2-tol, off+pthi-0.1, -hi+ovl-0.1]) cube([thi+tol*2, pthi+0.2, cwid+0.1]);
+        }
+        // Crossbar
+        /*
+        color("#974") {
+            translate([-clen/2, off+pthi*2, -hi+ovl]) cube([clen/2-thi/2-tol, thi, cwid]);
+            translate([thi/2+tol, off+pthi*2, -hi+ovl]) cube([clen/2-thi/2-tol, thi, cwid]);
+            translate([-wid/2, off+pthi*2, -hi+ovl+cwid]) cube([wid, thi, cwid]);
+        }
+        */
+        color("#974") {
+            lx = clen/2;
+            sx = wid/2;
+            ly = wid;
+            sy = cwid;
+            hy = cwid+2;
+            cx = thi/2+tol;
+            lsdif = ly-sy;
+            translate([0, off+pthi*2+thi, -hi+ovl]) rotate([90, 0, 0]) linear_extrude(height=thi, convexity=6) polygon([
+                [-lx, 0], [-lx, sy], [-sx-lsdif, sy], [-sx, ly],
+                [sx, ly], [sx+lsdif, sy], [lx, sy], [lx, 0],
+                [cx, 0], [cx, hy], [-cx, hy], [-cx, 0]
+            ]);
+        }
     }
-    // Crossbar
-    /*
     color("#974") {
-        translate([-clen/2, off+pthi*2, -hi+ovl]) cube([clen/2-thi/2-tol, thi, cwid]);
-        translate([thi/2+tol, off+pthi*2, -hi+ovl]) cube([clen/2-thi/2-tol, thi, cwid]);
-        translate([-wid/2, off+pthi*2, -hi+ovl+cwid]) cube([wid, thi, cwid]);
-    }
-    */
-    color("#974") {
-        lx = clen/2;
         sx = wid/2;
         ly = wid;
         sy = cwid;
         hy = cwid+2;
         cx = thi/2+tol;
-        lsdif = ly-sy;
-        translate([0, off+pthi*2+thi, -hi+ovl]) rotate([90, 0, 0]) linear_extrude(height=thi, convexity=6) polygon([
-            [-lx, 0], [-lx, sy], [-sx-lsdif, sy], [-sx, ly],
-            [sx, ly], [sx+lsdif, sy], [lx, sy], [lx, 0],
+        lx = sx+ly-sy;
+        translate([0, off+pthi+thi, -hi+ovl]) rotate([90, 0, 0]) linear_extrude(height=thi, convexity=6) polygon([
+            [-lx, 0], [-lx, sy], [-sx, ly], [-sx, hi],
+            [sx, hi], [sx, ly], [lx, sy], [lx, 0],
             [cx, 0], [cx, hy], [-cx, hy], [-cx, 0]
         ]);
     }
-    // Longbar
-    color("#b95") translate([0, off+pthi*2+thi, -hi+ovl+lwid]) rotate([angle, 0, 0]) {
-        translate([-thi/2, -pthi*2-thi-llen/2, -lwid]) cube([thi, llen, lwid]);
+    color("#a85") {
+        cbof = (thi/2)+10+tol*2;
+        translate([-clen/2, off+pthi+thi, -hi+ovl]) cube([clen/2-cbof, thi, cwid]);
+        translate([cbof, off+pthi+thi, -hi+ovl]) cube([clen/2-cbof, thi, cwid]);
     }
+    // Longbar
+    color("#b95") translate([0, off+pthi+thi+5, -hi+ovl+19]) rotate([angle, 0, 0]) difference() {
+        translate([-thi/2, -pthi-thi-5-llen/2, -19]) cube([thi, llen, lwid]);
+        translate([-thi/2-0.1, 0, 0]) rotate([0, 90, 0]) cylinder(thi+0.2, 10/2, 10/2, $fn=24);
+    }
+    // Longbar pivot
+    color("#889") translate([-thi/2-tol, off+pthi+thi, -hi+ovl]) beugel();
+    color("#889") translate([thi/2+tol+10, off+pthi+thi, -hi+ovl]) beugel();
     // Support
-    color("#b95") translate([-sthi/2, off+pthi*2, ovl-20]) rotate([-64, 0, 0]) difference() {
+    color("#b95") translate([-sthi/2, off+pthi+thi, ovl-20]) rotate([-64, 0, 0]) difference() {
         cube([sthi, slen, swid]);
         translate([(sthi-thi)/2-0.2, slen-50, -0.1]) cube([thi+tol, 50.1, swid+0.2]);
+    }
+}
+
+module beugel()
+{
+    rotate([0, -90, 0]) {
+        pbdia = 10;
+        pbwid = 10;
+        pblen = 38;
+        pbthi = 1;
+        pbs1 = (pblen-pbwid)/2;
+        pbs2 = (pblen+pbwid)/2;
+        linear_extrude(height=pbwid, convexity=4) polygon(concat(
+            [[0, 0], [0, pbthi], [pbs1-pbthi, pbthi]],
+            [for (a=[-90: 5:90]) [pblen/2+sin(a)*(pbdia/2+pbthi), pbdia/2+cos(a)*(pbdia/2+pbthi)]],
+            [[pbs2+pbthi, pbthi], [pblen, pbthi], [pblen, 0], [pbs2, 0]],
+            [for (a=[90:-5:-90]) [pblen/2+sin(a)*(pbdia/2), pbdia/2+cos(a)*(pbdia/2)]],
+            [[pbs1, 0]]
+        ));
     }
 }
 
