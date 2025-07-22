@@ -7,21 +7,35 @@ boltdia = 6;
 boltoff = 12;
 pthi = 26;
 
-targethi = 160;
-targetwid = 250;
-targetdia = 240;
-targethoff = 250;
-tthi = 19;
+targethi = 140;
+targetwid = 320;
+targetdia = 250;
+targethoff = targetwid+30;
+tthi = 16;
 
 polehi = 1600;
-targetoff = 110;
+targetoff = 130;
 firstoff = polehi-1550;
 
 angle = 5;
 
-rotate([-angle, 0, 0]) {
-    foot();
-    duelingtree();
+if (0) {
+    rotate([-angle, 0, 0]) {
+        foot();
+        duelingtree();
+    }
+} else {
+    platehi = 1220;
+    platewid = 610;
+    sawst = targetdia/2-targethi/2;
+    sawoff = (platehi-targetdia)/5;
+    translate([0, 9, 0]) color("#862") cube([platewid, 15, platehi]);
+    for (o = [0, 2, 4]) {
+        translate([platewid-targethoff-targetdia/2, 0, sawst+sawoff*o]) targetboard();
+    }
+    for (o = [1, 3, 5]) {
+        translate([targethoff+targetdia/2, 0, sawst+sawoff*o]) rotate([0,0,180]) targetboard();
+    }
 }
 
 module duelingtree()
@@ -30,7 +44,7 @@ module duelingtree()
 
     tstep = targethi + targetoff;
 
-    rots = [0, 180, 0, 140, 0, 180];
+    rots = [0, 180, 0, 0, 0, 180];
     for (o = [0,1,2,3,4,5]) {
         translate([0, 0, firstoff + o*tstep]) hinge();
         rotate([0, 0, -rots[o]]) translate([0, 0, firstoff + o*tstep]) target();

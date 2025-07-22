@@ -1,0 +1,46 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Origin: 0 0
+%%BoundingBox: 0 0 1500 800
+
+150 0.3528 div 800 2 div translate
+
+% Scale from points to millimeters
+1 0.3528 div 1 0.3528 div scale
+
+% target circle, dia 25cm
+0 0 125 0 360 arc
+stroke
+
+% attachment arm, 35cm from target center, 14cm wide
+125 125 mul 70 70 mul sub sqrt 70 moveto
+350 70 lineto
+350 -70 lineto
+125 125 mul 70 70 mul sub sqrt -70 lineto
+stroke
+
+/Courier findfont 4 scalefont setfont
+% grid for cutting paper
+0.2 setlinewidth
+
+-140
+{
+    dup -140 moveto
+    dup 140 lineto
+    stroke
+    dup 5 add -132 moveto
+    dup 360 ge { exit } if
+    dup 140 add 10 div cvi 10 (    ) cvrs show
+    20 add
+} loop
+
+-140
+{
+    dup -140 exch moveto
+    dup 360 exch lineto
+    stroke
+    dup 140 ge { exit } if
+    20 add
+} loop
+
+showpage
+%%EOF
