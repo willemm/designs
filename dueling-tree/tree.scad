@@ -1,11 +1,12 @@
 off = 28.5;
 side = [40, 20];
-blen = 60;
+blen = 80;
 tlen = 80;
 pin = 10;
 boltdia = 6;
 boltoff = 12;
-pthi = 26;
+pthi = 18;
+spacing = 1.5;
 
 targethi = 140;
 targetwid = 320;
@@ -13,13 +14,15 @@ targetdia = 250;
 targethoff = targetwid+30;
 tthi = 16;
 
-polehi = 1600;
+polehi = 1100;
+polehi2 = 1080;
+poleovl = 280;
 targetoff = 130;
-firstoff = polehi-1550;
+firstoff = 350;
 
-angle = 5;
+angle = 8;
 
-if (0) {
+if (1) {
     rotate([-angle, 0, 0]) {
         foot();
         duelingtree();
@@ -44,31 +47,34 @@ module duelingtree()
 
     tstep = targethi + targetoff;
 
-    rots = [0, 180, 0, 0, 0, 180];
+    rots = [0, 180, 180, 0, 0, 180];
+    hoffs = [0, 0, pthi, pthi, pthi, pthi];
     for (o = [0,1,2,3,4,5]) {
-        translate([0, 0, firstoff + o*tstep]) hinge();
-        rotate([0, 0, -rots[o]]) translate([0, 0, firstoff + o*tstep]) target();
+        translate([0, -hoffs[o], firstoff + o*tstep]) {
+            hinge();
+            rotate([0, 0, -rots[o]]) target();
+        }
     }
 }
 
 module pole()
 {
-    hi = polehi;
     wid = 140;
-    thi = pthi;
 
-    translate([-wid/2, off, 0]) cube([wid, thi, hi]);
+    translate([-wid/2, off, 0]) cube([wid, pthi, polehi]);
+
+    translate([-wid/2, off-pthi, polehi-poleovl]) cube([wid, pthi, polehi2]);
 }
 
 module foot()
 {
-    ovl = 280;
+    ovl = 550;
     hi = 550;
     wid = 140;
     thi = 16;
-    clen = 1000;
+    clen = 1200;
     cwid = 40;
-    llen = 1000;
+    llen = 1200;
     lwid = 40;
 
     slen = 560;
@@ -106,34 +112,40 @@ module foot()
             ]);
         }
     }
-    color("#974") {
-        sx = wid/2;
-        ly = wid;
-        sy = cwid;
-        hy = cwid+2;
-        cx = thi/2+tol;
-        lx = sx+ly-sy;
-        translate([0, off+pthi+thi, -hi+ovl]) rotate([90, 0, 0]) linear_extrude(height=thi, convexity=6) polygon([
-            [-lx, 0], [-lx, sy], [-sx, ly], [-sx, hi],
-            [sx, hi], [sx, ly], [lx, sy], [lx, 0],
-            [cx, 0], [cx, hy], [-cx, hy], [-cx, 0]
-        ]);
-    }
-    color("#a85") {
-        cbof = (thi/2)+10+tol*2;
-        translate([-clen/2, off+pthi+thi, -hi+ovl]) cube([clen/2-cbof, thi, cwid]);
-        translate([cbof, off+pthi+thi, -hi+ovl]) cube([clen/2-cbof, thi, cwid]);
+    if (false) {
+        color("#974") {
+            sx = wid/2;
+            ly = wid;
+            sy = cwid;
+            hy = cwid+2;
+            cx = thi/2+tol;
+            lx = sx+ly-sy;
+            translate([0, off+pthi+thi, -hi+ovl]) rotate([90, 0, 0]) linear_extrude(height=thi, convexity=6) polygon([
+                [-lx, 0], [-lx, sy], [-sx, ly], [-sx, hi],
+                [sx, hi], [sx, ly], [lx, sy], [lx, 0],
+                [cx, 0], [cx, hy], [-cx, hy], [-cx, 0]
+            ]);
+        }
+        color("#a85") {
+            cbof = (thi/2)+10+tol*2;
+            translate([-clen/2, off+pthi+thi, -hi+ovl]) cube([clen/2-cbof, thi, cwid]);
+            translate([cbof, off+pthi+thi, -hi+ovl]) cube([clen/2-cbof, thi, cwid]);
+        }
+    } else {
+        color("#a85") translate([-clen/2, off+pthi, -hi+ovl+cwid+3]) cube([clen, thi, cwid]);
+        color("#974") translate([-clen/2, off, -hi+ovl]) cube([cwid*2, pthi, cwid+cwid+3]);
+        color("#974") translate([clen/2-cwid*2, off, -hi+ovl]) cube([cwid*2, pthi, cwid+cwid+3]);
     }
     // Longbar
-    color("#b95") translate([0, off+pthi+thi+5, -hi+ovl+19]) rotate([angle, 0, 0]) difference() {
+    color("#b95") translate([0, off+pthi+5, -hi+ovl+19]) rotate([angle, 0, 0]) difference() {
         translate([-thi/2, -pthi-thi-5-llen/2, -19]) cube([thi, llen, lwid]);
         translate([-thi/2-0.1, 0, 0]) rotate([0, 90, 0]) cylinder(thi+0.2, 10/2, 10/2, $fn=24);
     }
     // Longbar pivot
-    color("#889") translate([-thi/2-tol, off+pthi+thi, -hi+ovl]) beugel();
-    color("#889") translate([thi/2+tol+10, off+pthi+thi, -hi+ovl]) beugel();
+    color("#889") translate([-thi/2-tol, off+pthi, -hi+ovl]) beugel();
+    color("#889") translate([thi/2+tol+10, off+pthi, -hi+ovl]) beugel();
     // Support
-    color("#b95") translate([-sthi/2, off+pthi+thi, ovl-20]) rotate([-64, 0, 0]) difference() {
+    color("#b95") translate([-sthi/2, off+pthi+thi, ovl-20]) rotate([angle*1.5-72, 0, 0]) difference() {
         cube([sthi, slen, swid]);
         translate([(sthi-thi)/2-0.2, slen-50, -0.1]) cube([thi+tol, 50.1, swid+0.2]);
     }
@@ -164,19 +176,28 @@ module hinge()
     thi = 3;
     nut = 8;
 
-    translate([0, 0, -0.5]) pivotbracket();
-    translate([0, 0, hi+0.5]) mirror([0, 0, 1]) pivotbracket();
+    translate([0, 0, -spacing]) pivotbracket();
+    translate([0, 0, hi+spacing]) mirror([0, 0, 1]) pivotbracket();
 
     translate([0, 0, -thi-nut]) nut(pin);
     translate([0, 0, hi+thi+nut]) mirror([0, 0, 1]) nut(pin);
 
-    translate([-(blen/2-10), off-thi-nut, -boltoff-0.5]) hingebolt();
-    translate([+(blen/2-10), off-thi-nut, -boltoff-0.5]) hingebolt();
+    translate([-(blen/2-10), off-thi-nut, -boltoff-spacing]) hingebolt();
+    translate([+(blen/2-10), off-thi-nut, -boltoff-spacing]) hingebolt();
 
-    translate([-(blen/2-10), off-thi-nut, hi+boltoff+0.5]) hingebolt();
-    translate([+(blen/2-10), off-thi-nut, hi+boltoff+0.5]) hingebolt();
+    translate([-(blen/2-10), off-thi-nut, hi+boltoff+spacing]) hingebolt();
+    translate([+(blen/2-10), off-thi-nut, hi+boltoff+spacing]) hingebolt();
 
     translate([0, 0, -thi-nut]) color("#ccc") cylinder(hi+(thi+nut)*2, pin/2, pin/2, $fn=24);
+
+    color("#000") translate([0, 0, -(spacing-(spacing-1)/2)]) linear_extrude(height=1) difference() {
+        circle(20/2);
+        circle(10.2/2);
+    }
+    color("#000") translate([0, 0, hi+((spacing-1)/2)]) linear_extrude(height=1) difference() {
+        circle(20/2);
+        circle(10.2/2);
+    }
 }
 
 module target()
