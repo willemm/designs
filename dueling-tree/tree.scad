@@ -21,7 +21,7 @@ polehi2 = 1100;
 poleovl = 280;
 firstoff = 350;
 
-angle = 8;
+angle = 10;
 
 if (1) {
     rotate([-angle, 0, 0]) {
@@ -60,14 +60,22 @@ module pole()
 {
     wid = 140;
 
-    translate([-wid/2, off, 0]) cube([wid, pthi, polehi]);
+    *#translate([-wid/2, off, 0]) cube([wid, pthi, polehi]);
+    lx = wid/2;
+    sx = 25/2+0.5+2;
+    sh = 55;
+    translate([0, off+pthi, 0]) rotate([90, 0, 0]) linear_extrude(height=pthi, convexity=8) polygon([
+        [lx, 0],
+        [wid/2, polehi], [-wid/2, polehi],
+        [-lx, 0], [-sx, 0], [-sx, sh], [sx, sh], [sx, 0]
+    ]);
 
     translate([-wid/2, off-pthi, polehi-poleovl]) cube([wid, pthi, polehi2]);
 }
 
 module foot()
 {
-    hi = 550;
+    hi = 790;
     ovl = hi;
     wid = 140;
     thi = 16;
@@ -79,8 +87,9 @@ module foot()
     llen = 1200;
     lwid = 40;
     lthi = 25;
+    lpiv = 25;
 
-    slen = 560;
+    slen = 790;
     swid = 25;
     sthi = 40;
     soff = slen-50;
@@ -142,23 +151,27 @@ module foot()
     } else {
         lx = clen/2;
         ly = cwid;
-        sx = lthi/2+tol;
-        sy = lwid+tol+4;
-        color("#a85") translate([0, off+pthi+cthi, -hi+ovl]) rotate([90, 0, 0])
+        sx = lthi/2+tol+15;
+        sy = lwid+tol+5;
+        color("#a85") translate([0, off, -hi+ovl]) rotate([90, 0, 0])
             linear_extrude(height=cthi, convexity=6) polygon([
                 [lx, 0], [lx, ly], [-lx, ly], [-lx, 0],
                 [-sx, 0], [-sx, sy], [sx, sy], [sx, 0],
             ]);
     }
     // Longbar
-    color("#b95") translate([0, off+pthi+5, -hi+ovl+19]) rotate([angle, 0, 0]) difference() {
-        translate([-lthi/2, -pthi-thi-5-llen/2, -19]) cube([lthi, llen, lwid]);
+    color("#b95") translate([0, off-5, -hi+ovl+lpiv]) rotate([angle, 0, 0]) difference() {
+        translate([-lthi/2, 200-llen/2-thi+5, -lpiv]) cube([lthi, llen, lwid]);
         translate([-lthi/2-0.1, 0, 0]) rotate([0, 90, 0]) cylinder(lthi+0.2, 10/2, 10/2, $fn=24);
     }
     // Longbar pivot
     if (false) {
         color("#889") translate([-lthi/2-tol, off+pthi, -hi+ovl]) beugel();
         color("#889") translate([lthi/2+tol+10, off+pthi, -hi+ovl]) beugel();
+    } else {
+        translate([lthi/2+tol/2, off+pthi+0.1, -hi+ovl+lpiv-20]) beugel_voet();
+        translate([-lthi/2-tol/2, off+pthi+0.1, -hi+ovl+lpiv-20]) mirror([1,0,0]) beugel_voet();
+        color("#99a") translate([lthi/2+10, off-5, -hi+ovl+lpiv]) rotate([0,-90,0]) cylinder(lthi+20, 5, 5, $fn=32);
     }
     // Support
     if (false) {
@@ -169,7 +182,7 @@ module foot()
     } else {
         ofrad = 25;
         ofan = asin((sthi/2)/ofrad);
-        color("#b95") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.5-72+90, 0, 0]) {
+        color("#b95") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.9+10, 0, 0]) {
             rotate([0,90,0]) linear_extrude(height=swid, convexity=4) difference() {
                 polygon(concat(
                     [for (a=[ 90-ofan: ofan/20:90+ofan]) [slen-ofrad+sin(a)*(ofrad), cos(a)*(ofrad)]],
@@ -181,6 +194,31 @@ module foot()
         // Beugel boven
         color("#889") translate([swid/2, off+pthi+sthi/2, ovl+20]) beugel_boven();
         color("#889") translate([-swid/2, off+pthi+sthi/2, ovl+20]) mirror([1,0,0]) beugel_boven();
+        // Beugel onder
+        color("#889") translate([swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.9-80]) translate([0, slen, 0]) beugel_onder();
+        color("#889") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.9-80]) translate([0, slen, 0]) mirror([1, 0, 0]) beugel_onder();
+    }
+}
+
+module beugel_voet()
+{
+        color("#889") difference() {
+            linear_extrude(height=40, convexity=8) polygon([
+                [0, 0], [side.y, 0], [side.y, -2], [2, -2],
+                [2, -side.x], [0, -side.x],
+            ]);
+            translate([-0.05, -pthi-5, 20]) rotate([0, 90, 0]) cylinder(2.1, 5.2, 5.2, $fn=32);
+        }
+}
+
+module beugel_onder()
+{
+    blen = 100;
+    thi = 2;
+    bwid = 40;
+    rotate([0, 90, 0]) linear_extrude(height=thi) difference() {
+        translate([-bwid/2, 40-blen]) square([bwid, blen]);
+        translate([0, 20, 0]) circle(5);
     }
 }
 
@@ -190,7 +228,6 @@ module beugel_boven()
     blen = 40;
     thi = 2;
     boff = 20;
-    color("#889")
     render(convexity=10) difference() {
         translate([0, -boff, -blen/2])
         linear_extrude(height=blen, convexity=6) polygon([
