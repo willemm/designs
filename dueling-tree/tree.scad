@@ -63,7 +63,7 @@ module pole()
     *#translate([-wid/2, off, 0]) cube([wid, pthi, polehi]);
     lx = wid/2;
     sx = 25/2+0.5+2;
-    sh = 55;
+    sh = 50;
     translate([0, off+pthi, 0]) rotate([90, 0, 0]) linear_extrude(height=pthi, convexity=8) polygon([
         [lx, 0],
         [wid/2, polehi], [-wid/2, polehi],
@@ -89,7 +89,7 @@ module foot()
     lthi = 25;
     lpiv = 25;
 
-    slen = 790;
+    slen = 788;
     swid = 25;
     sthi = 40;
     soff = slen-50;
@@ -182,7 +182,7 @@ module foot()
     } else {
         ofrad = 25;
         ofan = asin((sthi/2)/ofrad);
-        color("#b95") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.9+10, 0, 0]) {
+        color("#b95") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.85+10, 0, 0]) {
             rotate([0,90,0]) linear_extrude(height=swid, convexity=4) difference() {
                 polygon(concat(
                     [for (a=[ 90-ofan: ofan/20:90+ofan]) [slen-ofrad+sin(a)*(ofrad), cos(a)*(ofrad)]],
@@ -195,8 +195,8 @@ module foot()
         color("#889") translate([swid/2, off+pthi+sthi/2, ovl+20]) beugel_boven();
         color("#889") translate([-swid/2, off+pthi+sthi/2, ovl+20]) mirror([1,0,0]) beugel_boven();
         // Beugel onder
-        color("#889") translate([swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.9-80]) translate([0, slen, 0]) beugel_onder();
-        color("#889") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.9-80]) translate([0, slen, 0]) mirror([1, 0, 0]) beugel_onder();
+        color("#889") translate([swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.85-80]) translate([0, slen, 0]) beugel_onder();
+        color("#889") translate([-swid/2, off+pthi+sthi/2, ovl+20]) rotate([angle*1.85-80]) translate([0, slen, 0]) mirror([1, 0, 0]) beugel_onder();
     }
 }
 
@@ -354,7 +354,7 @@ module hingebolt()
     nut = 8;
     color("#ccc") rotate([-90,0,0]) union() {
         cylinder(pthi+thi+nut, boltdia/2, boltdia/2, $fn=24);
-        translate([0, 0, pthi+thi+nut]) cylinder(2, 10, 10, $fn=24);
+        translate([0, 0, pthi+thi+nut]) cylinder(2, 8, 8, $fn=24);
         nut();
     }
 }
