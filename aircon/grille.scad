@@ -1,5 +1,32 @@
 
-grille();
+if(0) {
+    intersection() {
+        grille();
+        rotate([0,0,45]) translate([-110,-92,10]) cube([210,250,220],true);
+    }
+} else {
+    grille();
+}
+
+if(0) {
+color("#5954") translate([200,-110,-90]) cube([210,250,2],true);
+//color("#9554") translate([0,-90,-90]) cube([210,250,2],true);
+color("#5594") translate([-200,-110,-90]) cube([210,250,2],true);
+color("#5954") translate([0,-200,-90]) cube([250,210,2],true);
+
+color("#9554") translate([0,-90,-90]) cube([250,210,2],true);
+// color("#5591") translate([100,-300,-90]) cube([250,210,2],true);
+
+/*
+ang = atan((250-100)/300);
+color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true);
+*/
+}
+
+if(0) {
+color("#5954") rotate([0,0,45]) translate([98,-92,-101.01]) cube([210,250,2],true);
+color("#5594") rotate([0,0,45]) translate([-112,-92,-101.01]) cube([210,250,2],true);
+}
 
 module grille()
 {
@@ -10,13 +37,13 @@ module grille()
     dia = 200;
     thick = 3.0;
 
-    backoff = 60;
+    backoff = 100;
 
     trirad = 10;
     triinr = 5;
-    inof = 32;
+    inof = 20;
 
-    tritop = 250;
+    tritop = 100;
     tribot = 100;
 
     trislopeang = atan((tritop-tribot) / height);
@@ -38,10 +65,20 @@ module grille()
         concat([slopeang], [for (an=[clang:sa:360-clang]) an], [360-slopeang]),
         concat([360-slopeang], [for (an=[360-flang:sa:360]) an]),
         ];
+    angs_in = [
+        concat([for (an=[180:sa:180+flang]) an],[180+slopeang]),
+        concat([180+slopeang], [for (an=[180+clang:sa:540-clang]) an], [540-slopeang]),
+        concat([180-slopeang], [for (an=[180-flang:sa:180]) an]),
+        ];
 
     cangs = [slopeang/2, 180, 360-slopeang/2];
     corners = [[width/2-trirad, trirad, 0], [0, (height-trirad), 0], [-(width/2-trirad), trirad, 0]];
-    cornersof = [for (sd=[0:2]) corners[sd]-[inof*sin(cangs[sd]), -inof*cos(cangs[sd]), 0]];
+    //cornersof = [for (sd=[0:2]) corners[sd]-[inof*sin(cangs[sd]), -inof*cos(cangs[sd]), 0]];
+    cornersof = [
+        [-(width/4-trirad/2)+inof, height/2-inof/2, 0],
+        [0, trirad+inof/2, 0],
+        [width/4-trirad/2-inof, height/2-inof/2, 0],
+    ];
     //cornerssl = [for (sd=[0:2]) corners[sd]-[(inof-triinr-0.1)*sin(cangs[sd]), -(inof-triinr-0.1)*cos(cangs[sd]), 0]];
     //*#polyhedron(points=slopey(tribot, tritop, height, cornerssl), faces=[[0,1,2]]);
 
@@ -51,6 +88,14 @@ module grille()
         circle(dia/2-thick, $fn=sidecnt);
     }
     */
+
+    innerbotarr = [for (sd=[0:2]) each concat(
+            interline(angs_in, cornersof, triinr, sd, ssteps*2, ssteps, ssteps*2-1),
+            [for (an=angs_in[sd])
+                cornersof[sd]+[sin(an)*triinr, -cos(an)*triinr, 0]
+            ],
+            interline(angs_in, cornersof, triinr, sd+1, ssteps*2, 0, ssteps-1)
+        )];
 
     spoints = concat(
         [for (sd=[0:2]) each concat(
@@ -68,13 +113,16 @@ module grille()
                 ],
                 interline(angs, corners, trirad, sd+1, ssteps*2, 0, ssteps-1)
             )],
-            [for (sd=[0:2]) each concat(
-                interline(angs, cornersof, triinr, sd, ssteps*2, ssteps, ssteps*2-1),
+            rotarr(innerbotarr)
+            /*
+            rotarr([for (sd=[0:2]) each concat(
+                interline(angs_in, cornersof, triinr, sd, ssteps*2, ssteps, ssteps*2-1),
                 [for (an=angs[sd])
                     cornersof[sd]+[sin(an)*triinr, -cos(an)*triinr, 0]
                 ],
                 interline(angs, cornersof, triinr, sd+1, ssteps*2, 0, ssteps-1)
-            )]
+            )])
+            */
         )),
         /*
         [for (sd=[0:2]) each [for (an=angs[sd])
@@ -88,6 +136,7 @@ module grille()
 
         []
     );
+
     rotate([180-trislopeang, 0, 0]) {
         polyhedron(convexity=8,
             points=spoints,
@@ -102,19 +151,19 @@ module grille()
                 []
         ));
 
-        slats(corners, 20, 0.4, 2.0, tribot, tritop, height);
+        slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
     }
 }
 
-module slats(corners, num, so, eo, tribot, tritop, height, thick=3, ang=20)
+module slats(corners, num, so, eo, tribot, tritop, height, thick=3)
 {
     // Calculate factor for desired y thickness
     toff = thick/(corners[1].y-corners[0].y)/2;
     for (sl=[1:num-1]) {
         fact = (sl+so)/(num+so+eo);
-        fact2 = fact+((1.5-(sl*2.0/num))/num);
+        fact2 = fact+((0.3-(sl*-0.6/num))/num);
         pts = concat(
-            slopey(tribot-50, tritop-100, height, [
+            slopey(tribot-30, tritop-40, height, [
                 [ corners[0].x + (corners[1].x - corners[0].x)*(fact2-toff)
                 , corners[0].y + (corners[1].y - corners[0].y)*(fact2-toff)
                 , corners[0].z + (corners[1].z - corners[0].z)*(fact2-toff) ],
@@ -153,10 +202,10 @@ module slats(corners, num, so, eo, tribot, tritop, height, thick=3, ang=20)
 }
 
 // Array of points that form half of a line between two points
-function interline(angs, corners, rd, sd, ssteps, from, to) = 
-    let( an = angs[sd%3][0],
-        pt1 = corners[(sd+2)%3]+[sin(an)*rd, -cos(an)*rd, 0],
-        pt2 = corners[ sd   %3]+[sin(an)*rd, -cos(an)*rd, 0]) [
+function interline(angs, corners, rd, sd, ssteps, from, to, mangs=3) = 
+    let( an = angs[sd%mangs][0],
+        pt1 = corners[(sd+2)%mangs]+[sin(an)*rd, -cos(an)*rd, 0],
+        pt2 = corners[ sd   %mangs]+[sin(an)*rd, -cos(an)*rd, 0]) [
     for (st = [from:to]) [
         pt1.x + (pt2.x-pt1.x)*(st/ssteps),
         pt1.y + (pt2.y-pt1.y)*(st/ssteps),
@@ -173,8 +222,7 @@ function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
     [s+(i+1)%n+o,s+i,s+i+o]
 ]];
 
-color("#5954") translate([200,-90,-90]) cube([210,250,2],true);
-color("#9554") translate([0,-90,-90]) cube([210,250,2],true);
-color("#5594") translate([-200,-90,-90]) cube([210,250,2],true);
-color("#5954") translate([-100,-300,-90]) cube([250,210,2],true);
-color("#5594") translate([100,-300,-90]) cube([250,210,2],true);
+// Rotate an array
+function rotarr(arr) = concat([for (i=[ceil(len(arr)/2):len(arr)-1]) arr[i]], [for (i=[0:ceil(len(arr)/2)-1]) arr[i]]);
+
+//function rotarr(arr) = [for (i=[0:len(arr)-1]) arr[i]];
