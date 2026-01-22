@@ -1,11 +1,14 @@
 
+topcut = [-107.5, -87, 0];
+
 if(0) {
     intersection() {
         grille();
-        rotate([0,0,45]) translate([-110,-92,10]) cube([210,250,220],true);
+        rotate([0,0,45]) translate(topcut+[0,0,10]) cube([210,250,220],true);
     }
 } else {
     grille();
+    *color("#5885") mirror([0,1,0]) translate([0, 0, -2]) hole();
 }
 
 if(0) {
@@ -23,16 +26,43 @@ color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true)
 */
 }
 
-if(0) {
-color("#5954") rotate([0,0,45]) translate([98,-92,-101.01]) cube([210,250,2],true);
-color("#5594") rotate([0,0,45]) translate([-112,-92,-101.01]) cube([210,250,2],true);
+if(1) {
+*color("#5954") rotate([0,0,45]) translate([98,-92,-101.01]) cube([210,250,2],true);
+color("#5594") rotate([0,0,45]) translate([-107.5,-87.5,-101.01]) cube([210,250,2],true);
+}
+
+module hole()
+{
+    height = 300;
+    width = 585;
+    topwid = 25;
+    side = 394;
+    beamwid = 40;
+    beamoff = 360 - width/2;
+    beamh1 = height * (width/2-beamoff)/(width/2);
+    beamh2 = height * (width/2-beamoff-beamwid)/(width/2);
+
+    toprad = topwid / sqrt(2);
+
+    linear_extrude(height=10, convexity=10) polygon([
+        [-width/2, 0], [width/2, 0], [0, height],
+    ]);
+    linear_extrude(height=20, convexity=10) polygon([
+        [0, height], [toprad, height-toprad], [0, height-2*toprad], [-toprad, height-toprad],
+    ]);
+    linear_extrude(height=20, convexity=10) polygon([
+        [beamoff, 0], [beamoff+beamwid, 0], [beamoff+beamwid, beamh2], [beamoff, beamh1],
+    ]);
+
+    sideang = atan(height*2/width)+90;
+    *#translate([0, height, 0]) rotate([0, 0, sideang]) translate([0, 25, 0]) cube([5, side, 10]);
 }
 
 module grille()
 {
     lcp = 60;
     cp = 60;
-    width = 580;
+    width = 585;
     height = 300;
     dia = 200;
     thick = 3.0;
@@ -48,13 +78,12 @@ module grille()
 
     trislopeang = atan((tritop-tribot) / height);
 
-    holeoff = [-30, dia/2+10, 0];
-
+    holeoff = [-35, dia/2+10, 0];
 
     ssteps = ceil(cp/2);
 
     sa = 360/cp;
-    slopeang = 180-atan((height-2*trirad)/((width-2*trirad)/2));
+    slopeang = 180-atan(height/(width/2));
     flang1 = floor(slopeang/sa)*sa;
     clang = flang1 + sa;
 
@@ -71,8 +100,11 @@ module grille()
         concat([180-slopeang], [for (an=[180-flang:sa:180]) an]),
         ];
 
+    croff = 1/tan((180-slopeang)/2);
+    topoff = 1/sin(slopeang-90);
+
     cangs = [slopeang/2, 180, 360-slopeang/2];
-    corners = [[width/2-trirad, trirad, 0], [0, (height-trirad), 0], [-(width/2-trirad), trirad, 0]];
+    corners = [[width/2-trirad*croff, trirad, 0], [0, (height-trirad*topoff), 0], [-(width/2-trirad*croff), trirad, 0]];
     //cornersof = [for (sd=[0:2]) corners[sd]-[inof*sin(cangs[sd]), -inof*cos(cangs[sd]), 0]];
     cornersof = [
         [-(width/4-trirad/2)+inof, height/2-inof/2, 0],
