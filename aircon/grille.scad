@@ -1,19 +1,23 @@
 
-topcut = [87.3, 107.3, 0];
+width = 585;
+height = 300;
 
-if(0) {
+topcut = [89, 105, 0];
+toprot = atan(height*2/width);
+
+if(1) {
     intersection() {
         grille();
-        rotate([0,0,45]) translate(topcut+[0,0,110]) cube([250,210,220],true);
+        rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220],true);
     }
 } else {
     grille();
-    hole();
+    *hole();
 }
 
 if(0) {
-*color("#5954") rotate([0,0,45]) translate([98,-92,-101.01]) cube([250,210,2],true);
-color("#5594") rotate([0,0,45]) translate(topcut-[0,0,0.01]) cube([250,210,2],true);
+*color("#5954") rotate([0,0,toprot]) translate([98,-92,-101.01]) cube([250,210,2],true);
+color("#5594") rotate([0,0,toprot]) translate(topcut-[0,0,0.01]) cube([250,210,2],true);
 }
 
 if(0) {
@@ -33,8 +37,6 @@ color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true)
 
 module hole()
 {
-    height = 300;
-    width = 585;
     topwid = 25;
     side = 394;
     outerwid = 50;
@@ -80,8 +82,6 @@ module grille()
 {
     lcp = 60;
     cp = 60;
-    width = 585;
-    height = 300;
     dia = 200;
     thick = 5.0;
 
