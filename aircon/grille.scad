@@ -5,14 +5,14 @@ height = 300;
 topcut = [89, 105, 0];
 toprot = atan(height*2/width);
 
-if(1) {
+if(0) {
     intersection() {
         grille();
         rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220],true);
     }
 } else {
     grille();
-    *hole();
+    hole();
 }
 
 if(0) {
@@ -52,6 +52,12 @@ module hole()
     trislopeang = 180;
 
     toprad = topwid / sqrt(2);
+
+    if(0) {
+    echo([[width/2,0], [0,height], [-width/2,0]]);
+    echo([beamoff, 0], [beamoff+beamwid, 0], [beamoff+beamwid, beamh2-outerwid], [beamoff, beamh1-outerwid]);
+    echo([0, height], [toprad, height-toprad], [0, height-2*toprad], [-toprad, height-toprad]);
+    }
 
     color("#5885") rotate([180-trislopeang, 0, 0]) translate([0, 0, 15]) {
         linear_extrude(height=10, convexity=10) difference() {
@@ -161,7 +167,6 @@ module grille()
         )];
     */
     a1len = len(angs[1]);
-    echo(angs[1][0], angs[2][0]);
     a1off1 = [-topnotch*cos(angs[1][0]),-topnotch*sin(angs[1][0]),0];
     a1off2 = [topnotch*cos(angs[2][0]),topnotch*sin(angs[2][0]),0];
     outerbotarr = concat(

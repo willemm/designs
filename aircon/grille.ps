@@ -1,0 +1,64 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Origin: 0 0
+%%BoundingBox: 0 0 1700 900
+
+1700 2 div 900 2 div translate
+
+% Scale from points to millimeters
+1 0.3528 div 1 0.3528 div scale
+
+0 -150 translate
+
+% triangle hole
+292.5 0 moveto
+0 300 lineto
+-292.5 0 lineto
+closepath stroke
+
+% vertical beam
+67.5 0 moveto
+107.5 0 lineto
+107.5 189.7 lineto
+67.5 230.8 lineto
+closepath stroke
+
+% apex beam
+0 300 moveto
+17.7 282.3 lineto
+0 264.6 lineto
+-17.7 282.3 lineto
+closepath stroke
+
+0 150 translate
+
+% Grid for aligning
+/Courier findfont 4 scalefont setfont
+0.2 setlinewidth
+
+/gridt -150 def
+/gridb 150 def
+/gridl -290 def
+/gridr 290 def
+
+gridl
+{
+    dup gridt moveto
+    dup gridb lineto
+    stroke
+    dup 5 add gridt 8 add moveto
+    dup gridr ge { exit } if
+    dup 10 div cvi 10 (    ) cvrs show
+    20 add
+} loop
+
+gridt
+{
+    dup gridl exch moveto
+    dup gridr exch lineto
+    stroke
+    dup gridb ge { exit } if
+    20 add
+} loop
+
+showpage
+%%EOF
