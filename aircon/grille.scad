@@ -1,14 +1,14 @@
 
 topcut = [87.3, 107.3, 0];
 
-if(1) {
+if(0) {
     intersection() {
         grille();
         rotate([0,0,45]) translate(topcut+[0,0,110]) cube([250,210,220],true);
     }
 } else {
     grille();
-    *hole();
+    hole();
 }
 
 if(0) {
@@ -51,7 +51,7 @@ module hole()
 
     toprad = topwid / sqrt(2);
 
-    color("#5885") rotate([180-trislopeang, 0, 0]) translate([0, 0, -2]) {
+    color("#5885") rotate([180-trislopeang, 0, 0]) translate([0, 0, 15]) {
         linear_extrude(height=10, convexity=10) difference() {
             polygon([
                 [-width/2-outerwid, 0],
@@ -64,10 +64,10 @@ module hole()
                 [-width/2, 0], [width/2, 0], [0, height],
             ]);
         }
-        linear_extrude(height=20, convexity=10) polygon([
+        translate([0,0,-20]) linear_extrude(height=200, convexity=10) polygon([
             [0, height], [toprad, height-toprad], [0, height-2*toprad], [-toprad, height-toprad],
         ]);
-        linear_extrude(height=20, convexity=10) polygon([
+        translate([0,0,-20]) linear_extrude(height=20, convexity=10) polygon([
             [beamoff, -outerwid], [beamoff+beamwid, -outerwid], [beamoff+beamwid, beamh2], [beamoff, beamh1],
         ]);
     }
@@ -94,6 +94,8 @@ module grille()
 
     tritop = 200;
     tribot = 25;
+
+    topnotch = 26;
 
     //trislopeang = atan((tritop-tribot) / height);
     trislopeang = 180;
@@ -142,38 +144,55 @@ module grille()
     */
 
     innerbotarr = [for (sd=[0:2]) each concat(
-            interline(angs_in, cornersof, triinr, sd, ssteps*2, ssteps, ssteps*2-1),
+            interline_ca(angs_in, cornersof, triinr, sd, ssteps*2, ssteps, ssteps*2-1),
             [for (an=angs_in[sd])
                 cornersof[sd]+[sin(an)*triinr, -cos(an)*triinr, 0]
             ],
-            interline(angs_in, cornersof, triinr, sd+1, ssteps*2, 0, ssteps-1)
+            interline_ca(angs_in, cornersof, triinr, sd+1, ssteps*2, 0, ssteps-1)
         )];
 
     /*
     outerbotarr = [for (sd=[0:2]) each concat(
-            interline(angs, corners, trirad, sd, ssteps*2, ssteps, ssteps*2-1),
+            interline_ca(angs, corners, trirad, sd, ssteps*2, ssteps, ssteps*2-1),
             [for (an=angs[sd])
                 corners[sd]+[sin(an)*trirad, -cos(an)*trirad, 0]
             ],
-            interline(angs, corners, trirad, sd+1, ssteps*2, 0, ssteps-1)
+            interline_ca(angs, corners, trirad, sd+1, ssteps*2, 0, ssteps-1)
         )];
     */
+    a1len = len(angs[1]);
+    echo(angs[1][0], angs[2][0]);
+    a1off1 = [-topnotch*cos(angs[1][0]),-topnotch*sin(angs[1][0]),0];
+    a1off2 = [topnotch*cos(angs[2][0]),topnotch*sin(angs[2][0]),0];
     outerbotarr = concat(
-            interline(angs, corners, trirad, 0, ssteps*2, ssteps, ssteps*2-1),
+            interline_ca(angs, corners, trirad, 0, ssteps*2, ssteps, ssteps*2-1),
             [for (an=angs[0])
                 corners[0]+[sin(an)*trirad, -cos(an)*trirad, 0]
             ],
-            interline(angs, corners, trirad, 1, ssteps*2, 0, ssteps-1),
-            interline(angs, corners, trirad, 1, ssteps*2, ssteps, ssteps*2-1),
+            //interline_ca(angs, corners, trirad, 1, ssteps*2, 0, ssteps-1),
+            interline_ca(angs,
+                [corners[0],corners[1]+a1off1,corners[2]],
+                trirad, 1, ssteps*2, 0, ssteps*2-1),
+            /*
             [for (an=angs[1])
                 corners[1]+[sin(an)*trirad, -cos(an)*trirad, 0]
             ],
-            interline(angs, corners, trirad, 2, ssteps*2, 0, ssteps-1),
-            interline(angs, corners, trirad, 2, ssteps*2, ssteps, ssteps*2-1),
+            */
+            [for (ani=[1:2:a1len-1])
+                corners[1]+a1off1+[sin(angs[1][ani])*trirad, -cos(angs[1][ani])*trirad, 0]
+            ],
+            [corners[1]+a1off1+a1off2+[0,trirad,0]],
+            [for (ani=[1:2:a1len-1])
+                corners[1]+a1off2+[sin(angs[1][ani])*trirad, -cos(angs[1][ani])*trirad, 0]
+            ],
+            interline_ca(angs,
+                [corners[0],corners[1]+a1off2,corners[2]],
+                trirad, 2, ssteps*2, 0, ssteps*2-1),
+            //interline_ca(angs, corners, trirad, 2, ssteps*2, ssteps, ssteps*2-1),
             [for (an=angs[2])
                 corners[2]+[sin(an)*trirad, -cos(an)*trirad, 0]
             ],
-            interline(angs, corners, trirad, 3, ssteps*2, 0, ssteps-1)
+            interline_ca(angs, corners, trirad, 3, ssteps*2, 0, ssteps-1)
         );
     spoints = concat(outerbotarr, 
         slopey(tribot, tritop, height, outerbotarr),
@@ -206,10 +225,11 @@ module grille()
             difference() {
                 slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
                 if (backoff < 0) {
-                    translate([0,0,-0.1]) linear_extrude(height=-backoff+0.2, convexity=6) polygon(concat(
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-1), holeoff.y-cos(an)*(dia/2-thick-1)]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2+1), holeoff.y-cos(an)*(dia/2+1)]]
-                    ));
+                    translate([holeoff.x,holeoff.y,-0.1])
+                        linear_extrude(height=-backoff+0.2, convexity=6) difference() {
+                            circle(dia/2+1, $fn = cp);
+                            circle(dia/2-thick-1, $fn = cp);
+                        }
                 }
             }
         }
@@ -276,16 +296,19 @@ module slats(corners, num, so, eo, tribot, tritop, height, thick=3)
     }
 }
 
-// Array of points that form half of a line between two points
-function interline(angs, corners, rd, sd, ssteps, from, to, mangs=3) = 
-    let( an = angs[sd%mangs][0],
-        pt1 = corners[(sd+2)%mangs]+[sin(an)*rd, -cos(an)*rd, 0],
-        pt2 = corners[ sd   %mangs]+[sin(an)*rd, -cos(an)*rd, 0]) [
-    for (st = [from:to]) [
+// Array of points that form a line between two points with angle offsets from an array
+function interline_ca(angs, corners, rd, sd, ssteps, from, to, mangs=3) = 
+    let(an = angs[sd%mangs][0]) interline(
+        corners[(sd+2)%mangs]+[sin(an)*rd, -cos(an)*rd, 0],
+        corners[ sd   %mangs]+[sin(an)*rd, -cos(an)*rd, 0],
+        ssteps, from, to);
+
+// Array of points that form a line between two points
+function interline(pt1, pt2, ssteps, from, to) =
+    [for (st = [from:to]) [
         pt1.x + (pt2.x-pt1.x)*(st/ssteps),
         pt1.y + (pt2.y-pt1.y)*(st/ssteps),
-        pt1.z + (pt2.z-pt1.z)*(st/ssteps)
-]];
+        pt1.z + (pt2.z-pt1.z)*(st/ssteps) ]];
 
 // change z coordinate as function of y coordinate
 function slopey(from, to, my, pts) = [for (pt=pts) [pt.x, pt.y, pt.z + from + (to-from)*(pt.y/my)]];
