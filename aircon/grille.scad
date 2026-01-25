@@ -1,14 +1,18 @@
 
-width = 585;
+width = 583;
 height = 300;
+topwid = 25;
+tritop = 200;
+tribot = 25;
 
 topcut = [89, 105, 0];
 toprot = atan(height*2/width);
 
-if(0) {
+if(1) {
     intersection() {
         grille();
-        rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220],true);
+        *rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220.5],true);
+        topcut();
     }
 } else {
     grille();
@@ -35,9 +39,30 @@ color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true)
 */
 }
 
+module topcut()
+{
+    //trislopeang = atan((tritop-tribot) / height);
+    slopeang = atan(height/(width/2));
+    boff = 36 * [cos(slopeang), sin(slopeang), 0];
+    toff = [69,0,0];
+    echo(boff);
+    polyhedron(convexity=8,
+        points = [
+            [0, 0, 0]-boff, [width/2, height, 0], [-width/2, height, 0]-toff,
+            [0, 0, tribot], [width/2, height, tritop], [-width/2, height, tritop],
+
+            [-72*cos(slopeang), 0, 0],
+            [-width/4, height/2, (tritop+tribot)/2],
+        ],
+        faces = concat([ [0, 1, 2, 6], [5, 4, 3] ],
+            [[0, 3, 4], [0, 4, 1], [1, 4, 5], [1, 5, 2]],
+            //[[0, 5, 3], [0, 2, 5]]
+            [[0, 6, 3], [6, 7, 3], [6, 2, 7], [2, 5, 7]]
+        ));
+}
+
 module hole()
 {
-    topwid = 25;
     side = 394;
     outerwid = 50;
 
@@ -92,16 +117,14 @@ module grille()
     thick = 5.0;
 
     backoff = -10;
-    backlip = 5;
+    backlip = 10;
+    backlip2 = 5;
 
     trirad = 2;
     triinr = 2;
     inof = 20;
 
-    tritop = 200;
-    tribot = 25;
-
-    topnotch = 26;
+    topnotch = topwid+1;
 
     //trislopeang = atan((tritop-tribot) / height);
     trislopeang = 180;
@@ -202,7 +225,8 @@ module grille()
     spoints = concat(outerbotarr, 
         slopey(tribot, tritop, height, outerbotarr),
         slopey(tribot, tritop, height, rotarr(innerbotarr)),
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-backlip), holeoff.y-cos(an)*(dia/2-thick-backlip), 0]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-backlip), holeoff.y-cos(an)*(dia/2-thick-backlip), backlip2]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-backlip+backlip2), holeoff.y-cos(an)*(dia/2-thick-backlip+backlip2), 0]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), 0]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), -backoff]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), -backoff]],
@@ -223,7 +247,8 @@ module grille()
                     nquads(sidecnt*4, sidecnt, sidecnt, 0),
                     nquads(sidecnt*5, sidecnt, sidecnt, 0),
                     nquads(sidecnt*6, sidecnt, sidecnt, 0),
-                    nquads(sidecnt*7, sidecnt, -sidecnt*7, 0),
+                    nquads(sidecnt*7, sidecnt, sidecnt, 0),
+                    nquads(sidecnt*8, sidecnt, -sidecnt*8, 0),
                     []
             ));
 
@@ -232,15 +257,15 @@ module grille()
                 if (backoff < 0) {
                     translate([holeoff.x,holeoff.y,-0.1])
                         linear_extrude(height=-backoff+0.2, convexity=6) difference() {
-                            circle(dia/2+1, $fn = cp);
-                            circle(dia/2-thick-1, $fn = cp);
+                            circle(dia/2+0.2, $fn = cp);
+                            circle(dia/2-thick-0.2, $fn = cp);
                         }
                 }
             }
         }
         if (1) {
-            beamwid = 40+2*1;
-            beamoff = 360 - 1 - width/2;
+            beamwid = 40+2*4;
+            beamoff = 360 - 4 - width/2;
             beamtol = 0.01;
             beamh1 = height * (width/2-beamoff)/(width/2) + beamtol;
             beamh2 = height * (width/2-beamoff-beamwid)/(width/2) + beamtol;
