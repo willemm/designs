@@ -12,7 +12,7 @@ if(1) {
     rotate([0, 0, -toprot]) intersection() {
         grille();
         *rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220.5],true);
-        topcut();
+        *topcut();
     }
 } else {
     grille();
@@ -20,8 +20,25 @@ if(1) {
 }
 
 if(0) {
-*color("#5954") rotate([0,0,toprot]) translate([98,-92,-101.01]) cube([250,210,2],true);
-color("#5594") rotate([0,0,toprot]) translate(topcut-[0,0,0.01]) cube([250,210,2],true);
+color("#9554") translate([-100,105,0.01]) cube([210,250,2],true);
+color("#5954") translate([100,-103,0.01]) cube([250,210,2],true);
+color("#5594") translate(topcut-[0,0,0.01]) cube([250,210,2],true);
+}
+
+if(0) {
+    trislopeang = atan((tritop-tribot) / height);
+    color("#5594")
+        rotate([0, 0, -toprot])
+        rotate([trislopeang, 0, 0])
+        translate([-12,222,22])
+        rotate([0, 0, 30])
+        cube([250,210,2],true);
+    color("#5954")
+        rotate([0, 0, -toprot])
+        rotate([trislopeang, 0, 0])
+        translate([-125,59,22])
+        rotate([0, 0, -26])
+        cube([250,210,2],true);
 }
 
 if(0) {
@@ -126,8 +143,7 @@ module grille()
 
     topnotch = topwid+1;
 
-    //trislopeang = atan((tritop-tribot) / height);
-    trislopeang = 180;
+    trislopeang = atan((tritop-tribot) / height);
 
     holeoff = [-37, dia/2+11, 0];
 
@@ -225,15 +241,15 @@ module grille()
     spoints = concat(outerbotarr, 
         slopey(tribot, tritop, height, outerbotarr),
         slopey(tribot, tritop, height, rotarr(innerbotarr)),
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-backlip), holeoff.y-cos(an)*(dia/2-thick-backlip), backlip2]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-backlip+backlip2), holeoff.y-cos(an)*(dia/2-thick-backlip+backlip2), 0]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), 0]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), -backoff]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick/2), holeoff.y-cos(an)*(dia/2-thick/2), -backoff+thick/2]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), -backoff]],
-        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), 0]],
-
-        []
+        [for (dz = [
+            [dia/2-thick-backlip,          backlip2],
+            [dia/2-thick-backlip+backlip2, 0],
+            [dia/2-thick,                  0],
+            [dia/2-thick,                  -backoff],
+            [dia/2-thick/2,                -backoff+thick/2],
+            [dia/2,                        -backoff],
+            [dia/2,                        0],
+            ]) each circlepoints(holeoff.x, holeoff.y, dz[0], dz[1], sidecnt)]
     );
 
     difference() {
@@ -264,6 +280,28 @@ module grille()
                         }
                 }
             }
+        }
+        if (1) {
+            sfac = -1/cos(trislopeang);
+            stri = 5;
+            translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
+            translate([0, -(height-inof/4)*sfac, -2])
+            linear_extrude(height=2.1, convexity=8) polygon(concat(
+                [for (sd=[0:2]) each [for (an=angs_in[sd])
+                    [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
+            ));
+            translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
+            translate([-width/4+inof/4, -(height/2)*sfac, -2])
+            linear_extrude(height=2.1, convexity=8) polygon(concat(
+                [for (sd=[0:2]) each [for (an=angs_in[sd])
+                    [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
+            ));
+            translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
+            translate([width/4-inof/4, -(height/2)*sfac, -2])
+            linear_extrude(height=2.1, convexity=8) polygon(concat(
+                [for (sd=[0:2]) each [for (an=angs_in[sd])
+                    [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
+            ));
         }
         if (1) {
             beamwid = 40+2*4;
@@ -374,4 +412,5 @@ function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
 // Rotate an array
 function rotarr(arr) = concat([for (i=[ceil(len(arr)/2):len(arr)-1]) arr[i]], [for (i=[0:ceil(len(arr)/2)-1]) arr[i]]);
 
-//function rotarr(arr) = [for (i=[0:len(arr)-1]) arr[i]];
+function circlepoints(x, y, r, z, cnt) =
+    [for (an=[0:(360/cnt):360-(360/cnt)]) [x+sin(an)*r, y-cos(an)*r, z]];
