@@ -1,7 +1,7 @@
 
 width = 583;
 height = 300;
-topwid = 25;
+topwid = 26;
 tritop = 200;
 tribot = 25;
 
@@ -282,6 +282,22 @@ module grille()
             }
         }
         if (1) {
+            cof = 30;
+            cornerstop = [
+                [width/4-trirad/2-cof, height/2+cof/3, -0.01],
+                [topnotch*sin(angs[1][0]), height-trirad-cof*0.75+topnotch*cos(angs[1][0]), -0.01],
+                [topnotch*sin(angs[2][0]), height-trirad-cof*0.75+topnotch*cos(angs[2][0]), -0.01],
+                [-(width/4-trirad/2-cof), height/2+cof/3, -0.01],
+            ];
+            //cornerstop = [for (c = cornersof) [0,height-inof/4,-0.01]-c];
+            polyhedron(convexity = 8,
+                points = concat(cornerstop,
+                    slopey(tribot+0.02, tritop+0.02, height, cornerstop)),
+                faces = concat([[0,1,2,3], [7,6,5,4]],
+                    nquads(0, 4, 4, 0)
+                ));
+        }
+        if (1) {
             sfac = -1/cos(trislopeang);
             stri = 5;
             translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
@@ -303,7 +319,7 @@ module grille()
                     [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
             ));
         }
-        if (1) {
+        if (0) {
             beamwid = 40+2*4;
             beamoff = 360 - 4 - width/2;
             beamtol = 0.01;
