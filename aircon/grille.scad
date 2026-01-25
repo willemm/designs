@@ -9,7 +9,7 @@ topcut = [89, 105, 0];
 toprot = atan(height*2/width);
 
 if(1) {
-    intersection() {
+    rotate([0, 0, -toprot]) intersection() {
         grille();
         *rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220.5],true);
         topcut();
@@ -48,13 +48,13 @@ module topcut()
     echo(boff);
     polyhedron(convexity=8,
         points = [
-            [0, 0, 0]-boff, [width/2, height, 0], [-width/2, height, 0]-toff,
-            [0, 0, tribot], [width/2, height, tritop], [-width/2, height, tritop],
+            [0, 0, -0.01]-boff, [width/2, height, -0.01], [-width/2, height, -0.01]-toff,
+            [0, 0, tribot+0.01], [width/2, height, tritop+0.01], [-width/2, height, tritop+0.01],
 
-            [-72*cos(slopeang), 0, 0],
-            [-width/4, height/2, (tritop+tribot)/2],
+            [-72*cos(slopeang), 0, -0.01],
+            [-width/4, height/2, (tritop+tribot)/2+0.01],
         ],
-        faces = concat([ [0, 1, 2, 6], [5, 4, 3] ],
+        faces = concat([ [0, 1, 2, 6], [5, 4, 3, 7] ],
             [[0, 3, 4], [0, 4, 1], [1, 4, 5], [1, 5, 2]],
             //[[0, 5, 3], [0, 2, 5]]
             [[0, 6, 3], [6, 7, 3], [6, 2, 7], [2, 5, 7]]
@@ -229,6 +229,7 @@ module grille()
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick-backlip+backlip2), holeoff.y-cos(an)*(dia/2-thick-backlip+backlip2), 0]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), 0]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick), holeoff.y-cos(an)*(dia/2-thick), -backoff]],
+        [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2-thick/2), holeoff.y-cos(an)*(dia/2-thick/2), -backoff+thick/2]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), -backoff]],
         [for (an=[0:(360/sidecnt):360-(360/sidecnt)]) [holeoff.x+sin(an)*(dia/2), holeoff.y-cos(an)*(dia/2), 0]],
 
@@ -236,7 +237,7 @@ module grille()
     );
 
     difference() {
-        rotate([180-trislopeang, 0, 0]) union() {
+        union() {
             polyhedron(convexity=8,
                 points=spoints,
                 faces=concat(
@@ -248,7 +249,8 @@ module grille()
                     nquads(sidecnt*5, sidecnt, sidecnt, 0),
                     nquads(sidecnt*6, sidecnt, sidecnt, 0),
                     nquads(sidecnt*7, sidecnt, sidecnt, 0),
-                    nquads(sidecnt*8, sidecnt, -sidecnt*8, 0),
+                    nquads(sidecnt*8, sidecnt, sidecnt, 0),
+                    nquads(sidecnt*9, sidecnt, -sidecnt*9, 0),
                     []
             ));
 
@@ -256,7 +258,7 @@ module grille()
                 slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
                 if (backoff < 0) {
                     translate([holeoff.x,holeoff.y,-0.1])
-                        linear_extrude(height=-backoff+0.2, convexity=6) difference() {
+                        linear_extrude(height=-backoff+0.2+thick/2, convexity=6) difference() {
                             circle(dia/2+0.2, $fn = cp);
                             circle(dia/2-thick-0.2, $fn = cp);
                         }
@@ -271,14 +273,33 @@ module grille()
             beamh2 = height * (width/2-beamoff-beamwid)/(width/2) + beamtol;
             beamthick = 15;
 
-            rotate([180-trislopeang,0,0]) translate([0, 0, -beamtol]) linear_extrude(height=beamthick + beamtol, convexity=10) polygon([
-                [beamoff, -beamtol], [beamoff+beamwid, -beamtol], [beamoff+beamwid, beamh2], [beamoff, beamh1],
-            ]);
+            translate([0, 0, -beamtol]) {
+                /*
+                linear_extrude(height=beamthick + beamtol, convexity=10) polygon([
+                    [beamoff, -beamtol], [beamoff+beamwid, -beamtol],
+                    [beamoff+beamwid, beamh2], [beamoff, beamh1],
+                ]);
+                */
+                bh = beamthick + beamtol;
+                bh2 = bh + beamwid;
+                polyhedron(convexity=8,
+                    points = [
+                        [beamoff, -beamtol, 0], [beamoff+beamwid, -beamtol, 0],
+                        [beamoff+beamwid, beamh2, 0], [beamoff, beamh1, 0],
+
+                        [beamoff, -beamtol, bh], [beamoff+beamwid, -beamtol, bh2],
+                        [beamoff+beamwid, beamh2, bh2], [beamoff, beamh1, bh],
+                    ],
+                    faces = concat([ [0, 1, 2, 3], [7, 6, 5, 4] ],
+                        nquads(0, 4, 4, 0)
+                    ));
+
+            }
         }
     }
 }
 
-module slats(corners, num, so, eo, tribot, tritop, height, thick=3)
+module slats(corners, num, so, eo, tribot, tritop, height, thick=1.2)
 {
     // Calculate factor for desired y thickness
     toff = thick/(corners[1].y-corners[0].y)/2;
