@@ -12,7 +12,7 @@ if(1) {
     rotate([0, 0, -toprot]) intersection() {
         grille();
         *rotate([0,0,toprot]) translate(topcut+[0,0,110]) cube([250,210,220.5],true);
-        *topcut();
+        topcut();
     }
 } else {
     grille();
@@ -62,7 +62,6 @@ module topcut()
     slopeang = atan(height/(width/2));
     boff = 36 * [cos(slopeang), sin(slopeang), 0];
     toff = [69,0,0];
-    echo(boff);
     polyhedron(convexity=8,
         points = [
             [0, 0, -0.01]-boff, [width/2, height, -0.01], [-width/2, height, -0.01]-toff,
@@ -139,6 +138,7 @@ module grille()
 
     trirad = 2;
     triinr = 2;
+    triinrcut = 5;
     inof = 20;
 
     topnotch = topwid+1;
@@ -194,6 +194,14 @@ module grille()
                 cornersof[sd]+[sin(an)*triinr, -cos(an)*triinr, 0]
             ],
             interline_ca(angs_in, cornersof, triinr, sd+1, ssteps*2, 0, ssteps-1)
+        )];
+
+    cutbotarr = [for (sd=[0:2]) each concat(
+            interline_ca(angs_in, cornersof, triinrcut, sd, ssteps*2, ssteps, ssteps*2-1),
+            [for (an=angs_in[sd])
+                cornersof[sd]+[sin(an)*triinrcut, -cos(an)*triinrcut, 0]
+            ],
+            interline_ca(angs_in, cornersof, triinrcut, sd+1, ssteps*2, 0, ssteps-1)
         )];
 
     /*
@@ -282,20 +290,90 @@ module grille()
             }
         }
         if (1) {
-            cof = 30;
-            cornerstop = [
-                [width/4-trirad/2-cof, height/2+cof/3, -0.01],
-                [topnotch*sin(angs[1][0]), height-trirad-cof*0.75+topnotch*cos(angs[1][0]), -0.01],
-                [topnotch*sin(angs[2][0]), height-trirad-cof*0.75+topnotch*cos(angs[2][0]), -0.01],
-                [-(width/4-trirad/2-cof), height/2+cof/3, -0.01],
+            cof = 3;
+            radof = (trirad*2-1 > cof ? trirad*2-cof : 1);
+            tof = 30;
+            cornersmid = [
+                //[width/4-cof, height/2+cof/3, -0.02]+
+                //    [cos(angs[2][0]), -sin(angs[2][0]), 0]*(tof/2),
+                [width/4-cof, height/2+cof/3, -0.02],
+                [-topnotch*cos(angs[2][0]), height-cof*0.75+topnotch*sin(angs[2][0]), -0.02] +
+                    [-radof*cos(angs[2][0]), radof*sin(angs[2][0]), 0],
+                [-topnotch*cos(angs[2][0]), height-cof*0.75+topnotch*sin(angs[2][0]), -0.02] +
+                    [radof*cos(angs[1][0]), -radof*sin(angs[1][0]), 0],
+                [0, height-cof*0.75-trirad/2, -0.02]+a1off1+a1off2,
+                [topnotch*cos(angs[1][0]), height-cof*0.75-topnotch*sin(angs[1][0]), -0.02] +
+                    [-radof*cos(angs[2][0]), radof*sin(angs[2][0]), 0],
+                [topnotch*cos(angs[1][0]), height-cof*0.75-topnotch*sin(angs[1][0]), -0.02] +
+                    [radof*cos(angs[1][0]), -radof*sin(angs[1][0]), 0],
+                //[-(width/4-cof), height/2+cof/3, -0.02]+
+                //    [-cos(angs[1][0]), sin(angs[1][0]), 0]*(tof/2),
+                [-(width/4-cof), height/2+cof/3, -0.02],
+                [0, cof, -0.02],
             ];
-            //cornerstop = [for (c = cornersof) [0,height-inof/4,-0.01]-c];
-            polyhedron(convexity = 8,
-                points = concat(cornerstop,
-                    slopey(tribot+0.02, tritop+0.02, height, cornerstop)),
-                faces = concat([[0,1,2,3], [7,6,5,4]],
-                    nquads(0, 4, 4, 0)
-                ));
+            cuttop = [
+                [width/4-cof, height/2+cof/3, -0.02],
+                [width/4-cof, height/2+cof/3, -0.02]+
+                    [cos(angs[2][0]), -sin(angs[2][0]), 0]*(tof/2),
+                [-(width/4-cof), height/2+cof/3, -0.02]+
+                    [-cos(angs[1][0]), sin(angs[1][0]), 0]*(tof/2),
+                [-(width/4-cof), height/2+cof/3, -0.02],
+                [0, cof, -0.02],
+            ];
+            mcnt = len(cornersmid);
+            ccnt = len(cuttop);
+            difference() {
+                polyhedron(convexity = 8,
+                    points = concat(cornersmid,
+                        slopey(tribot+0.02, tritop+0.02, height, cornersmid)),
+                    faces = concat(
+                        nqbottop(mcnt, mcnt),
+                        nquads(0, mcnt, mcnt)
+                    ));
+                polyhedron(convexity=8,
+                    points = concat(
+                        slopey(tribot-5, tritop-5, height, cuttop),
+                        slopey(tribot+0.04, tritop+0.04, height, cuttop)),
+                    faces = concat(
+                        nqbottop(ccnt, ccnt),
+                        nquads(0, ccnt, ccnt)
+                    ));
+                translate([-topnotch*2, height-10, tritop-60])
+                    rotate([45,0,0]) cube([topnotch*4, tof, tof*2]);
+                polyhedron(convexity=8,
+                    points = [
+                        [-width/2, 0, (tribot)+0.01],
+                        [-width/2+tof, 0, (tribot)+0.01],
+                        [-width/2, 0, (tribot)+0.01-tof],
+
+                        [0, height, tritop+0.01],
+                        [0+tof, height, tritop+0.01],
+                        [0, height, tritop+0.01-tof],
+                    ],
+                    faces = concat(nqbottop(3, 3), nquads(0, 3, 3)));
+                polyhedron(convexity=8,
+                    points = [
+                        [width/2, 0, (tribot)+0.01],
+                        [width/2, 0, (tribot)+0.01-tof],
+                        [width/2-tof, 0, (tribot)+0.01],
+
+                        [0, height, tritop+0.01],
+                        [0, height, tritop+0.01-tof],
+                        [0-tof, height, tritop+0.01],
+                    ],
+                    faces = concat(nqbottop(3, 3), nquads(0, 3, 3)));
+                cfcs = len(cutbotarr);
+                polyhedron(convexity=8,
+                    points = concat(
+                        circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, -0.01, cfcs),
+                        circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, backlip2, cfcs),
+                        slopey(tribot+0.01, tritop+0.01, height, rotarr(cutbotarr))),
+                    faces = concat(nqbottop(cfcs, cfcs*2),
+                        nquads(0, cfcs, cfcs),
+                        nquads(cfcs, cfcs, cfcs)
+                        ));
+                translate([holeoff.x, holeoff.y, -0.01]) cylinder(16, dia/2+cof, dia/2+cof, $fn=cp);
+            }
         }
         if (1) {
             sfac = -1/cos(trislopeang);
@@ -319,7 +397,7 @@ module grille()
                     [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
             ));
         }
-        if (0) {
+        if (1) {
             beamwid = 40+2*4;
             beamoff = 360 - 4 - width/2;
             beamtol = 0.01;
@@ -335,7 +413,7 @@ module grille()
                 ]);
                 */
                 bh = beamthick + beamtol;
-                bh2 = bh + beamwid;
+                bh2 = bh;// + beamwid;
                 polyhedron(convexity=8,
                     points = [
                         [beamoff, -beamtol, 0], [beamoff+beamwid, -beamtol, 0],
@@ -424,6 +502,10 @@ function nquads(s, n, o, es=0) = [for (i=[0:n-1-es]) each [
     [s+(i+1)%n,s+i,s+(i+1)%n+o],
     [s+(i+1)%n+o,s+i,s+i+o]
 ]];
+
+// Top and bottom layer
+// number, offset
+function nqbottop(n, o) = [[for (i=[0:n-1]) i],[for (i=[o+n-1:-1:o]) i]];
 
 // Rotate an array
 function rotarr(arr) = concat([for (i=[ceil(len(arr)/2):len(arr)-1]) arr[i]], [for (i=[0:ceil(len(arr)/2)-1]) arr[i]]);
