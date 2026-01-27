@@ -4,6 +4,9 @@ height = 300;
 topwid = 26;
 tritop = 200;
 tribot = 25;
+beamwidth = 40;
+beamoffset = 360;
+beamthick = 15;
 
 topcut = [89, 105, 0];
 toprot = atan(height*2/width);
@@ -83,8 +86,8 @@ module hole()
     side = 394;
     outerwid = 50;
 
-    beamwid = 40;
-    beamoff = 360 - width/2;
+    beamwid = beamwidth;
+    beamoff = beamoffset - width/2;
     beamh1 = height * (width/2-beamoff)/(width/2)+outerwid;
     beamh2 = height * (width/2-beamoff-beamwid)/(width/2)+outerwid;
 
@@ -140,6 +143,7 @@ module grille(cp=60)
     triinr = 2;
     triinrcut = 5;
     inof = 20;
+    stri = 5;
 
     topnotch = topwid+1;
 
@@ -270,7 +274,7 @@ module grille(cp=60)
                     []
             ));
 
-            difference() {
+            *difference() {
                 slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
                 if (backoff < 0) {
                     translate([holeoff.x,holeoff.y,-0.1])
@@ -284,35 +288,34 @@ module grille(cp=60)
         if (1) {
             hollow_cutout(trirad, inof, 3, triinrcut, backlip, thick, dia, backlip2, backoff, cp);
         }
-        if (1) {
-            sfac = -1/cos(trislopeang);
-            stri = 5;
-            translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
-            translate([0, -(height-inof/4)*sfac, -2])
-            linear_extrude(height=2.1, convexity=8) polygon(concat(
-                [for (sd=[0:2]) each [for (an=angs_in[sd])
-                    [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
-            ));
-            translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
-            translate([-width/4+inof/4, -(height/2)*sfac, -2])
-            linear_extrude(height=2.1, convexity=8) polygon(concat(
-                [for (sd=[0:2]) each [for (an=angs_in[sd])
-                    [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
-            ));
-            translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
-            translate([width/4-inof/4, -(height/2)*sfac, -2])
-            linear_extrude(height=2.1, convexity=8) polygon(concat(
-                [for (sd=[0:2]) each [for (an=angs_in[sd])
-                    [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
-            ));
+        *if (1) {
+            top_cutout(0, -(height-inof/4), stri, inof, trirad);
+            top_cutout(-width/4+inof/4, -(height/2), stri, inof, trirad);
+            top_cutout(width/4+inof/4, -(height/2), stri, inof, trirad);
         }
-        if (0) {
-            beamwid = 40+2*4;
-            beamoff = 360 - 4 - width/2;
-            beamtol = 0.01;
+        if (1) {
+            cof = 1.6;
+            // Small cutout on backside of top
+            beamwid = beamwidth+2*4;
+            beamoff = beamoffset - 4 - width/2;
+            // width scaled to angle
+            translate([beamoff, -(width/2-beamoff)*tan(slopeang), -0.03]) rotate([0,0,180+slopeang])
+                translate([0,-cof-0.01,0]) cube([-beamwid/cos(slopeang)-cof*tan(slopeang),
+                                                cof+0.02, beamthick+0.03]);
+
+            cof2 = 2;
+            sang2 = 180-slopeang;
+            // Small cutout on bit between top and right
+            translate([beamoff, (beamoff)*tan(sang2), -0.05]) rotate([0,0,sang2])
+                translate([0,-0.01,0]) cube([beamwid/cos(sang2)+cof2*tan(sang2),
+                                                cof2+0.02, beamthick+0.03]);
+        }
+        *if (1) {
+            beamwid = beamwidth+2*4;
+            beamoff = beamoffset - 4 - width/2;
+            beamtol = 0.04;
             beamh1 = height * (width/2-beamoff)/(width/2) + beamtol;
             beamh2 = height * (width/2-beamoff-beamwid)/(width/2) + beamtol;
-            beamthick = 15;
 
             translate([0, 0, -beamtol]) {
                 /*
@@ -388,6 +391,37 @@ module slats(corners, num, so, eo, tribot, tritop, height, thick=1.2)
     }
 }
 
+module top_cutout(offx=0, offy=0, stri=5, inof=20, trirad=2, thick=2, cp=60)
+{
+    trislopeang = atan((tritop-tribot) / height);
+    sfac = -1/cos(trislopeang);
+    sa = 360/cp;
+    slopeang = 180-atan(height/(width/2));
+    flang1 = floor(slopeang/sa)*sa;
+    clang = flang1 + sa;
+
+    flang = flang1 - ((flang1 == slopeang) ? sa : 0);
+
+    cornersof = [
+        [-(width/4-trirad/2)+inof, height/2-inof/2, 0],
+        [0, trirad+inof/2, 0],
+        [width/4-trirad/2-inof, height/2-inof/2, 0],
+    ];
+
+    angs_in = [
+        concat([for (an=[180:sa:180+flang]) an],[180+slopeang]),
+        concat([180+slopeang], [for (an=[180+clang:sa:540-clang]) an], [540-slopeang]),
+        concat([180-slopeang], [for (an=[180-flang:sa:180]) an]),
+        ];
+
+    translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
+    translate([offx, offy*sfac, -2])
+    linear_extrude(height=2.1, convexity=8) polygon(concat(
+        [for (sd=[0:2]) each [for (an=angs_in[sd])
+            [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
+    ));
+}
+
 module hollow_cutout(trirad=2, inof=20, cof=3, triinrcut=5, backlip=10, thick=5, dia=200, backlip2=5, backoff=-10, cp=60)
 {
     topnotch = topwid+1;
@@ -460,7 +494,7 @@ module hollow_cutout(trirad=2, inof=20, cof=3, triinrcut=5, backlip=10, thick=5,
             interline_ca(angs_in, cornersof, triinrcut, sd+1, ssteps*2, 0, ssteps-1)
         )];
 
-    difference() {
+    render(convexity=10) difference() {
         polyhedron(convexity = 8,
             points = concat(cornersmid,
                 slopey(tribot+0.04, tritop+0.04, height, cornersmid)),
