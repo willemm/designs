@@ -9,7 +9,7 @@ beamoffset = 360;
 beamthick = 15;
 
 sweep = false; // Sweeping cutout for side with offset inlet
-tophole = true; // Cut a panel from the front for access
+tophole = false; // Cut a panel from the front for access
 
 topcut = [89, 105, 0];
 toprot = atan(height*2/width);
@@ -17,7 +17,7 @@ toprot = atan(height*2/width);
 if(1) {
     rotate([0, 0, -toprot]) intersection() {
         grille();
-        *topsegment_cut();
+        topsegment_cut();
         *hollow_cutout();
         *hollow_channel();
     }
@@ -152,7 +152,7 @@ module grille(cp=60)
     thick = 5.0;
 
     backoff = -10;
-    backlip = 10;
+    backlip = 5;
     backlip2 = 5;
 
     trirad = 2;
@@ -262,8 +262,8 @@ module grille(cp=60)
         slopey(tribot, tritop, height, outerbotarr),
         slopey(tribot, tritop, height, rotarr(innerbotarr)),
         [for (dz = [
-            [dia/2-thick-backlip,          backlip2],
-            [dia/2-thick-backlip+backlip2, 0],
+            [dia/2-thick-backlip, backlip2],
+            [dia/2-thick-backlip, 0],
             [dia/2-thick,                  0],
             [dia/2-thick,                  -backoff],
             [dia/2-thick/2,                -backoff+thick/2],
@@ -290,7 +290,7 @@ module grille(cp=60)
                     []
             ));
 
-            *difference() {
+            difference() {
                 slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
                 if (backoff < 0) {
                     translate([holeoff.x,holeoff.y,-0.1])
@@ -300,6 +300,9 @@ module grille(cp=60)
                         }
                 }
             }
+            // Small ridge because the cut just doesn't quite reach
+            translate([holeoff.x, holeoff.y, 0]) rotate([0, 0, 270-slopeang])
+                translate([-25, dia/2-backlip-7.2, 0]) cube([50, 1.6, 9]);
         }
         if (1) {
             hollow_cutout(trirad, inof, cof, triinr, backlip, thick, dia, backlip2, backoff, cp);
@@ -460,7 +463,7 @@ module top_cutout(offx=0, offy=0, stri=5, inof=20, trirad=2, lipof=10, istop=fal
     }
 }
 
-module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=10, thick=5, dia=200, backlip2=5, backoff=-10, cp=60)
+module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=5, thick=5, dia=200, backlip2=5, backoff=-10, cp=60)
 {
     topnotch = topwid+1;
     sa = 360/cp;
@@ -542,9 +545,11 @@ module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=10, thick=5, di
                 faces = nbtquads(ccnt, 2));
         }
 
+        // Side outie with straight faces
         if (sweep) hollow_sweep(cof);
 
         if (tophole) {
+            // Support slants for top hole
             translate([-topnotch*2, height-10, tritop-60])
                 rotate([45,0,0]) cube([topnotch*4, 30, 60]);
             polyhedron(convexity=8,
@@ -576,6 +581,10 @@ module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=10, thick=5, di
         }
 
         hollow_channel(triinr, inof, trirad, backoff, backlip, backlip2, thick, dia, cof);
+
+        rthick = 1.6;
+        // Ridge to connect air channel to top
+        translate([-rthick/2, height/2-10, -0.2]) cube([rthick, height/2, tritop]);
     }
 }
 
@@ -600,7 +609,7 @@ module hollow_sweep(cof=3)
             [1, 0, 4], [2, 1, 4], [3, 2, 4], [0, 3, 4] ]);
 }
 
-module hollow_channel(triinr=2, inof=20, trirad=2, backoff=-10, backlip=10, backlip2=5, thick=5, dia=200, cof=3, cp=60)
+module hollow_channel(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backlip2=5, thick=5, dia=200, cof=3, cp=60)
 {
     sa = 360/cp;
     ssteps = ceil(cp/2);
