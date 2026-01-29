@@ -9,7 +9,7 @@ beamoffset = 360;
 beamthick = 15;
 
 sweep = false; // Sweeping cutout for side with offset inlet
-tophole = false; // Cut a panel from the front for access
+tophole = true; // Cut a panel from the front for access
 
 topcut = [89, 105, 0];
 toprot = atan(height*2/width);
@@ -17,7 +17,7 @@ toprot = atan(height*2/width);
 if(1) {
     rotate([0, 0, -toprot]) intersection() {
         grille();
-        topsegment_cut();
+        *topsegment_cut();
         *hollow_cutout();
         *hollow_channel();
     }
@@ -290,7 +290,7 @@ module grille(cp=60)
                     []
             ));
 
-            difference() {
+            *difference() {
                 slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
                 if (backoff < 0) {
                     translate([holeoff.x,holeoff.y,-0.1])
@@ -305,7 +305,7 @@ module grille(cp=60)
             hollow_cutout(trirad, inof, cof, triinr, backlip, thick, dia, backlip2, backoff, cp);
         }
         if (tophole) {
-            top_cutout(0, -(height-inof/4), stri, inof, trirad);
+            top_cutout(0, -(height-inof/4), stri, inof, trirad, istop=true);
             top_cutout(-width/4+inof/4, -(height/2), stri, inof, trirad);
             top_cutout(width/4-inof/4, -(height/2), stri, inof, trirad);
         }
@@ -407,7 +407,7 @@ module slats(corners, num, so, eo, tribot, tritop, height, thick=1.2)
     }
 }
 
-module top_cutout(offx=0, offy=0, stri=5, inof=20, trirad=2, thick=2, cp=60)
+module top_cutout(offx=0, offy=0, stri=5, inof=20, trirad=2, lipof=10, istop=false, thick=2, cp=60)
 {
     trislopeang = atan((tritop-tribot) / height);
     sfac = -1/cos(trislopeang);
@@ -423,6 +423,11 @@ module top_cutout(offx=0, offy=0, stri=5, inof=20, trirad=2, thick=2, cp=60)
         [0, trirad+inof/2, 0],
         [width/4-trirad/2-inof, height/2-inof/2, 0],
     ];
+    cornerslip = [
+        [-(width/4-trirad/2)+inof+lipof*tan(slopeang/2), height/2-inof/2-lipof, 0],
+        [0, trirad+inof/2-lipof*2*cos(slopeang), 0],
+        [width/4-trirad/2-inof-lipof*tan(slopeang/2), height/2-inof/2-lipof, 0],
+    ];
 
     angs_in = [
         concat([for (an=[180:sa:180+flang]) an],[180+slopeang]),
@@ -430,12 +435,29 @@ module top_cutout(offx=0, offy=0, stri=5, inof=20, trirad=2, thick=2, cp=60)
         concat([180-slopeang], [for (an=[180-flang:sa:180]) an]),
         ];
 
+    intof = 10.6;
+
+    incut0 = [for (an=angs_in[0])
+        [cornerslip[0].x + sin(an)*stri, (cornerslip[0].y - cos(an)*stri)*sfac] ];
+    incut1 = istop ? [
+            [-intof, sfac*(inof/2-(lipof+intof)*2*cos(slopeang))],
+            [ intof, sfac*(inof/2-(lipof+intof)*2*cos(slopeang))],
+        ] :
+        [for (an=angs_in[1])
+            [cornerslip[1].x + sin(an)*stri, (cornerslip[1].y - cos(an)*stri)*sfac] ];
+    incut2 = [for (an=angs_in[2])
+        [cornerslip[2].x + sin(an)*stri, (cornerslip[2].y - cos(an)*stri)*sfac] ];
+
     translate([0, 0, tribot]) rotate([trislopeang, 0, 0])
-    translate([offx, offy*sfac, -2])
-    linear_extrude(height=2.1, convexity=8) polygon(concat(
-        [for (sd=[0:2]) each [for (an=angs_in[sd])
-            [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
-    ));
+    translate([offx, offy*sfac, 0]) {
+        translate([0, 0, -thick])
+        linear_extrude(height=thick+0.01, convexity=8) polygon(concat(
+            [for (sd=[0:2]) each [for (an=angs_in[sd])
+                [cornersof[sd].x + sin(an)*stri, (cornersof[sd].y - cos(an)*stri)*sfac] ] ]
+        ));
+        translate([0, 0, -thick-thick*0.74])
+        linear_extrude(height=thick+0.02, convexity=8) polygon(concat(incut0, incut1, incut2));
+    }
 }
 
 module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=10, thick=5, dia=200, backlip2=5, backoff=-10, cp=60)
@@ -472,7 +494,7 @@ module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=10, thick=5, di
 
     radof = (trirad*2-1 > cof ? trirad*2-cof : 1);
     tof = 20;
-    tofy1 = tophole ? 5 : 2;
+    tofy1 = tophole ? 4 : 2;
     tofy2 = 15;
 
     sweepcorner = sweep ? 
@@ -512,7 +534,7 @@ module hollow_cutout(trirad=2, inof=20, cof=3, triinr=2, backlip=10, thick=5, di
             points = concat(cornersmid,
                 slopey(tribot-tofy1, tritop-tofy1, height, cornersmid)),
             faces = nbtquads(mcnt, 2));
-        if (tophole) {
+        if (0 /*tophole*/) {
             #polyhedron(convexity = 8,
                 points = concat(
                     slopey(tribot-5, tritop-5, height, cuttop),
