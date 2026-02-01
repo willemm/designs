@@ -22,26 +22,24 @@ toprot = atan(height*2/width);
 
 if(side == 1) {
     rotate([0, 0, -toprot]) intersection() {
-        render(convexity=12) grille();
+        grille();
         topsegment_cut();
     }
 } else if (side == 2) {
     rotate([0, 0, -toprot]) intersection() {
-        render(convexity=12) grille();
+        grille();
         leftsegment_cut();
     }
 } else if (side == 3) {
     rotate([0, 0, -toprot]) intersection() {
-        render(convexity=12) grille();
+        grille();
         rightsegment_cut();
     }
 } else {
 
 if(1) {
     rotate([0, 0, -toprot]) intersection() {
-        difference() {
-            render(convexity=12) grille();
-        }
+        grille();
 
         *topsegment_cut();
         *leftsegment_cut();
@@ -53,6 +51,7 @@ if(1) {
             #hollow_channel_out(ocof=0);
             hollow_channel();
         }
+        *hollow_channel();
     }
     *rotate([0, 0, -toprot]) {
         //sidewid = 3*sin(toprot)*sin(toprot);
@@ -169,7 +168,7 @@ module leftsegment_cut()
             faces = nbtquads(len(corners), 2));
         if (!sweep) {
             intersection() {
-                hollow_channel_out(ocof=0);
+                hollow_channel_out(ocof=-0.01);
                 rotate([0, 0, toprot]) translate(topcut-[0,0,0.1]) cube([249,210,height+1],true);
             }
         }
@@ -206,13 +205,14 @@ module hollow_channel_out(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, b
         )];
 
     cfcs = len(cutbotarr);
+    ibot = circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof+ocof, backlip2, cfcs);
+    itop = slopey(tribot+0.08, tritop+0.08, height, rotarr(cutbotarr));
     //render(convexity=10) union() {
         polyhedron(convexity=8,
             points = concat(
                 circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof+ocof, -0.05, cfcs),
-                circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof+ocof, backlip2, cfcs),
-                slopey(tribot+0.08, tritop+0.08, height, rotarr(cutbotarr))),
-            faces = nbtquads(cfcs, 3));
+                interpolate_steps(ibot, itop, 10)),
+            faces = nbtquads(cfcs, 12));
         polyhedron(convexity=8,
             points = concat(
                 circlepoints(holeoff.x, holeoff.y, dia/2+ocof, -0.02, cfcs),
@@ -383,25 +383,17 @@ module grille(cp=60)
             ],
             interline_ca(angs, corners, trirad, 3, ssteps*2, 0, ssteps-1)
         );
-    spoints = concat(outerbotarr, 
-        slopey(tribot, tritop, height, outerbotarr),
-        slopey(tribot, tritop, height, rotarr(innerbotarr)),
-        [for (dz = [
-            [dia/2-thick-backlip, backlip2],
-            [dia/2-thick-backlip, 0],
-            //[dia/2-thick,                  0],
-            //[dia/2-thick,                  -backoff],
-            //[dia/2-thick/2,                -backoff+thick/2],
-            //[dia/2,                        -backoff],
-            //[dia/2,                        0],
-            ]) each circlepoints(holeoff.x, holeoff.y, dz[0], dz[1], sidecnt)]
-    );
+    itop = slopey(tribot, tritop, height, rotarr(innerbotarr));
+    ibot = circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip, backlip2, sidecnt);
 
     difference() {
         union() {
             polyhedron(convexity=8,
-                points=spoints,
-                faces=dquads(sidecnt, 5));
+                points = concat(outerbotarr, 
+                    slopey(tribot, tritop, height, outerbotarr),
+                    interpolate_steps(itop, ibot, 10),
+                    circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip, 0, sidecnt)),
+                faces=dquads(sidecnt, 14));
 
             slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
 
@@ -806,13 +798,14 @@ module hollow_channel(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backl
         )];
 
     cfcs = len(cutbotarr);
+    itop = circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, backlip2, cfcs);
+    ibot = slopey(tribot+0.08, tritop+0.08, height, rotarr(cutbotarr));
     //render(convexity=10) union() {
         polyhedron(convexity=8,
             points = concat(
                 circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, -0.05, cfcs),
-                circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, backlip2, cfcs),
-                slopey(tribot+0.08, tritop+0.08, height, rotarr(cutbotarr))),
-            faces = nbtquads(cfcs, 3));
+                interpolate_steps(itop, ibot, 10)),
+            faces = nbtquads(cfcs, 12));
         polyhedron(convexity=8,
             points = concat(
                 circlepoints(holeoff.x, holeoff.y, dia/2-thick+0.01, -0.02, cfcs),
@@ -872,6 +865,23 @@ function interline(pt1, pt2, ssteps, from, to) =
 
 // change z coordinate as function of y coordinate
 function slopey(from, to, my, pts) = [for (pt=pts) [pt.x, pt.y, pt.z + from + (to-from)*(pt.y/my)]];
+
+// Multiple interpolationsteps
+// Top array, bottom array, steps
+function interpolate_steps(bot, top, st) =
+    [for (pos=[0:1/st:1]) each interpolate(bot, top, pos)];
+
+// Interpolate between two arrays of points
+// Top array, bottom array, position (0-1)
+function interpolate(bot, top, pos) =
+    [for (i=[0:len(top)-1]) inter(top[i], bot[i], pos)];
+
+// Interpolate between p1 and p2
+function inter(p1, p2, pos) =
+    [ p1.x * pos + p2.x * (1-pos)
+    , p1.y * pos + p2.y * (1-pos)
+    , p1.z * pos + p2.z * (1-pos)
+    ];
 
 // Faces of side of layers
 // start offset, number, layer offset, startskip, endskip
