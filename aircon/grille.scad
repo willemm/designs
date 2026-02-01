@@ -22,24 +22,27 @@ toprot = atan(height*2/width);
 
 if(side == 1) {
     rotate([0, 0, -toprot]) intersection() {
-        grille();
+        render(convexity=12) grille();
         topsegment_cut();
     }
 } else if (side == 2) {
     rotate([0, 0, -toprot]) intersection() {
-        grille();
+        render(convexity=12) grille();
         leftsegment_cut();
     }
 } else if (side == 3) {
     rotate([0, 0, -toprot]) intersection() {
-        grille();
+        render(convexity=12) grille();
         rightsegment_cut();
     }
 } else {
 
 if(1) {
     rotate([0, 0, -toprot]) intersection() {
-        grille();
+        difference() {
+            render(convexity=12) grille();
+        }
+
         *topsegment_cut();
         *leftsegment_cut();
         *rightsegment_cut();
@@ -419,6 +422,8 @@ module grille(cp=60)
         hollow_cutout_top(trirad, inof, cof, triinr, backlip, thick, dia, backlip2, backoff, cp);
         hollow_cutout_right(cof, cp);
         hollow_cutout_left(trirad, inof, cof, triinr, backlip, thick, dia, backlip2, backoff, cp);
+
+        holes();
 
         if (tophole) {
             top_cutout(0, -(height-inof/4), stri, inof, trirad, istop=true);
@@ -815,6 +820,40 @@ module hollow_channel(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backl
                 circlepoints(holeoff.x, holeoff.y, dia/2-thick-18, -backoff+10, cfcs)),
             faces = nbtquads(cfcs, 3));
     //}
+}
+
+module holes(cof=1.6)
+{
+    connecting_hole(toprot, 25, 15, cof*2);
+    connecting_hole(toprot, 195, 15, cof*2);
+    connecting_hole(toprot, 195, 80, cof*2);
+
+    connecting_hole(180-toprot, 12, 12, cof*2);
+    connecting_hole(180-toprot, 195, 25, cof*2);
+    connecting_hole(180-toprot, 195, 80, cof*2);
+
+    mounting_hole(toprot, 40, 12, cof);
+    mounting_hole(toprot, 330, 12, cof);
+
+    mounting_hole(180-toprot, 40, 12, cof);
+    mounting_hole(180-toprot, 330, 12, cof);
+
+    translate([0, height-57, -0.01]) rotate([45, 0, 0]) cube([lipwid+0.5, 15, 15], true);
+}
+
+module mounting_hole(rot, x, z, l, d=4)
+{
+    fx = rot>90 ? x : -x;
+    rr = rot<90 ? rot : rot+180;
+
+    translate([0, height, 0]) rotate([0, 0, rr])
+    translate([fx, 0.05, z]) rotate([90,0,0]) cylinder(l+0.1, d/2, d/2, $fn=30);
+}
+
+module connecting_hole(rot, x, z, l, d=4)
+{
+    rotate([0, 0, rot])
+    translate([x, (l+0.1)/2, z]) rotate([90,0,0]) cylinder(l+0.1, d/2, d/2, $fn=30);
 }
 
 // Array of points that form a line between two points with angle offsets from an array
