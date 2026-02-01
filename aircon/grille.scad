@@ -1,4 +1,4 @@
-side = 3;
+side = 0;
 
 width = 583;
 height = 300;
@@ -8,6 +8,11 @@ tribot = 25;
 beamwidth = 40;
 beamoffset = 360;
 beamthick = 15;
+
+holeoff = [-37, 111];
+
+lipwid = 5;
+lipthick = 2;
 
 sweep = false; // Sweeping cutout for side with offset inlet
 tophole = false; // Cut a panel from the front for access
@@ -176,8 +181,6 @@ module hollow_channel_out(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, b
     flang1 = floor(slopeang/sa)*sa;
     clang = flang1 + sa;
 
-    holeoff = [-37, dia/2+11, 0];
-
     holeinrcut = triinr + cof + ocof;
 
     flang = flang1 - ((flang1 == slopeang) ? sa : 0);
@@ -284,8 +287,6 @@ module grille(cp=60)
 
     trislopeang = atan((tritop-tribot) / height);
 
-    holeoff = [-37, dia/2+11, 0];
-
     ssteps = ceil(cp/2);
 
     sa = 360/cp;
@@ -346,7 +347,8 @@ module grille(cp=60)
     */
     a1len = len(angs[1]);
     a1off1 = [-topnotch*cos(angs[1][0]),-topnotch*sin(angs[1][0]),0];
-    a1off2 = [topnotch*cos(angs[2][0]),topnotch*sin(angs[2][0]),0];
+    a1off2 = [ topnotch*cos(angs[2][0]), topnotch*sin(angs[2][0]),0];
+    //a1off3 = a1off1+a1off2;
     outerbotarr = concat(
             interline_ca(angs, corners, trirad, 0, ssteps*2, ssteps, ssteps*2-1),
             [for (an=angs[0])
@@ -364,7 +366,8 @@ module grille(cp=60)
             [for (ani=[1:2:a1len-1])
                 corners[1]+a1off1+[sin(angs[1][ani])*trirad, -cos(angs[1][ani])*trirad, 0]
             ],
-            [corners[1]+a1off1+a1off2+[0,trirad,0]],
+            //[corners[1]+a1off3+[0,trirad,0]],
+            [[0, height+topnotch/cos(angs[1][0]), 0]],
             [for (ani=[1:2:a1len-1])
                 corners[1]+a1off2+[sin(angs[1][ani])*trirad, -cos(angs[1][ani])*trirad, 0]
             ],
@@ -428,17 +431,17 @@ module grille(cp=60)
             beamoff = beamoffset - 4 - width/2;
             // width scaled to angle
             translate([beamoff, -(width/2-beamoff)*tan(slopeang), -0.1]) rotate([0,0,180+slopeang])
-                translate([0,-cof-0.1,0]) cube([-beamwid/cos(slopeang)-cof*tan(slopeang),
-                                                cof+0.2, beamthick+0.1]);
+                translate([0,-lipwid-0.1,0]) cube([-beamwid/cos(slopeang)-lipwid*tan(slopeang),
+                                                lipwid+0.2, beamthick+0.1]);
 
             sang2 = 180-slopeang;
             // Small cutout on bit between top and right
             // Double width
             translate([beamoff, (beamoff)*tan(sang2), -0.1]) rotate([0,0,sang2])
-                translate([-cof*tan(sang2),-cof-0.1,0]) cube([beamwid/cos(sang2)+cof*2*tan(sang2),
-                                                cof*2+0.2, beamthick+0.1]);
+                translate([-lipwid*tan(sang2),-lipwid-0.1,0]) cube([beamwid/cos(sang2)+lipwid*2*tan(sang2),
+                                                lipwid*2+0.2, beamthick+0.1]);
             // Small cutout on bottom
-            translate([beamoff, -0.1, -0.1]) cube([beamwid, cof+0.2, beamthick+0.1]);
+            translate([beamoff, -0.1, -0.1]) cube([beamwid, lipwid+0.2, beamthick+0.1]);
         }
         *#if (1) {
             beamwid = beamwidth+2*4;
@@ -597,7 +600,7 @@ module hollow_cutout_top(trirad=2, inof=20, cof=1.6, triinr=2, backlip=5, thick=
             [ radof*cos_sl, -radof*sin_sl, 0],
         [topnotch*cos_sl, height-(topnotch)*sin_sl-cof/cos_sl, 0] +
             [-radof*cos_sl, -radof*sin_sl, 0],
-        [0, height-trirad/2-2*(topnotch+cof)*sin_sl, 0],
+        [0, height-(topnotch+cof)/cos_sl, 0],
         [-topnotch*cos_sl, height-topnotch*sin_sl-cof/cos_sl, 0] +
             [ radof*cos_sl, -radof*sin_sl, 0],
         [-topnotch*cos_sl, height-topnotch*sin_sl-cof/cos_sl, 0] +
@@ -654,6 +657,23 @@ module hollow_cutout_top(trirad=2, inof=20, cof=1.6, triinr=2, backlip=5, thick=
         rthick = 1.6;
         // Ridge to connect air channel to top
         translate([-rthick/2, height/2-10, -0.2]) cube([rthick, height/2, tritop]);
+
+        liplen = (height/2)/sin_sl;
+        liptop = topnotch+lipwid+cof*sin(toprot)-0.8; // Fudge
+        // Bottom lips for bed adhesion and stiffness
+        translate([0, 0, -0.09]) rotate([0, 0, 180-toprot]) 
+            translate([0,-lipwid,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([0, 0, -0.09]) rotate([0, 0, toprot]) 
+            translate([0,0,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([0, height, -0.09]) rotate([0, 0, -toprot]) 
+            translate([0,-lipwid,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([0, height, -0.09]) rotate([0, 0, 180+toprot]) 
+            translate([0,0,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([0, height, -0.09]) rotate([0, 0, -toprot]) 
+            translate([0,-topnotch-lipwid,0]) cube([liptop, lipwid, lipthick+0.09]);
+        translate([0, height, -0.09]) rotate([0, 0, 180+toprot]) 
+            translate([0,topnotch,0]) cube([liptop, lipwid, lipthick+0.09]);
+        translate([-lipwid/2, height/2-10, -0.09]) cube([lipwid, height/2, lipthick+0.09]);
     }
 }
 
@@ -680,6 +700,18 @@ module hollow_cutout_left(trirad=2, inof=20, cof=1.6, triinr=2, backlip=5, thick
                 slopey(tribot-tofy1, tritop-tofy1, height, corners)),
             faces = nbtquads(len(corners), 2));
         hollow_channel_out(triinr, inof, trirad, backoff, backlip, backlip2, thick, dia, cof);
+
+        liplen = (height/2)/sin_sl;
+        // Bottom lips for bed adhesion and stiffness
+        translate([0, 0, -0.09]) rotate([0, 0, 180-toprot]) 
+            translate([0,0,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([-width/2, 0, -0.09]) rotate([0, 0, toprot]) 
+            translate([0,-lipwid,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([0, 0, -0.09]) rotate([0, 0, 0]) 
+            translate([-width/2,0,0]) cube([width/2, lipwid, lipthick+0.09]);
+
+        translate([holeoff.x, holeoff.y, -0.09])
+            cylinder(lipthick+0.09, dia/2+lipwid, dia/2+lipwid, $fn=cp*3);
     }
 }
 
@@ -698,6 +730,7 @@ module hollow_cutout_right(cof=1.6, cp=60)
         [cof/tan(slopeang/2), cof, 0],
     ];
 
+    liplen = (height/2)/sin_sl;
     render(convexity=10)
     difference() {
         polyhedron(convexity = 8,
@@ -705,6 +738,15 @@ module hollow_cutout_right(cof=1.6, cp=60)
                 slopey(-0.02, -0.02, height, corners),
                 slopey(tribot-tofy1, tritop-tofy1, height, corners)),
             faces = nbtquads(len(corners), 2));
+
+        liplen = (height/2)/sin_sl;
+        // Bottom lips for bed adhesion and stiffness
+        translate([0, 0, -0.09]) rotate([0, 0, toprot]) 
+            translate([0,-lipwid,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([width/2, 0, -0.09]) rotate([0, 0, 180-toprot]) 
+            translate([0,0,0]) cube([liplen, lipwid, lipthick+0.09]);
+        translate([0, 0, -0.09]) rotate([0, 0, 0]) 
+            translate([0,0,0]) cube([width/2, lipwid, lipthick+0.09]);
     }
 }
 
@@ -736,8 +778,6 @@ module hollow_channel(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backl
     slopeang = 180-atan(height/(width/2));
     flang1 = floor(slopeang/sa)*sa;
     clang = flang1 + sa;
-
-    holeoff = [-37, dia/2+11, 0];
 
     holeinrcut = triinr + cof;
 
