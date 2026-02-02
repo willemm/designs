@@ -38,6 +38,12 @@ if(side == 1) {
 } else {
 
 if(1) {
+    color("#333") rotate([0,0,-toprot]) screws();
+
+    color("#c55") import("grille-top.stl", convexity=10);
+    color("#5c55") import("grille-left.stl", convexity=10);
+    color("#55c5") import("grille-right.stl", convexity=10);
+} else if(1) {
     rotate([0, 0, -toprot]) intersection() {
         grille();
 
@@ -168,14 +174,14 @@ module leftsegment_cut()
             faces = nbtquads(len(corners), 2));
         if (!sweep) {
             intersection() {
-                hollow_channel_out(ocof=-0.01);
+                hollow_channel_out(ocof=0.2);
                 rotate([0, 0, toprot]) translate(topcut-[0,0,0.1]) cube([249,210,height+1],true);
             }
         }
     }
 }
 
-module hollow_channel_out(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backlip2=5, thick=5, dia=200, cof=1.6, ocof=1.6, cp=60)
+module hollow_channel_out(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backlip2=5, thick=5, dia=200, cof=1.6, ocof=1.8, cp=60)
 {
     sa = 360/cp;
     ssteps = ceil(cp/2);
@@ -286,6 +292,8 @@ module grille(cp=60)
     stri = 5;
     cof = 1.6;
 
+    bev = 1;
+
     topnotch = topwid+1;
 
     trislopeang = atan((tritop-tribot) / height);
@@ -324,13 +332,6 @@ module grille(cp=60)
     //cornerssl = [for (sd=[0:2]) corners[sd]-[(inof-triinr-0.1)*sin(cangs[sd]), -(inof-triinr-0.1)*cos(cangs[sd]), 0]];
     //*#polyhedron(points=slopey(tribot, tritop, height, cornerssl), faces=[[0,1,2]]);
 
-    /*
-    translate([holeoff.x,holeoff.y,-60]) linear_extrude(height=60, convexity=6) difference() {
-        circle(dia/2, $fn=sidecnt);
-        circle(dia/2-thick, $fn=sidecnt);
-    }
-    */
-
     innerbotarr = [for (sd=[0:2]) each concat(
             interline_ca(angs_in, cornersof, triinr, sd, ssteps*2, ssteps, ssteps*2-1),
             [for (an=angs_in[sd])
@@ -339,15 +340,16 @@ module grille(cp=60)
             interline_ca(angs_in, cornersof, triinr, sd+1, ssteps*2, 0, ssteps-1)
         )];
 
-    /*
-    outerbotarr = [for (sd=[0:2]) each concat(
-            interline_ca(angs, corners, trirad, sd, ssteps*2, ssteps, ssteps*2-1),
-            [for (an=angs[sd])
-                corners[sd]+[sin(an)*trirad, -cos(an)*trirad, 0]
+    bevirad = triinr+bev;
+    innerbotarr_bev = [for (sd=[0:2]) each concat(
+            interline_ca(angs_in, cornersof, bevirad, sd, ssteps*2, ssteps, ssteps*2-1),
+            [for (an=angs_in[sd])
+                cornersof[sd]+[sin(an)*bevirad, -cos(an)*bevirad, 0]
             ],
-            interline_ca(angs, corners, trirad, sd+1, ssteps*2, 0, ssteps-1)
+            interline_ca(angs_in, cornersof, bevirad, sd+1, ssteps*2, 0, ssteps-1)
         )];
-    */
+
+
     a1len = len(angs[1]);
     a1off1 = [-topnotch*cos(angs[1][0]),-topnotch*sin(angs[1][0]),0];
     a1off2 = [ topnotch*cos(angs[2][0]), topnotch*sin(angs[2][0]),0];
@@ -383,17 +385,45 @@ module grille(cp=60)
             ],
             interline_ca(angs, corners, trirad, 3, ssteps*2, 0, ssteps-1)
         );
-    itop = slopey(tribot, tritop, height, rotarr(innerbotarr));
+
+    bevrad = trirad-bev;
+    outerbotarr_bev = concat(
+            interline_ca(angs, corners, bevrad, 0, ssteps*2, ssteps, ssteps*2-1),
+            [for (an=angs[0])
+                corners[0]+[sin(an)*bevrad, -cos(an)*bevrad, 0]
+            ],
+            interline_ca(angs,
+                [corners[0],corners[1]+a1off1,corners[2]],
+                bevrad, 1, ssteps*2, 0, ssteps*2-1),
+            [for (ani=[1:2:a1len-1])
+                corners[1]+a1off1+[sin(angs[1][ani])*bevrad, -cos(angs[1][ani])*bevrad, 0]
+            ],
+            [[0, height+(topnotch+bev)/cos(angs[1][0]), 0]],
+            [for (ani=[1:2:a1len-1])
+                corners[1]+a1off2+[sin(angs[1][ani])*bevrad, -cos(angs[1][ani])*bevrad, 0]
+            ],
+            interline_ca(angs,
+                [corners[0],corners[1]+a1off2,corners[2]],
+                bevrad, 2, ssteps*2, 0, ssteps*2-1),
+            [for (an=angs[2])
+                corners[2]+[sin(an)*bevrad, -cos(an)*bevrad, 0]
+            ],
+            interline_ca(angs, corners, bevrad, 3, ssteps*2, 0, ssteps-1)
+        );
+
+    itop = slopey(tribot-bev, tritop-bev, height, rotarr(innerbotarr));
     ibot = circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip, backlip2, sidecnt);
 
     difference() {
         union() {
             polyhedron(convexity=8,
                 points = concat(outerbotarr, 
-                    slopey(tribot, tritop, height, outerbotarr),
+                    slopey(tribot-bev, tritop-bev, height, outerbotarr),
+                    slopey(tribot, tritop, height, outerbotarr_bev),
+                    slopey(tribot, tritop, height, rotarr(innerbotarr_bev)),
                     interpolate_steps(itop, ibot, 10),
                     circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip, 0, sidecnt)),
-                faces=dquads(sidecnt, 14));
+                faces=dquads(sidecnt, 16));
 
             slats(corners, 10, 0.3, 11.0, tribot, tritop, height);
 
@@ -440,7 +470,7 @@ module grille(cp=60)
             // Small cutout on bottom
             translate([beamoff, -0.1, -0.1]) cube([beamwid, lipwid+0.2, beamthick+0.1]);
         }
-        *#if (1) {
+        *#if (0) {
             beamwid = beamwidth+2*4;
             beamoff = beamoffset - 4 - width/2;
             beamtol = 0.04;
@@ -798,13 +828,13 @@ module hollow_channel(triinr=2, inof=20, trirad=2, backoff=-10, backlip=5, backl
         )];
 
     cfcs = len(cutbotarr);
-    itop = circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, backlip2, cfcs);
-    ibot = slopey(tribot+0.08, tritop+0.08, height, rotarr(cutbotarr));
+    ibot = circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, backlip2, cfcs);
+    itop = slopey(tribot+0.08, tritop+0.08, height, rotarr(cutbotarr));
     //render(convexity=10) union() {
         polyhedron(convexity=8,
             points = concat(
                 circlepoints(holeoff.x, holeoff.y, dia/2-thick-backlip+cof, -0.05, cfcs),
-                interpolate_steps(itop, ibot, 10)),
+                interpolate_steps(ibot, itop, 10)),
             faces = nbtquads(cfcs, 12));
         polyhedron(convexity=8,
             points = concat(
@@ -832,6 +862,23 @@ module holes(cof=1.6)
     mounting_hole(180-toprot, 330, 12, cof);
 
     translate([0, height-57, -0.01]) rotate([45, 0, 0]) cube([lipwid+0.5, 15, 15], true);
+}
+
+module screws(cl=15, sl=30)
+{
+    connecting_hole(toprot, 25, 15, cl);
+    connecting_hole(toprot, 195, 15, cl);
+    connecting_hole(toprot, 195, 80, cl);
+
+    connecting_hole(180-toprot, 12, 12, cl);
+    connecting_hole(180-toprot, 195, 25, cl);
+    connecting_hole(180-toprot, 195, 80, cl);
+
+    mounting_hole(toprot, 40, 12, sl);
+    mounting_hole(toprot, 330, 12, sl);
+
+    mounting_hole(180-toprot, 40, 12, sl);
+    mounting_hole(180-toprot, 330, 12, sl);
 }
 
 module mounting_hole(rot, x, z, l, d=4)
