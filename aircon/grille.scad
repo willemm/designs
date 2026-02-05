@@ -17,8 +17,13 @@ lipthick = 2;
 sweep = false; // Sweeping cutout for side with offset inlet
 tophole = false; // Cut a panel from the front for access
 
+supportstep = 35; // Supports for top face every 4cm
+supportwid = 1.2;
+
 topcut = [89, 105, 0];
 toprot = atan(height*2/width);
+
+//echo(atan((tritop-tribot) / height));
 
 if(side == 1) {
     rotate([0, 0, -toprot]) intersection() {
@@ -44,15 +49,17 @@ if(1) {
     color("#5c55") import("grille-left.stl", convexity=10);
     color("#55c5") import("grille-right.stl", convexity=10);
 } else if(1) {
-    rotate([0, 0, -toprot]) intersection() {
-        grille();
+    rotate([0, 0, -toprot]) {
+        intersection() {
+            *render(convexity=10) grille();
 
-        *topsegment_cut();
-        *leftsegment_cut();
-        *rightsegment_cut();
-        *hollow_cutout_top();
-        *hollow_cutout_right();
-        *hollow_cutout_left();
+            *topsegment_cut();
+            *leftsegment_cut();
+            *rightsegment_cut();
+        }
+        hollow_cutout_top();
+        hollow_cutout_right();
+        hollow_cutout_left();
         *difference() {
             #hollow_channel_out(ocof=0);
             hollow_channel();
@@ -701,6 +708,8 @@ module hollow_cutout_top(trirad=2, inof=20, cof=1.6, triinr=2, backlip=5, thick=
         translate([0, height, -0.09]) rotate([0, 0, 180+toprot]) 
             translate([0,topnotch,0]) cube([liptop, lipwid, lipthick+0.09]);
         translate([-lipwid/2, height/2-10, -0.09]) cube([lipwid, height/2, lipthick+0.09]);
+
+        top_support();
     }
 }
 
@@ -739,6 +748,8 @@ module hollow_cutout_left(trirad=2, inof=20, cof=1.6, triinr=2, backlip=5, thick
 
         translate([holeoff.x, holeoff.y, -0.09])
             cylinder(lipthick+0.09, dia/2+lipwid, dia/2+lipwid, $fn=cp*3);
+
+        lr_support(-width/4);
     }
 }
 
@@ -774,6 +785,45 @@ module hollow_cutout_right(cof=1.6, cp=60)
             translate([0,0,0]) cube([liplen, lipwid, lipthick+0.09]);
         translate([0, 0, -0.09]) rotate([0, 0, 0]) 
             translate([0,0,0]) cube([width/2, lipwid, lipthick+0.09]);
+        lr_support(width/4);
+    }
+}
+
+module top_support()
+{
+    ch = height/2;
+    ct = tritop;
+    fx = height*2/width;
+    tx = fx*(tritop-tribot)/height;
+    for (x=[supportstep:supportstep:width/4-10]) {
+        chs = ch-x*fx+10;
+        translate([x+supportwid/2, height-x*fx, ct-x*tx-3]) rotate([0,-90,0])
+        linear_extrude(height=supportwid) polygon([
+            [0.01, 0.01], [-chs-0.01, -chs-0.01], [0.01, -chs-0.01]
+        ]);
+        translate([-x+supportwid/2, height-x*fx, ct-x*tx-3]) rotate([0,-90,0])
+        linear_extrude(height=supportwid) polygon([
+            [0.01, 0.01], [-chs-0.01, -chs-0.01], [0.01, -chs-0.01]
+        ]);
+    }
+}
+
+module lr_support(cx)
+{
+    ch = height/2;
+    ct = (tritop+tribot)/2;
+    fx = height*2/width;
+    tx = fx*(tritop-tribot)/height;
+    for (x=[supportstep/2:supportstep:width/4-10]) {
+        chs = ch-x*fx;
+        translate([cx+x+supportwid/2, ch-x*fx, ct-x*tx-3]) rotate([0,-90,0])
+        linear_extrude(height=supportwid) polygon([
+            [0.01, 0.01], [-chs-0.01, -chs-0.01], [0.01, -chs-0.01]
+        ]);
+        translate([cx-x+supportwid/2, ch-x*fx, ct-x*tx-3]) rotate([0,-90,0])
+        linear_extrude(height=supportwid) polygon([
+            [0.01, 0.01], [-chs-0.01, -chs-0.01], [0.01, -chs-0.01]
+        ]);
     }
 }
 
