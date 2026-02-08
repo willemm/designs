@@ -556,8 +556,8 @@ module cutout_support(off, len, wid, hei, cof, slt=false, dbl=false, cut=1, tol=
             }
             if (slt) {
                 polygon([
-                    [tol, wid-tol], [wid+voff-hei, wid-tol], [voff-hei, cof+tol],
-                    [voff-hei-cut, cof+tol], [voff+wid-hei, wid+cut], [tol,wid+cut]
+                    [wid+voff-hei, wid-tol], [voff-hei, cof+tol],
+                    [voff-hei-cut, cof+tol], [voff+wid-hei, wid+cut],
                 ]);
             }
         }
