@@ -42,7 +42,7 @@ if(side == 1) {
     }
 } else {
 
-if(0) {
+if(1) {
     color("#333") rotate([0,0,-toprot]) screws();
 
     color("#c55") import("grille-top.stl", convexity=10);
@@ -534,7 +534,7 @@ module cutout_supports(cof=1.6)
         cutout_support(-lipwid*tan(sang2), mbeamwid, lipwid, beamthick, cof, dbl=true);
 }
 
-module cutout_support(off, len, wid, hei, cof, slt=false, dbl=false, cut=1, tol=0.01, voff=0.2)
+module cutout_support(off, len, wid, hei, cof, slt=false, dbl=false, cut=1, tol=0.01, voff=0.5)
 {
     cwid = dbl ? wid*2 : wid;
     ccof = dbl ? -wid-tol : -tol;
