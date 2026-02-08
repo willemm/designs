@@ -17,7 +17,7 @@ lipthick = 2;
 sweep = false; // Sweeping cutout for side with offset inlet
 tophole = false; // Cut a panel from the front for access
 
-supportstep = 35; // Supports for top face every 4cm
+supportstep = 27.3; // Supports for top face every 2.75cm
 supportwid = 1.2;
 
 topcut = [89, 105, 0];
@@ -42,7 +42,7 @@ if(side == 1) {
     }
 } else {
 
-if(1) {
+if(0) {
     color("#333") rotate([0,0,-toprot]) screws();
 
     color("#c55") import("grille-top.stl", convexity=10);
@@ -51,15 +51,16 @@ if(1) {
 } else if(1) {
     rotate([0, 0, -toprot]) {
         intersection() {
-            *render(convexity=10) grille();
+            render(convexity=10) grille();
 
             *topsegment_cut();
             *leftsegment_cut();
             *rightsegment_cut();
         }
-        hollow_cutout_top();
-        hollow_cutout_right();
-        hollow_cutout_left();
+        *cutout_supports();
+        *hollow_cutout_top();
+        *hollow_cutout_right();
+        *hollow_cutout_left();
         *difference() {
             #hollow_channel_out(ocof=0);
             hollow_channel();
@@ -459,7 +460,8 @@ module grille(cp=60)
             top_cutout(-width/4+inof/4, -(height/2), stri, inof, trirad);
             top_cutout(width/4-inof/4, -(height/2), stri, inof, trirad);
         }
-        if (1) {
+        cutout_supports();
+        if (0) {
             // Small cutout on backside of top
             beamwid = beamwidth+2*4;
             beamoff = beamoffset - 4 - width/2;
@@ -505,6 +507,58 @@ module grille(cp=60)
                         nquads(0, 4, 4)
                     ));
 
+            }
+        }
+    }
+}
+
+module cutout_supports(cof=1.6)
+{
+    slopeang = 180-atan(height/(width/2));
+    beamwid = beamwidth+2*4;
+    beamoff = beamoffset - 4 - width/2;
+    // Small cutout on bottom
+    cutout_support(beamoff, beamwid, lipwid+0.02, beamthick+0.01, 1.6+0.02, slt=true);
+
+    // width scaled to angle
+    tbeamwid = -beamwid/cos(slopeang)-lipwid*tan(slopeang);
+
+    // Small cutout on backside of top
+    translate([beamoff, -(width/2-beamoff)*tan(slopeang), 0])
+        rotate([0,0,slopeang]) cutout_support(-tbeamwid, tbeamwid, lipwid, beamthick, cof);
+
+    sang2 = 180-slopeang;
+    mbeamwid = beamwid/cos(sang2)+lipwid*2*tan(sang2);
+    // Small cutout on bit between top and right, double width
+    translate([beamoff, (beamoff)*tan(sang2), 0]) rotate([0,0,sang2])
+        cutout_support(-lipwid*tan(sang2), mbeamwid, lipwid, beamthick, cof, dbl=true);
+}
+
+module cutout_support(off, len, wid, hei, cof, slt=false, dbl=false, cut=1, tol=0.01, voff=0.2)
+{
+    cwid = dbl ? wid*2 : wid;
+    ccof = dbl ? -wid-tol : -tol;
+    translate([off, 0, 0]) {
+        translate([0,ccof,-tol]) cube([cut, cwid+tol*2, hei+tol]);
+        translate([len-cut,ccof,-tol]) cube([cut, cwid+tol*2, hei+tol]);
+        rotate([0,90,0]) translate([0,0,tol]) linear_extrude(convexity=8, height=len-tol*2) {
+            if (dbl) {
+                polygon([
+                    [-hei, cof+tol], [voff-hei, cof+tol], [tol-hei, cof/2],
+                    [voff-hei, 0], [tol-hei, -cof/2],
+                    [voff-hei, -cof-tol], [-hei, -cof-tol]
+                ]);
+            } else {
+                polygon([
+                    [-hei, cof+tol], [voff-hei, cof+tol], [tol-hei, cof/2],
+                    [voff-hei, -tol], [-hei,-tol]
+                ]);
+            }
+            if (slt) {
+                polygon([
+                    [tol, wid-tol], [wid+voff-hei, wid-tol], [voff-hei, cof+tol],
+                    [voff-hei-cut, cof+tol], [voff+wid-hei, wid+cut], [tol,wid+cut]
+                ]);
             }
         }
     }
