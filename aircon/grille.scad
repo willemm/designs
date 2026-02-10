@@ -43,11 +43,16 @@ if(side == 1) {
 } else {
 
 if(1) {
+    *pipe();
+    pin();
+} else if(1) {
     color("#333") rotate([0,0,-toprot]) screws();
+    rotate([0,0,-toprot]) pipe();
 
-    color("#c55") import("grille-top.stl", convexity=10);
+    color("#c55c") import("grille-top.stl", convexity=10);
     color("#5c55") import("grille-left.stl", convexity=10);
     color("#55c5") import("grille-right.stl", convexity=10);
+
 } else if(1) {
     rotate([0, 0, -toprot]) {
         intersection() {
@@ -114,6 +119,28 @@ ang = atan((250-100)/300);
 color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true);
 */
 }
+}
+
+module pin()
+{
+    cylinder(5, 2, 2, $fn=60);
+    translate([0,0,5]) cylinder(1, 2, 1, $fn=60);
+    cylinder(0.8, 4, 4, $fn=120);
+}
+
+module pipe(dia=200, len=100, off=10, lip=10, blip=-2, thick=5, pth=1.6, tol=0.3)
+{
+    inoff = thick-pth-tol;
+    in = thick-tol;
+    translate([holeoff.x, holeoff.y, 0]) {
+        rotate_extrude(convexity=5, $fn=240) polygon([
+            [dia/2-inoff, -len+pth],
+            [dia/2-blip, -len+pth], [dia/2-blip, -len],
+            [dia/2-in, -len], [dia/2-in, -lip*2],
+            [dia/2-lip, 0], [dia/2-in, 0], [dia/2-in, off],
+            [dia/2-inoff, off]
+        ]);
+    }
 }
 
 module topsegment_cut()
