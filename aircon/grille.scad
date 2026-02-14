@@ -71,7 +71,7 @@ if(0) {
         *hole_repair();
     }
 
-    color("#c55c") import("grille-top.stl", convexity=10);
+    color("#c555") import("grille-top.stl", convexity=10);
     color("#5c55") import("grille-left.stl", convexity=10);
     color("#55c5") import("grille-right.stl", convexity=10);
 
@@ -145,22 +145,43 @@ color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true)
 
 module mount_rt()
 {
-    mounting_block(sizey=25, botlip=25, depth=30, lbl="RT", mir=1);
+    difference() {
+        mounting_block(sizey=25, botlip=25, depth=30, lbl="RT", mir=1);
+        mounting_screw(30, 30, 11);
+        mounting_screw(30, 6, -15, 3.9);
+        translate([-10.3,4.9,10.2]) cube([0.3,8,10]);
+    }
 }
 
 module mount_rb()
 {
-    mounting_block(sizey=25, botlip=25, depth=12, lbl="RB");
+    difference() {
+        mounting_block(sizey=25, botlip=25, depth=12, lbl="RB");
+        mounting_screw(12, 10, 11);
+        mounting_screw(12, 34, -15, 3.9);
+        translate([-30,4.9,10.2]) cube([0.3,8,10]);
+    }
 }
 
 module mount_lt()
 {
-    mounting_block(sizey=35, depth=16, lbl="LT");
+    // TODO
+    difference() {
+        mounting_block(sizey=50, depth=16, lbl="LT");
+        mounting_screw(16, 10, 40);
+        mounting_screw(16, 26, 15, 5, 3);
+        translate([-30,4.9,10.2]) cube([0.3,8,10]);
+    }
 }
 
 module mount_lb()
 {
-    mounting_block(sizey=35, depth=13, lbl="LB", mir=1);
+    difference() {
+        mounting_block(sizey=50, depth=13, lbl="LB", mir=1);
+        mounting_screw(13, 30, 40);
+        mounting_screw(13, 14, 20, 5, 3);
+        translate([-10.3,4.9,10.2]) cube([0.3,8,10]);
+    }
 }
 
 module mounting_block(depth=30, sizey=30, botlip=0, lbl="NA", mir=0)
@@ -172,16 +193,16 @@ module mounting_block(depth=30, sizey=30, botlip=0, lbl="NA", mir=0)
     lip = 10;
     thick = 3;
     inset = lipwid+tol;
+
     bev = 1;
+    dlip = [7,5];
+
     clipwid = 10;
     clipin = lipthick+vtol;
     clipthick = 2;
     clipcon = (sizey-20 < 5 ? 5 : sizey-20);
     clipedge = 3;
     botlipbev = (botlip-bev > 0 ? botlip-bev : botlip);
-
-    screwrad = 4/2;
-    headrad = 12/2;
 
     translate([-mir*sizex,0,0]) mirror([mir,0,0]) rotate([0,-90,0]) {
         difference() {
@@ -191,33 +212,16 @@ module mounting_block(depth=30, sizey=30, botlip=0, lbl="NA", mir=0)
                 [-sizey, -depth+bev], [-sizey+bev, -depth],
                 [botlip-bev, -depth], [botlip, -depth+bev],
                 [botlip, -bev-tol], [botlipbev, -tol],
-                [0, -tol], [0, inset], [lip-bev, inset],
-                [lip, inset+bev], [lip, inset+thick-bev], [lip-bev, inset+thick],
+                [0, -tol], [0, inset], [lip+vtol+bev, inset],
+                [lip+vtol+bev, inset-vtol]+dlip, [lip+vtol+bev, inset+thick-bev*2]+dlip,
+                [lip+vtol, inset+thick-bev]+dlip, [lip+vtol-bev, inset+thick-bev]+dlip,
+                [lip+vtol, inset+thick],
             ]);
-            rotate([0,90,0]) translate([0,0,-sizey-tol/2])
-                linear_extrude(height=sizey+lip+tol, convexity=8) polygon([
-                    [-sizex-tol, clipwid+tol*2], [-sizex-tol, inset-vtol+tol],
+            rotate([0,90,0]) translate([0,0,-sizey-tol])
+                linear_extrude(height=sizey+lip+vtol+tol, convexity=8) polygon([
+                    [-sizex-tol, clipwid+tol*2+dlip.y], [-sizex-tol, inset-vtol+tol],
                     [-sizex+clipwid+vtol, inset-vtol+tol],
-                    [-sizex+clipwid+vtol, clipwid+tol*2],
-            ]);
-            if(0) {
-                rotate([0,90,0]) translate([0,0,-sizey-tol/2])
-                    linear_extrude(height=sizey+lip+tol, convexity=8) polygon([
-                        [-sizex-tol, clipwid+tol*2], [-sizex-tol, -thick-tol],
-                        [-sizex+clipwid+thick+tol, clipwid+tol*2],
-                ]);
-                rotate([90,0,0]) translate([0,0,-inset-thick-tol/2])
-                    linear_extrude(height=thick+tol, convexity=8) polygon([
-                        [0, sizex-clipwid+tol],[lip+tol,sizex-clipwid+tol],
-                        [lip+tol, sizex-clipwid-lip-tol],
-                ]);
-            }
-            rotate([-90,0,0]) translate([-sizey/2, -(sizex-clipwid/2)/2, 0])
-                rotate_extrude(convexity=5, $fn=120) polygon([
-                    [0, -depth-tol],
-                    [screwrad, -depth-tol], [screwrad, inset-headrad],
-                    [headrad, inset-screwrad], [headrad, inset+tol],
-                    [0, inset+tol],
+                    [-sizex+clipwid+vtol, clipwid+tol*2+dlip.y],
             ]);
             translate([-sizey+3,-depth+8,-0.3]) mirror([0,1-mir,0]) translate([0, -5, 0])
                 linear_extrude(height=0.3+tol, convexity=8) { text(lbl, 10); }
@@ -229,14 +233,36 @@ module mounting_block(depth=30, sizey=30, botlip=0, lbl="NA", mir=0)
             [botlip, -bev-vtol], [botlipbev, -vtol],
             [0, -vtol], [0, inset-vtol], [-sizey+clipcon, inset-vtol], [-sizey+clipcon, inset],
             [clipin, inset], [clipin+bev, inset-clipedge],
-            [clipin+clipthick, inset-clipedge],
-            [lip-bev, inset], [lip, inset+bev],
+            [clipin+clipthick, inset-clipedge], [lip, inset+vtol],
             [lip, inset+thick-bev], [lip-bev, inset+thick],
             [-2, inset+thick], [-2+((inset+clipthick)-(inset+thick)), inset+clipthick],
-
         ]);
+        /*
+        *translate([0,0,sizex-clipwid-vtol-tol]) linear_extrude(height=clipwid+vtol+tol, convexity=8) polygon([
+            [lip+vtol, inset], [lip+vtol+bev, inset],
+            [lip+vtol+bev, inset-vtol]+dlip, [lip+vtol+bev, inset+thick-bev*2]+dlip,
+            [lip+vtol, inset+thick-bev]+dlip, [lip+vtol-bev, inset+thick-bev]+dlip,
+            [lip+vtol, inset+thick],
+        ]);
+        */
 
     }
+}
+
+module mounting_screw(depth=30, x=0, y=0, z=10, sink=8)
+{
+    screwrad = 4/2;
+    headrad = 11/2; // 16/2
+    clipwid = 10;
+    tol = 0.1;
+
+    rotate([-90,0,0]) translate([-x, y, 0])
+        rotate_extrude(convexity=5, $fn=120) polygon([
+            [0, -depth-tol],
+            [screwrad, -depth-tol], [screwrad, z-sink],
+            [headrad, z-sink], [headrad, z+tol],
+            [0, z+tol],
+    ]);
 }
 
 module hole_repair(cof=1.6) {
