@@ -1,4 +1,4 @@
-side = 6;
+side = 0;
 
 width = 583;
 height = 300;
@@ -41,10 +41,14 @@ if(side == 1) {
         rightsegment_cut();
     }
 } else if (side == 4) {
-    rotate([0,-90,0]) mounting_block();
+    rotate([0, 90,0]) mount_rt();
 } else if (side == 5) {
-    rotate([0,-90,0]) mirror([0,1,0]) mounting_block();
+    rotate([0,-90,0]) mount_rb();
 } else if (side == 6) {
+    rotate([0,-90,0]) mount_lt();
+} else if (side == 7) {
+    rotate([0, 90,0]) mount_lb();
+} else if (side == 8) {
     rotate([0,0,0]) hole_repair();
 } else {
 
@@ -57,14 +61,18 @@ if(0) {
         *color("#666") pipe();
         slopeang = atan(height/(width/2));
         translate([0,height,0]) rotate([0,0,180-slopeang]) {
-            *translate([-40,0,0]) mounting_block();
-            *translate([-320,0,0]) mounting_block();
+            translate([-60,0,0]) mount_rt();
+            translate([-320,0,0]) mount_rb();
         }
-        hole_repair();
+        translate([0,height,0]) rotate([0,0,180+slopeang]) {
+            translate([80,0,0]) mount_lt();
+            translate([360,0,0]) mount_lb();
+        }
+        *hole_repair();
     }
 
-    *color("#c55c") import("grille-top.stl", convexity=10);
-    *color("#5c55") import("grille-left.stl", convexity=10);
+    color("#c55c") import("grille-top.stl", convexity=10);
+    color("#5c55") import("grille-left.stl", convexity=10);
     color("#55c5") import("grille-right.stl", convexity=10);
 
 } else if(1) {
@@ -135,42 +143,62 @@ color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true)
 }
 }
 
-module mounting_block(depth=10)
+module mount_rt()
 {
-    tol = 0.3;
+    mounting_block(sizey=25, botlip=25, depth=30, lbl="RT", mir=1);
+}
+
+module mount_rb()
+{
+    mounting_block(sizey=25, botlip=25, depth=12, lbl="RB");
+}
+
+module mount_lt()
+{
+    mounting_block(sizey=35, depth=16, lbl="LT");
+}
+
+module mount_lb()
+{
+    mounting_block(sizey=35, depth=13, lbl="LB", mir=1);
+}
+
+module mounting_block(depth=30, sizey=30, botlip=0, lbl="NA", mir=0)
+{
+    tol = 0.1;
+    vtol = 0.3;
     sizex = 40;
-    sizey = 30;
     out = 20;
-    botlip = 5;
     lip = 10;
     thick = 3;
     inset = lipwid+tol;
     bev = 1;
     clipwid = 10;
-    clipin = lipthick+tol;
-    clipthick = 1.6;
-    clipcon = 5;
+    clipin = lipthick+vtol;
+    clipthick = 2;
+    clipcon = (sizey-20 < 5 ? 5 : sizey-20);
     clipedge = 3;
+    botlipbev = (botlip-bev > 0 ? botlip-bev : botlip);
 
     screwrad = 4/2;
     headrad = 12/2;
 
-    rotate([0,-90,0]) {
+    translate([-mir*sizex,0,0]) mirror([mir,0,0]) rotate([0,-90,0]) {
         difference() {
             linear_extrude(height=sizex-tol, convexity=8) polygon([
-                [-2, inset+thick], [-2-thick-tol, inset-tol],
-                [-sizey+bev, inset-tol], [-sizey, inset-tol-bev],
+                [-2, inset+thick], [-2-thick-vtol+tol, inset-vtol+tol],
+                [-sizey+bev, inset-vtol+tol], [-sizey, inset-vtol+tol-bev],
                 [-sizey, -depth+bev], [-sizey+bev, -depth],
                 [botlip-bev, -depth], [botlip, -depth+bev],
-                [botlip, -bev-tol], [botlip-bev, -tol],
+                [botlip, -bev-tol], [botlipbev, -tol],
                 [0, -tol], [0, inset], [lip-bev, inset],
                 [lip, inset+bev], [lip, inset+thick-bev], [lip-bev, inset+thick],
             ]);
             rotate([0,90,0]) translate([0,0,-sizey-tol/2])
                 linear_extrude(height=sizey+lip+tol, convexity=8) polygon([
-                    [-sizex-tol, clipwid+tol*2], [-sizex-tol, inset-tol],
-                    [-sizex+clipwid+tol, inset-tol],
-                    [-sizex+clipwid+tol, clipwid+tol*2],
+                    [-sizex-tol, clipwid+tol*2], [-sizex-tol, inset-vtol+tol],
+                    [-sizex+clipwid+vtol, inset-vtol+tol],
+                    [-sizex+clipwid+vtol, clipwid+tol*2],
             ]);
             if(0) {
                 rotate([0,90,0]) translate([0,0,-sizey-tol/2])
@@ -191,13 +219,15 @@ module mounting_block(depth=10)
                     [headrad, inset-screwrad], [headrad, inset+tol],
                     [0, inset+tol],
             ]);
+            translate([-sizey+3,-depth+8,-0.3]) mirror([0,1-mir,0]) translate([0, -5, 0])
+                linear_extrude(height=0.3+tol, convexity=8) { text(lbl, 10); }
         }
         translate([0,0,sizex-clipwid]) linear_extrude(height=clipwid, convexity=8) polygon([
             [-sizey+bev, inset+clipthick], [-sizey, inset+clipthick-bev],
             [-sizey, -depth+bev], [-sizey+bev, -depth],
             [botlip-bev, -depth], [botlip, -depth+bev],
-            [botlip, -bev-tol], [botlip-bev, -tol],
-            [0, -tol], [0, inset-tol], [-sizey+clipcon, inset-tol], [-sizey+clipcon, inset],
+            [botlip, -bev-vtol], [botlipbev, -vtol],
+            [0, -vtol], [0, inset-vtol], [-sizey+clipcon, inset-vtol], [-sizey+clipcon, inset],
             [clipin, inset], [clipin+bev, inset-clipedge],
             [clipin+clipthick, inset-clipedge],
             [lip-bev, inset], [lip, inset+bev],
@@ -205,6 +235,7 @@ module mounting_block(depth=10)
             [-2, inset+thick], [-2+((inset+clipthick)-(inset+thick)), inset+clipthick],
 
         ]);
+
     }
 }
 
@@ -214,7 +245,7 @@ module hole_repair(cof=1.6) {
     beamoff = beamoffset - 4 - width/2+tol;
     lipth = 1.2;
     lipin = 5;
-    liptop = 0.4;
+    liptop = 0.6;
 
     linear_extrude(height=beamthick-tol, convexity=8) polygon([
         [beamoff, 0], [beamoff, cof], [beamoff+beamwid, cof], [beamoff+beamwid, 0]
