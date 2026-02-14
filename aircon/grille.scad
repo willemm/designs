@@ -1154,11 +1154,11 @@ module holes(cof=1.6)
     connecting_hole(180-toprot, 195, 25, cof*2);
     connecting_hole(180-toprot, 195, 80, cof*2);
 
-    mounting_hole(toprot, 40, 12, cof);
-    mounting_hole(toprot, 330, 12, cof);
+    *mounting_hole(toprot, 40, 12, cof);
+    *mounting_hole(toprot, 330, 12, cof);
 
-    mounting_hole(180-toprot, 40, 12, cof);
-    mounting_hole(180-toprot, 330, 12, cof);
+    *mounting_hole(180-toprot, 40, 12, cof);
+    *mounting_hole(180-toprot, 330, 12, cof);
 
     translate([0, height-57, -0.01]) rotate([45, 0, 0]) cube([lipwid+0.5, 15, 15], true);
 }
