@@ -43,11 +43,11 @@ if(side == 1) {
 } else if (side == 4) {
     rotate([0, 90,0]) mount_rt();
 } else if (side == 5) {
-    rotate([0,-90,0]) mount_rb();
+    rotate([0, 90,0]) mount_rb();
 } else if (side == 6) {
     rotate([0,-90,0]) mount_lt();
 } else if (side == 7) {
-    rotate([0, 90,0]) mount_lb();
+    rotate([0,-90,0]) mount_lb();
 } else if (side == 8) {
     rotate([0,0,0]) hole_repair();
 } else {
