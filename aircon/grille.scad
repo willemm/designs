@@ -1,4 +1,4 @@
-side = 4;
+side = 0;
 
 width = 583;
 height = 300;
@@ -174,7 +174,11 @@ module mount_lt()
     translate([35+15,0,0]) difference() {
         mounting_block(sizey=35, sizex=35, depth=30, lbl="LT", botlip=10, ebot=15);
         mounting_screw(30, 40, 25, 5, 3);
-        mounting_screw(30, 40, 1, 5, 3);
+        difference() {
+            mounting_screw(30, 40, 1, 5, 8);
+            translate([-40-11.1/2, 0.1, -1-11/2+8]) cube([11.1,7,3]);
+        }
+
         mounting_screw(30, 10, 25, 5, 3);
         rotate([0,-90,0]) translate([0,0,-0.01]) linear_extrude(height=50.2, convexity=8) polygon([
             [10.1,-10.9], [9, -12], [-2, -12],
