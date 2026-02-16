@@ -1,4 +1,4 @@
-side = 7;
+side = 4;
 
 width = 583;
 height = 300;
@@ -146,9 +146,10 @@ color("#5594") translate([-20,-82,80]) rotate([-ang,0,0]) cube([250,210,2],true)
 module mount_rt()
 {
     difference() {
-        mounting_block(sizey=25, sizex=50, botlip=25, depth=30, lbl="RT", mir=1, ebot=15);
-        mounting_screw(30, 58, 11, 5, 3);
-        mounting_screw(30, 10, -15, 3.9);
+        mounting_block(sizey=25, sizex=40, botlip=35, depth=30, lbl="RT", mir=1, extra=15, ebot=15);
+        mounting_screw(30, 63, -3, 3.9);
+        mounting_screw(30, 10, -25, 3.9);
+        mounting_screw(30, 10, 12, 5, 3);
     }
 }
 
@@ -156,8 +157,8 @@ module mount_rb()
 {
     difference() {
         mounting_block(sizey=25, botlip=25, depth=17, lbl="RB", mir=1);
-        mounting_screw(12, 30, 11);
-        mounting_screw(12, 6, -15, 3.9);
+        mounting_screw(30, 30, 11);
+        mounting_screw(30, 6, -15, 3.9);
         ang = atan(1/40);
         rotate([0,0,-ang]) rotate([0,-90,0]) translate([0,0,-1]) linear_extrude(height=42, convexity=5) polygon([
             [-25.1,-15.9], [-24, -17],
@@ -171,17 +172,17 @@ module mount_rb()
 module mount_lt()
 {
     translate([35+15,0,0]) difference() {
-        mounting_block(sizey=40, sizex=35, depth=30, lbl="LT", ebot=15);
-        mounting_screw(30, 40, 30, 5, 3);
-        mounting_screw(30, 40, 11, 5, 3);
-        mounting_screw(30, 10, 11, 5, 3);
+        mounting_block(sizey=35, sizex=35, depth=30, lbl="LT", botlip=10, ebot=15);
+        mounting_screw(30, 40, 25, 5, 3);
+        mounting_screw(30, 40, 1, 5, 3);
+        mounting_screw(30, 10, 25, 5, 3);
         rotate([0,-90,0]) translate([0,0,-0.01]) linear_extrude(height=50.2, convexity=8) polygon([
-            [0.1,-10.9], [-1, -12], [-12, -12],
-            [-12,-29], [-13.1, -30.1], [0.1,-30.1], 
+            [10.1,-10.9], [9, -12], [-2, -12],
+            [-2,-29], [-3.1, -30.1], [10.1,-30.1], 
         ]);
         rotate([0,-90,0]) translate([0,0,-0.01]) linear_extrude(height=20.1, convexity=8) polygon([
             [-40.1,-30.1], [-40.1,-10.9], [-39, -12],
-            [-11.9, -12], [-11.9, -30.1],
+            [-1.9, -12], [-1.9, -30.1],
         ]);
     }
 }
@@ -190,8 +191,8 @@ module mount_lb()
 {
     translate([40, 0, 0]) difference() {
         mounting_block(sizey=70, depth=15, lbl="LB");
-        mounting_screw(13, 10, 60, 5, 3);
-        mounting_screw(13, 26, 35, 5, 3);
+        mounting_screw(30, 10, 60, 5, 3);
+        mounting_screw(30, 26, 35, 5, 3);
     }
 }
 
@@ -242,7 +243,7 @@ module mounting_block(depth=30, sizey=30, sizex=40, botlip=0, extra=0, ebot=0, l
                             [clipwid+vtol, inset-vtol],
                             [clipwid+vtol, clipwid+tol*2],
                     ]);
-                    translate([10.2,4.9,sizex-clipwid-0.3]) cube([10,8,0.3]);
+                    translate([10.2,4.9,sizex-clipwid+extra-0.3]) cube([10,8,0.3]);
                     if (ebot > 0) {
                         rotate([0,90,0]) translate([-sizex-extra-ebot,0,-10-tol])
                             linear_extrude(height=10+lip+vtol+tol, convexity=8) polygon([
@@ -255,12 +256,11 @@ module mounting_block(depth=30, sizey=30, sizex=40, botlip=0, extra=0, ebot=0, l
                 }
                 if (extra > 0) {
                     linear_extrude(height=extra+tol, convexity=8) polygon([
-                        [-sizey+bev, inset-vtol], [-sizey, inset-vtol-bev],
+                        [-sizey+bev, -vtol], [-sizey, -vtol-bev],
                         [-sizey, -depth+bev], [-sizey+bev, -depth],
                         [botlip-bev, -depth], [botlip, -depth+bev],
                         [botlip, -bev-tol], [botlipbev, -tol],
-                        [0, -tol], [0, inset-vtol+tol-bev],
-                        [-bev, inset-vtol],
+                        [0, -tol],
                     ]);
                 }
                 if (ebot > 0) {
@@ -287,7 +287,7 @@ module mounting_block(depth=30, sizey=30, sizex=40, botlip=0, extra=0, ebot=0, l
                     [-2, inset+thick], [-2+((inset+clipthick)-(inset+thick)), inset+clipthick],
                 ]));
             }
-            translate([-20,-2,-tol]) mirror([0,1-mir,0]) translate([0, -5, 0])
+            translate([-20,-6,-tol]) mirror([0,1-mir,0]) translate([0, -5, 0])
                 linear_extrude(height=0.3+tol, convexity=8) { text(lbl, 10); }
         }
     }
