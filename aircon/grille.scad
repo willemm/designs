@@ -194,9 +194,9 @@ module mount_lt()
 module mount_lb()
 {
     translate([40, 0, 0]) difference() {
-        mounting_block(sizey=70, depth=15, lbl="LB");
-        mounting_screw(30, 10, 60, 5, 3);
-        mounting_screw(30, 26, 35, 5, 3);
+        mounting_block(sizey=80, botlip=-10, depth=15, lbl="LB");
+        mounting_screw(30, 10, 70, 5, 3);
+        mounting_screw(30, 30, 45, 5, 3);
     }
 }
 
@@ -217,29 +217,38 @@ module mounting_block(depth=30, sizey=30, sizex=40, botlip=0, extra=0, ebot=0, l
     clipthick = 2;
     clipcon = (sizey-20 < 5 ? 5 : sizey-20);
     clipedge = 3;
-    botlipbev = (botlip-bev > 0 ? botlip-bev : botlip);
+    botlipbev = (botlip-bev > 0 ? botlip-bev : 0);
 
     clipstart = (sizey > 28) ? [
             [-25, inset+clipthick], [-25-clipthick, inset-vtol],
-            [-sizey+bev, inset-vtol], [-sizey, inset-vtol-bev],
+            [-25-clipthick, inset-vtol-tol],
         ] : [
             [-sizey+bev, inset+clipthick], [-sizey, inset+clipthick-bev],
+            [-sizey, inset-bev-vtol-tol],
         ];
+    botedge = botlip < 0 ? [
+            [botlip, -tol], [-bev, -tol], [0, bev-tol]
+        ] : botlip > 0 ? [
+            [botlip, -bev-tol], [botlipbev, -tol], [0, -tol]
+        ] : [ ];
     translate([-mir*(sizex+extra+ebot),0,0]) mirror([mir,0,0]) rotate([0,-90,0]) {
         difference() {
             union() {
                 difference() {
-                    translate([0,0,extra]) linear_extrude(height=sizex+ebot, convexity=8) polygon([
+                    translate([0,0,extra]) linear_extrude(height=sizex+ebot, convexity=8)
+                        polygon(concat([
                         [-2, inset+thick], [-2-thick-vtol, inset-vtol],
                         [-sizey+bev, inset-vtol], [-sizey, inset-vtol-bev],
                         [-sizey, -depth+bev], [-sizey+bev, -depth],
                         [botlip-bev, -depth], [botlip, -depth+bev],
-                        [botlip, -bev-tol], [botlipbev, -tol],
-                        [0, -tol], [0, inset], [lip+vtol+bev, inset],
+                        ], botedge, [
+                        //[botlip, -bev-tol], [botlipbev, -tol],
+                        //[0, -tol],
+                        [0, inset], [lip+vtol+bev, inset],
                         [lip+vtol+bev, inset-vtol]+dlip, [lip+vtol+bev, inset+thick-bev*2]+dlip,
                         [lip+vtol, inset+thick-bev]+dlip, [lip+vtol-bev, inset+thick-bev]+dlip,
                         [lip+vtol, inset+thick],
-                    ]);
+                    ]));
                     rotate([0,90,0]) translate([-sizex-extra,0,-10-tol])
                         linear_extrude(height=10+lip+vtol+tol, convexity=8) polygon([
                             [-vtol, clipwid+tol*2],
@@ -280,18 +289,14 @@ module mounting_block(depth=30, sizey=30, sizex=40, botlip=0, extra=0, ebot=0, l
                 }
                 translate([0,0,extra+sizex-clipwid]) linear_extrude(height=clipwid, convexity=8)
                     polygon(concat(clipstart, [
-                    //[-sizey+bev, inset+clipthick], [-sizey, inset+clipthick-bev],
-                    [-sizey, -depth+bev], [-sizey+bev, -depth],
-                    [botlip-bev, -depth], [botlip, -depth+bev],
-                    [botlip, -bev-vtol], [botlipbev, -vtol],
-                    [0, -vtol], [0, inset-vtol], [-sizey+clipcon, inset-vtol], [-sizey+clipcon, inset],
+                    [-sizey+clipcon, inset-vtol-tol], [-sizey+clipcon, inset],
                     [clipin, inset], [clipin+bev, inset-clipedge],
                     [clipin+clipthick, inset-clipedge], [lip, inset+vtol],
                     [lip, inset+thick-bev], [lip-bev, inset+thick],
                     [-2, inset+thick], [-2+((inset+clipthick)-(inset+thick)), inset+clipthick],
                 ]));
             }
-            translate([-20,-6,-tol]) mirror([0,1-mir,0]) translate([0, -5, 0])
+            translate([(botlip<0?botlip:0)-20,-6,-tol]) mirror([0,1-mir,0]) translate([0, -5, 0])
                 linear_extrude(height=0.3+tol, convexity=8) { text(lbl, 10); }
         }
     }
