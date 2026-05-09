@@ -31,6 +31,9 @@ if (doitem == "") {
         }
     }
 
+    translate([-50, 0, 0]) color("#985") post_sleeve();
+    translate([-53, -24.5, 0]) color("#958") rotate([0,0,180]) post_sleeve();
+
     translate([ 14.0,-2.5,0]) color("#5c5") side_wall();
     translate([-14.0,2.5,0]) rotate([0,0,180]) color("#55c") side_wall();
 
@@ -91,6 +94,10 @@ module side_wall()
     function wall_ends(o=0) = [
             [-wt-sl, wl-o], [-esn, wl], [-esn, esd+4], [-est, esd+4], [-est, esd],
             [est, esd], [est, esd+4], [esn, esd+4], [esn, wl], [wt, wl],
+
+            //[wt, esd-2], [wt-5, esd-2],
+            //[wt-5, -esd+2], [wt, -esd+2],
+
             [wt, -wl], [esn+o, -wl], [esn+o, -esd-4-o], [est+o, -esd-4-o], [est+o, -esd+o],
             [-est-o, -esd+o], [-est-o, -esd-4-o], [-esn-o, -esd-4-o], [-esn-o, -wl+o], [-wt-sl, -wl+o]
         ];
@@ -155,18 +162,22 @@ module post_sleeve(front=0)
     est = end_slot_thick/2;
     esd = wall_length-end_slot_depth;
 
-    function sleeve_points(off=0) = [
-        [wo+esn, sr],
-        [wo+esn, -bl+3.5],
-        [wo+est, -bl+3.5],
-        [wo+est, -bl+0.5],
-        [wo-est, -bl+0.5],
-        [wo-est, -bl+3.5],
-        [wo-esn, -bl+3.5],
-        [wo-esn, -sd],
-        [-sr-fo, -sd],
-        [-sr-fo, sr],
-    ];
+    center = [((wo+esn)+(-sr-fo))/2, 0];
+    radius = [((wo+esn)-(-sr-fo))/2, sr];
+    function sleeve_points(off=0) = concat(
+        [for (an=[-90:5:90]) center+[sin(an)*radius.x, cos(an)*radius.y]],
+        [
+            //[wo+esn, sr],
+            [wo+esn, -bl+3.5],
+            [wo+est, -bl+3.5],
+            [wo+est, -bl+0.5],
+            [wo-est, -bl+0.5],
+            [wo-est, -bl+3.5],
+            [wo-esn, -bl+3.5],
+            [wo-esn, -sd],
+            [-sr-fo, -sd],
+            //[-sr-fo, sr],
+        ]);
 
     spc = len(sleeve_points());
 
