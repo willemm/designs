@@ -92,8 +92,8 @@ module side_wall()
         ];
     */
     function wall_ends(o=0) = [
-            [-wt-sl, wl-o], [-esn, wl], [-esn, esd+4], [-est, esd+4], [-est, esd],
-            [est, esd], [est, esd+4], [esn, esd+4], [esn, wl], [wt, wl],
+            [-wt-sl, wl-o], [-esn-o, wl-o], [-esn-o, esd+4+o], [-est-o, esd+4+o], [-est-o, esd-o],
+            [est+o, esd-o], [est+o, esd+4+o], [esn+o, esd+4+o], [esn+o, wl], [wt, wl],
 
             //[wt, esd-2], [wt-5, esd-2],
             //[wt-5, -esd+2], [wt, -esd+2],
