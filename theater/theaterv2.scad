@@ -2,24 +2,33 @@ doitem = "";
 
 post_dia = 15;
 post_hole = post_dia+1;
+wire_hole = 4;
+post_thick = 3;
 
 posts_x = 400;
 posts_y = 248;
 post_pos = [posts_x/2,posts_y/2];
 post_depth = 100;
-post_height = 250;
+post_height = 270;
 slot_front_off = 0;
 wall_height = 130;
+cap_height = 20;
+cap_lip = 30;
 
 wall_thick = 8;
 wall_length = 223;
 wall_offset = 11.0;
 
+light_len = 201;
+light_width = 13;
+light_thick = 7.5;
+
 if (doitem == "post_sleeve") { post_sleeve(); } 
+if (doitem == "post_cap") { post_cap(); } 
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
 if (doitem == "") {
 
-    for (m1 = [0:1]) mirror([m1,0,0]) {
+    for (m1 = [0:0]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
         translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
         for (m2 = [0:1]) mirror([0,m2,0]) {
@@ -27,20 +36,99 @@ if (doitem == "") {
                 post();
                 color("#985") post_sleeve(m2);
                 color("#985") translate([0,0,wall_height+0.1]) post_sleeve(m2);
+                color("#a95") translate([0,0,2*wall_height+0.2]) post_cap(m2);
             }
         }
     }
 
+    if(0) {
     translate([-50, 0, 0]) color("#985") post_sleeve();
     translate([-53, -24.5, 0]) color("#958") rotate([0,0,180]) post_sleeve();
+
+    translate([-90, 0, 0]) color("#985") post_cap();
 
     translate([ 14.0,-2.5,0]) color("#5c5") side_wall();
     translate([-14.0,2.5,0]) rotate([0,0,180]) color("#55c") side_wall();
 
     *translate([-post_pos.x-wall_offset+23.0,slot_front_off-5.0,0]) color("#57e") side_wall();
 
-    translate([post_pos.x,0,225]) rotate([0,0,-90]) color("#aaa9") import("toneel_decor_zijkant.stl", convexity=8);
-    translate([post_pos.x,0,75]) rotate([0,0,-90]) color("#8889") import("toneel_decor_zijkant.stl", convexity=8);
+    *translate([post_pos.x,0,225]) rotate([0,0,-90]) color("#aaa9") import("toneel_decor_zijkant.stl", convexity=8);
+    *translate([post_pos.x,0,75]) rotate([0,0,-90]) color("#8889") import("toneel_decor_zijkant.stl", convexity=8);
+    }
+}
+
+module post_cap(front=0)
+{
+    sleeve_rad = (post_hole/2) + post_thick;
+    slot_in = (posts_y - wall_length)/2-0.5 + (front*2-1) * slot_front_off;
+    end_slot_depth = 20;
+    thick = 2;
+
+    slot_neck = 1.6;
+    slot_thick = 3.6;
+
+    sr = sleeve_rad;
+    bl = (posts_y - wall_length)/2 + end_slot_depth;
+    sd = slot_in;
+    wo = wall_offset;
+    fo = 1.5;
+    esn = 0.75;
+    poff = 0.3;
+
+    sln = slot_neck/2;
+    slo = -(sln+1);
+    slt = slot_thick/2;
+    sls = -sr-fo-poff-thick;
+    sls1 = sls - 2;
+    sls2 = sls - 4;
+
+    function sleeve_points(off=poff, c=0) = let(
+        center = [((wo+esn)+(-sr-fo))/2, 0],
+        radius = [((wo+esn)-(-sr-fo))/2 + off, sr + off] )
+            concat(
+                [for (an=[-90:5:90]) center+[sin(an)*radius.x, cos(an)*radius.y]],
+                [ [wo+esn+off, -sd-c],
+                  [-sr-fo-off, -sd-c] ]
+                );
+
+    slot_points = [
+            [sls, slo-sln], [sls1, slo-sln], [sls1, slo-slt], [sls2, slo-slt],
+            [sls2, slo+slt], [sls1, slo+slt], [sls1, slo+sln], [sls, slo+sln]
+    ];
+
+    render(convexity=10) difference() {
+        translate([0,0,-cap_lip]) linear_extrude(height=cap_lip+cap_height, convexity=6)
+            polygon(concat(sleeve_points(thick+poff), slot_points));
+        translate([0,0,-cap_lip]) linear_extrude(height=cap_lip, convexity=6)
+            polygon(sleeve_points(poff,0.01));
+        /*
+        spc = len(sleeve_points());
+        polyhedron(convexity=8,
+            points = concat(
+                set_z(sleeve_points(thick+poff), cap_height),
+                set_z(sleeve_points(thick+poff), -cap_lip),
+                set_z(sleeve_points(poff), -cap_lip),
+                set_z(sleeve_points(poff), 0)
+            ), faces=concat(
+                [[for (a=[spc-1:-1:0]) a]],
+                nquads(0, spc, spc, 1),
+                nquads(spc, spc, spc),
+                nquads(spc*2, spc, spc, 1),
+                [[for (a=[spc*3:spc*4-1]) a]],
+                [
+                    [spc, spc*2, spc*3], [0, spc, spc*3],
+                    [spc-1, 0, spc*3], [spc-1, spc*3, spc*4-1],
+                    [spc-1, spc*4-1, spc*2-1], [spc*2-1, spc*4-1, spc*3-1],
+                ]
+            ));
+        */
+        translate([0,0,-0.01]) cylinder(cap_height-thick+0.01, post_hole/2, post_hole/2, $fn=30);
+    }
+}
+
+module front_top()
+{
+    wl = posts_y/2;
 }
 
 module side_wall()
@@ -133,8 +221,7 @@ module side_wall()
 // Front = 0 or 1, front/back offset
 module post_sleeve(front=0)
 {
-    thick = 3;
-    sleeve_rad = (post_hole/2) + thick;
+    sleeve_rad = (post_hole/2) + post_thick;
     slot_depth = 8;
     slot_in = (posts_y - wall_length)/2-0.5 + (front*2-1) * slot_front_off;
     slot_width = 4;
@@ -164,7 +251,7 @@ module post_sleeve(front=0)
 
     center = [((wo+esn)+(-sr-fo))/2, 0];
     radius = [((wo+esn)-(-sr-fo))/2, sr];
-    function sleeve_points(off=0) = concat(
+    function sleeve_points() = concat(
         [for (an=[-90:5:90]) center+[sin(an)*radius.x, cos(an)*radius.y]],
         [
             //[wo+esn, sr],
@@ -192,6 +279,15 @@ module post_sleeve(front=0)
                 [[for (a=[spc*1:spc*2-1]) a]]
             ));
         translate([0,0,-0.01]) cylinder(wall_height+0.02, post_hole/2, post_hole/2, $fn=30);
+        wir = wire_hole/2;
+        wio = (post_hole + wire_hole)/2;
+        translate([0,0,-0.01]) linear_extrude(height=wall_height+0.02, convexity=4) {
+            oan = 135;
+            polygon(concat(
+                [wir*[sin(oan+90), cos(oan+90)], wir*[sin(oan-90), cos(oan-90)]],
+                [for (an=[oan-90:12:oan+90]) wio*[sin(oan),cos(oan)]+wir*[sin(an),cos(an)]]
+            ));
+        }
     }
 
     *linear_extrude(height=wall_height, convexity=6) {
@@ -206,8 +302,7 @@ module post_sleeve(front=0)
 // Front = 0 or 1, front/back offset
 module post_sleeve_old(front=0)
 {
-    thick = 3;
-    sleeve_rad = (post_hole/2) + thick;
+    sleeve_rad = (post_hole/2) + post_thick;
     slot_depth = 8;
     slot_in = (posts_y - wall_length)/2-0.5 + (front*2-1) * slot_front_off;
     slot_width = 4;
