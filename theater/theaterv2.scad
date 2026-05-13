@@ -34,7 +34,7 @@ if (doitem == "") {
 
     for (m1 = [0:1]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
-        *translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
+        translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
         for (m2 = [0:1]) mirror([0,m2,0]) {
             translate(post_pos) {
                 post();
@@ -44,7 +44,7 @@ if (doitem == "") {
         }
     }
     translate([0,0,0.2]) color("#875") front_top();
-    translate([0,0,0.2]) color("#75a8") front_cover();
+    translate([0,0,0.2]) color("#975") front_cover();
     *light_bar();
 
     if(0) {
@@ -79,19 +79,33 @@ module front_cover()
     cd = cover_depth;
     fst = 2.2;
 
-    render(convexity=8) translate([wl, fp, wh]) rotate([90,180,0]) {
-        linear_extrude(height=ct, convexity=8) polygon([
-            [fst, fst], [cw, fst],
-            [cw, ch-11], [cw-33, ch], [fst, ch]
-        ]);
-        linear_extrude(height=cd, convexity=8) polygon([
-            [cw, fst],
-            [cw, ch-11], [cw-33, ch], [fst+5, ch], [fst+5, ch-2],
-            [cw-33, ch-2], [cw-2, ch-12], [cw-2, fst]
-        ]);
-        translate([0,0,cd-1.7]) linear_extrude(height=1.7) polygon([
-            [cw, 20], [cw+4, 20], [cw+4, ch-12], [cw, ch-11]
-        ]);
+    translate([wl, fp, wh]) rotate([90,180,0]) difference() {
+        union() {
+            linear_extrude(height=ct, convexity=8) polygon([
+                [fst, fst], [cw, fst],
+                [cw, ch-11], [cw-33, ch], [fst, ch]
+            ]);
+            linear_extrude(height=cd, convexity=8) polygon([
+                [cw, fst],
+                [cw, ch-11], [cw-33, ch], [fst+5, ch], [fst+5, ch-2],
+                [cw-33, ch-2], [cw-2, ch-12], [cw-2, fst]
+            ]);
+            translate([0,0,cd-1.7]) linear_extrude(height=1.7) polygon([
+                [cw, 20], [cw+4, 20], [cw+4, ch-12], [cw, ch-11]
+            ]);
+            lof = 4.5;
+            lth = 2;
+            lbt = lof + lth;
+            lwd = 11.5;
+            translate([cw+6,0,0]) rotate([0,-90,0]) linear_extrude(height=6.1) polygon([
+                [0, fst+lof], [0, fst+lbt], [lwd, fst+lbt+lwd], [lwd+lth/2, fst+lof+lwd+lth/2]
+            ]);
+        }
+        translate([cw+0.1,0,0]) rotate([0,-90,0]) linear_extrude(height=2.2) polygon(concat(
+            [ [cd-2, fst+7], [cd+0.1, fst+7], [cd+0.1, fst-0.1], [cd-11, fst-0.1], [cd-11, fst+3] ],
+            [ for (an=[-90:5:20]) [cd-9, fst+9]+2*[sin(an),cos(an)]]
+            //[cd-12, fst+12],
+        ));
     }
 }
 
@@ -107,7 +121,7 @@ module front_top()
     wl = posts_x/2 - sr-fo;
     wh = wall_height*2 + cap_height;
 
-    difference() {
+    render(convexity=10) difference() {
         union() {
             // Front arch
             translate([0, fp+front_thick, 0]) rotate([90,0,0]) {
@@ -165,14 +179,27 @@ module front_top()
                     polygon([ [-25,1.5], [-4.5, 22], [-6.5, 22], [-27, 1.5] ]);
                 }
             }
-            // Slot for cable cover
-            #translate([0, fp, wh-39]) linear_extrude(height=39, convexity=8) {
-                cw = cover_width;
+            // Slot for cable cover, inside edge
+            translate([0, fp, wh-41]) linear_extrude(height=24, convexity=8) {
+                cw = cover_width+0.4;
                 polygon([
-                    [wl-cw, 1], [wl-cw, 5], [wl-cw-5, 5]
+                    [wl-cw-6, 1], [wl-cw-6, 7], [wl-cw, 7],
+                    //[wl-cw, 5.3], [wl-cw-4, 5.3], [wl-cw-4, 1]
+                    [wl-cw, 1]
+                ]);
+            }
+            // Slot for cable cover, outside
+            translate([0, fp+22, 0]) rotate([90,0,0]) {
+                cb = wh-cover_height;
+                cw = wl-cover_width-1;
+                co = 4.5;
+                linear_extrude(height=1.6, convexity=8) polygon([
+                    [wl-co, cb], [wl, cb], [wl, wh], [cw, wh],
+                    [cw, wh-co], [wl-co, wh-co]
                 ]);
             }
         }
+        // Slot for side post ridge
         translate([0, -posts_y/2, wh-100-0.01]) {
             slot_neck = 2.2;
             slot_thick = 4.4;
@@ -193,6 +220,13 @@ module front_top()
                     [-sls2, slo+slt], [-sls1, slo+slt], [-sls1, slo+sln], [-sls0, slo+sln]
                 ]);
             }
+        }
+        // Slot for cable cover, inside edge
+        translate([0, fp, wh-41.1]) linear_extrude(height=24, convexity=8) {
+            cw = cover_width;
+            polygon([
+                [wl-cw-4.5, 3], [wl-cw-4.5, 5.5], [wl-cw, 5.5], [wl-cw, 3]
+            ]);
         }
     }
 }
