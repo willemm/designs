@@ -23,6 +23,11 @@ light_len = 201;
 light_width = 13;
 light_thick = 8;
 
+cover_width = 85.6;
+cover_height = 50;
+cover_thick = 2;
+cover_depth = 16.8;
+
 if (doitem == "post_sleeve") { post_sleeve(); } 
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
 if (doitem == "") {
@@ -38,7 +43,8 @@ if (doitem == "") {
             }
         }
     }
-    translate([0,0,0.1]) color("#875") front_top();
+    translate([0,0,0.2]) color("#875") front_top();
+    translate([0,0,0.2]) color("#75a8") front_cover();
     *light_bar();
 
     if(0) {
@@ -55,6 +61,40 @@ if (doitem == "") {
     }
 }
 
+module front_cover()
+{
+    sleeve_rad = (post_hole/2) + post_thick;
+    sr = sleeve_rad;
+    fo = 1.5 + 0.5;
+
+    front_thick = 3;
+    front_off = 10;
+    fp = -posts_y/2+front_off;
+    wl = posts_x/2 - sr-fo;
+    wh = wall_height*2 + cap_height;
+
+    cw = cover_width;
+    ch = cover_height;
+    ct = cover_thick;
+    cd = cover_depth;
+    fst = 2.2;
+
+    render(convexity=8) translate([wl, fp, wh]) rotate([90,180,0]) {
+        linear_extrude(height=ct, convexity=8) polygon([
+            [fst, fst], [cw, fst],
+            [cw, ch-11], [cw-33, ch], [fst, ch]
+        ]);
+        linear_extrude(height=cd, convexity=8) polygon([
+            [cw, fst],
+            [cw, ch-11], [cw-33, ch], [fst+5, ch], [fst+5, ch-2],
+            [cw-33, ch-2], [cw-2, ch-12], [cw-2, fst]
+        ]);
+        translate([0,0,cd-1.7]) linear_extrude(height=1.7) polygon([
+            [cw, 20], [cw+4, 20], [cw+4, ch-12], [cw, ch-11]
+        ]);
+    }
+}
+
 module front_top()
 {
     sleeve_rad = (post_hole/2) + post_thick;
@@ -63,28 +103,32 @@ module front_top()
 
     front_thick = 3;
     front_off = 10;
+    fp = -posts_y/2-front_off;
     wl = posts_x/2 - sr-fo;
     wh = wall_height*2 + cap_height;
 
     difference() {
         union() {
-            translate([0, -posts_y/2+front_thick-front_off, 0]) rotate([90,0,0]) {
+            // Front arch
+            translate([0, fp+front_thick, 0]) rotate([90,0,0]) {
                 linear_extrude(height=front_thick, convexity=8) polygon(concat(
                     [[wl-2, wh-86], [wl, wh-86], [wl, wh], [-wl, wh], [-wl, wh-86], [-wl+2, wh-86]],
                     [for (an=[-60:1:60]) [0, wh-110] + [sin(an)*wl, cos(an) * 80]]
                 ));
             }
-            translate([0, -posts_y/2-front_off, wh-50]) linear_extrude(height=50, convexity=8) {
+            // Side slot outer
+            translate([0, fp, wh-50]) linear_extrude(height=50, convexity=8) {
                 polygon([
                     [-wl, 0], [-wl+2, 0], [-wl+2, front_off-0.6], [-wl+7, front_off-0.6],
-                    [-wl+7, front_off+7], [-wl+2, front_off+7], [-wl+2, 22], [-wl, 22] 
+                    [-wl+7, front_off+7.5], [-wl+2, front_off+7.5], [-wl+2, 22], [-wl, 22] 
                 ]);
                 polygon([
                     [wl, 0], [wl-2, 0], [wl-2, front_off-0.6], [wl-7, front_off-0.6],
-                    [wl-7, front_off+7], [wl-2, front_off+7], [wl-2, 22], [wl, 22] 
+                    [wl-7, front_off+7.5], [wl-2, front_off+7.5], [wl-2, 22], [wl, 22] 
                 ]);
             }
-            translate([0, -posts_y/2-front_off, wh-86]) linear_extrude(height=86, convexity=8) {
+            // Side wall
+            translate([0, fp, wh-86]) linear_extrude(height=86, convexity=8) {
                 polygon(concat(
                     [for (an=[90:1:136]) [-wl-sr, front_off]+sr*[sin(an),cos(an)]],
                     [for (an=[235:-5:180]) [-wl, 3.6]+3.6*[sin(an),cos(an)]],
@@ -96,28 +140,37 @@ module front_top()
                     [ [wl, 0], [wl-2, 0], [wl-2, 14], [wl, 14] ]
                     ));
             }
-            translate([0, -posts_y/2-front_off, wh-2]) linear_extrude(height=2, convexity=8) {
+            // Top
+            translate([0, fp, wh-2]) linear_extrude(height=2, convexity=8) {
                 polygon([
                     [-wl, 0], [-wl, 22], [wl, 22], [wl, 0]
                 ]);
             }
-            translate([0, -posts_y/2-front_off, wall_height*2]) rotate([0,-90,0]) {
+            // Slot for light bar
+            translate([0, fp, wh]) rotate([0,-90,0]) {
                 lw = light_width+0.5;
                 lt = light_thick+1;
-                lp = [8.1,-3.9];
+                lp = [-6,10.2]; // Eyeballed
                 ll = 202;
                 translate([0,0,-ll/2]) linear_extrude(height=ll, convexity=8) {
                     difference() {
-                        polygon([ [-5,1.5], [15.5, 22], [19, 22], [19, 1.5] ]);
+                        polygon([ [-25,1.5], [-4.5, 22], [-1, 22], [-1, 1.5] ]);
                         rotate([0,0,45]) polygon([ lp+[0,0], lp+[lw, 0], lp+[lw, lt], lp+[0, lt] ]);
                     }
                 }
                 translate([0, 0, ll/2]) linear_extrude(height=2, convexity=8) {
-                    polygon([ [-5,1.5], [15.5, 22], [19, 22], [19, 1.5] ]);
+                    polygon([ [-25,1.5], [-4.5, 22], [-1, 22], [-1, 1.5] ]);
                 }
                 translate([0, 0, ll/2-6]) linear_extrude(height=8, convexity=8) {
-                    polygon([ [-5,1.5], [15.5, 22], [13.5, 22], [-7, 1.5] ]);
+                    polygon([ [-25,1.5], [-4.5, 22], [-6.5, 22], [-27, 1.5] ]);
                 }
+            }
+            // Slot for cable cover
+            #translate([0, fp, wh-39]) linear_extrude(height=39, convexity=8) {
+                cw = cover_width;
+                polygon([
+                    [wl-cw, 1], [wl-cw, 5], [wl-cw-5, 5]
+                ]);
             }
         }
         translate([0, -posts_y/2, wh-100-0.01]) {
