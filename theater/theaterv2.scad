@@ -21,7 +21,7 @@ wall_offset = 11.0;
 
 light_len = 201;
 light_width = 13;
-light_thick = 7.5;
+light_thick = 8;
 
 if (doitem == "post_sleeve") { post_sleeve(); } 
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
@@ -29,7 +29,7 @@ if (doitem == "") {
 
     for (m1 = [0:1]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
-        translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
+        *translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
         for (m2 = [0:1]) mirror([0,m2,0]) {
             translate(post_pos) {
                 post();
@@ -39,6 +39,7 @@ if (doitem == "") {
         }
     }
     translate([0,0,0.1]) color("#875") front_top();
+    *light_bar();
 
     if(0) {
     translate([-50, 0, 0]) color("#985") post_sleeve();
@@ -75,10 +76,12 @@ module front_top()
             }
             translate([0, -posts_y/2-front_off, wh-50]) linear_extrude(height=50, convexity=8) {
                 polygon([
-                    [-wl, 0], [-wl+2, 0], [-wl+2, front_off-0.6], [-wl+7, front_off-0.6], [-wl+7, front_off+7], [-wl+2, front_off+7], [-wl+2, 22], [-wl, 22] 
+                    [-wl, 0], [-wl+2, 0], [-wl+2, front_off-0.6], [-wl+7, front_off-0.6],
+                    [-wl+7, front_off+7], [-wl+2, front_off+7], [-wl+2, 22], [-wl, 22] 
                 ]);
                 polygon([
-                    [wl, 0], [wl-2, 0], [wl-2, front_off-0.6], [wl-7, front_off-0.6], [wl-7, front_off+7], [wl-2, front_off+7], [wl-2, 22], [wl, 22] 
+                    [wl, 0], [wl-2, 0], [wl-2, front_off-0.6], [wl-7, front_off-0.6],
+                    [wl-7, front_off+7], [wl-2, front_off+7], [wl-2, 22], [wl, 22] 
                 ]);
             }
             translate([0, -posts_y/2-front_off, wh-86]) linear_extrude(height=86, convexity=8) {
@@ -97,6 +100,24 @@ module front_top()
                 polygon([
                     [-wl, 0], [-wl, 22], [wl, 22], [wl, 0]
                 ]);
+            }
+            translate([0, -posts_y/2-front_off, wall_height*2]) rotate([0,-90,0]) {
+                lw = light_width+0.5;
+                lt = light_thick+1;
+                lp = [8.1,-3.9];
+                ll = 202;
+                translate([0,0,-ll/2]) linear_extrude(height=ll, convexity=8) {
+                    difference() {
+                        polygon([ [-5,1.5], [15.5, 22], [19, 22], [19, 1.5] ]);
+                        rotate([0,0,45]) polygon([ lp+[0,0], lp+[lw, 0], lp+[lw, lt], lp+[0, lt] ]);
+                    }
+                }
+                translate([0, 0, ll/2]) linear_extrude(height=2, convexity=8) {
+                    polygon([ [-5,1.5], [15.5, 22], [19, 22], [19, 1.5] ]);
+                }
+                translate([0, 0, ll/2-6]) linear_extrude(height=8, convexity=8) {
+                    polygon([ [-5,1.5], [15.5, 22], [13.5, 22], [-7, 1.5] ]);
+                }
             }
         }
         translate([0, -posts_y/2, wh-100-0.01]) {
@@ -397,6 +418,12 @@ module post()
 {
     color("#ca8") translate([0,0,-post_depth])
         cylinder(post_depth+post_height, post_dia/2, post_dia/2, $fn=30);
+}
+
+module light_bar()
+{
+    color("#ccc") translate([-light_len/2, -posts_y/2-1, wall_height*2+3])
+        rotate([45,0,0]) cube([light_len, light_width, light_thick]);
 }
 
 function set_z(pts, z) = [for (p=pts) [p.x, p.y, z]];
