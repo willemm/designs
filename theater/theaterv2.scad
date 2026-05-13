@@ -24,28 +24,25 @@ light_width = 13;
 light_thick = 7.5;
 
 if (doitem == "post_sleeve") { post_sleeve(); } 
-if (doitem == "post_cap") { post_cap(); } 
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
 if (doitem == "") {
 
-    for (m1 = [0:0]) mirror([m1,0,0]) {
+    for (m1 = [0:1]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
         translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
         for (m2 = [0:1]) mirror([0,m2,0]) {
             translate(post_pos) {
                 post();
                 color("#985") post_sleeve(m2);
-                color("#985") translate([0,0,wall_height+0.1]) post_sleeve(m2);
-                color("#a95") translate([0,0,2*wall_height+0.2]) post_cap(m2);
+                color("#985") translate([0,0,wall_height+0.1]) post_sleeve(m2, m2);
             }
         }
     }
+    translate([0,0,0.1]) color("#875") front_top();
 
     if(0) {
     translate([-50, 0, 0]) color("#985") post_sleeve();
     translate([-53, -24.5, 0]) color("#958") rotate([0,0,180]) post_sleeve();
-
-    translate([-90, 0, 0]) color("#985") post_cap();
 
     translate([ 14.0,-2.5,0]) color("#5c5") side_wall();
     translate([-14.0,2.5,0]) rotate([0,0,180]) color("#55c") side_wall();
@@ -57,78 +54,73 @@ if (doitem == "") {
     }
 }
 
-module post_cap(front=0)
-{
-    sleeve_rad = (post_hole/2) + post_thick;
-    slot_in = (posts_y - wall_length)/2-0.5 + (front*2-1) * slot_front_off;
-    end_slot_depth = 20;
-    thick = 2;
-
-    slot_neck = 1.6;
-    slot_thick = 3.6;
-
-    sr = sleeve_rad;
-    bl = (posts_y - wall_length)/2 + end_slot_depth;
-    sd = slot_in;
-    wo = wall_offset;
-    fo = 1.5;
-    esn = 0.75;
-    poff = 0.3;
-
-    sln = slot_neck/2;
-    slo = -(sln+1);
-    slt = slot_thick/2;
-    sls = -sr-fo-poff-thick;
-    sls1 = sls - 2;
-    sls2 = sls - 4;
-
-    function sleeve_points(off=poff, c=0) = let(
-        center = [((wo+esn)+(-sr-fo))/2, 0],
-        radius = [((wo+esn)-(-sr-fo))/2 + off, sr + off] )
-            concat(
-                [for (an=[-90:5:90]) center+[sin(an)*radius.x, cos(an)*radius.y]],
-                [ [wo+esn+off, -sd-c],
-                  [-sr-fo-off, -sd-c] ]
-                );
-
-    slot_points = [
-            [sls, slo-sln], [sls1, slo-sln], [sls1, slo-slt], [sls2, slo-slt],
-            [sls2, slo+slt], [sls1, slo+slt], [sls1, slo+sln], [sls, slo+sln]
-    ];
-
-    render(convexity=10) difference() {
-        translate([0,0,-cap_lip]) linear_extrude(height=cap_lip+cap_height, convexity=6)
-            polygon(concat(sleeve_points(thick+poff), slot_points));
-        translate([0,0,-cap_lip]) linear_extrude(height=cap_lip, convexity=6)
-            polygon(sleeve_points(poff,0.01));
-        /*
-        spc = len(sleeve_points());
-        polyhedron(convexity=8,
-            points = concat(
-                set_z(sleeve_points(thick+poff), cap_height),
-                set_z(sleeve_points(thick+poff), -cap_lip),
-                set_z(sleeve_points(poff), -cap_lip),
-                set_z(sleeve_points(poff), 0)
-            ), faces=concat(
-                [[for (a=[spc-1:-1:0]) a]],
-                nquads(0, spc, spc, 1),
-                nquads(spc, spc, spc),
-                nquads(spc*2, spc, spc, 1),
-                [[for (a=[spc*3:spc*4-1]) a]],
-                [
-                    [spc, spc*2, spc*3], [0, spc, spc*3],
-                    [spc-1, 0, spc*3], [spc-1, spc*3, spc*4-1],
-                    [spc-1, spc*4-1, spc*2-1], [spc*2-1, spc*4-1, spc*3-1],
-                ]
-            ));
-        */
-        translate([0,0,-0.01]) cylinder(cap_height-thick+0.01, post_hole/2, post_hole/2, $fn=30);
-    }
-}
-
 module front_top()
 {
-    wl = posts_y/2;
+    sleeve_rad = (post_hole/2) + post_thick;
+    sr = sleeve_rad;
+    fo = 1.5 + 0.5;
+
+    front_thick = 3;
+    front_off = 10;
+    wl = posts_x/2 - sr-fo;
+    wh = wall_height*2 + cap_height;
+
+    difference() {
+        union() {
+            translate([0, -posts_y/2+front_thick-front_off, 0]) rotate([90,0,0]) {
+                linear_extrude(height=front_thick, convexity=8) polygon(concat(
+                    [[wl-2, wh-86], [wl, wh-86], [wl, wh], [-wl, wh], [-wl, wh-86], [-wl+2, wh-86]],
+                    [for (an=[-60:1:60]) [0, wh-110] + [sin(an)*wl, cos(an) * 80]]
+                ));
+            }
+            translate([0, -posts_y/2-front_off, wh-50]) linear_extrude(height=50, convexity=8) {
+                polygon([
+                    [-wl, 0], [-wl+2, 0], [-wl+2, front_off-0.6], [-wl+7, front_off-0.6], [-wl+7, front_off+7], [-wl+2, front_off+7], [-wl+2, 22], [-wl, 22] 
+                ]);
+                polygon([
+                    [wl, 0], [wl-2, 0], [wl-2, front_off-0.6], [wl-7, front_off-0.6], [wl-7, front_off+7], [wl-2, front_off+7], [wl-2, 22], [wl, 22] 
+                ]);
+            }
+            translate([0, -posts_y/2-front_off, wh-86]) linear_extrude(height=86, convexity=8) {
+                polygon(concat(
+                    [for (an=[90:1:136]) [-wl-sr, front_off]+sr*[sin(an),cos(an)]],
+                    [for (an=[235:-5:180]) [-wl, 3.6]+3.6*[sin(an),cos(an)]],
+                    [ [-wl, 0], [-wl+2, 0], [-wl+2, 14], [-wl, 14] ]
+                    ));
+                polygon(concat(
+                    [for (an=[90:1:136]) [wl+sr, front_off]+sr*[-sin(an),cos(an)]],
+                    [for (an=[235:-5:180]) [wl, 3.6]+3.6*[-sin(an),cos(an)]],
+                    [ [wl, 0], [wl-2, 0], [wl-2, 14], [wl, 14] ]
+                    ));
+            }
+            translate([0, -posts_y/2-front_off, wh-2]) linear_extrude(height=2, convexity=8) {
+                polygon([
+                    [-wl, 0], [-wl, 22], [wl, 22], [wl, 0]
+                ]);
+            }
+        }
+        translate([0, -posts_y/2, wh-100-0.01]) {
+            slot_neck = 2.2;
+            slot_thick = 4.4;
+            sln = slot_neck/2;
+            slo = (sln+2.2);
+            slt = slot_thick/2;
+            sls = wl;
+            sls0 = sls + 0.01;
+            sls1 = sls - 2;
+            sls2 = sls - 5;
+            linear_extrude(height=98.01, convexity=8) {
+                polygon([
+                    [sls0, slo-sln], [sls1, slo-sln], [sls1, slo-slt], [sls2, slo-slt],
+                    [sls2, slo+slt], [sls1, slo+slt], [sls1, slo+sln], [sls0, slo+sln]
+                ]);
+                polygon([
+                    [-sls0, slo-sln], [-sls1, slo-sln], [-sls1, slo-slt], [-sls2, slo-slt],
+                    [-sls2, slo+slt], [-sls1, slo+slt], [-sls1, slo+sln], [-sls0, slo+sln]
+                ]);
+            }
+        }
+    }
 }
 
 module side_wall()
@@ -219,7 +211,7 @@ module side_wall()
 }
 
 // Front = 0 or 1, front/back offset
-module post_sleeve(front=0)
+module post_sleeve(front=0, cap=0)
 {
     sleeve_rad = (post_hole/2) + post_thick;
     slot_depth = 8;
@@ -227,6 +219,9 @@ module post_sleeve(front=0)
     slot_width = 4;
     back_length = 30;
     slot_out = 17;
+
+    slot_neck = 1.6;
+    slot_thick = 3.6;
 
     end_slot_neck = 1.5;
     end_slot_thick = 4.5;
@@ -268,25 +263,48 @@ module post_sleeve(front=0)
 
     spc = len(sleeve_points());
 
-    difference() {
-        polyhedron(convexity=8,
-            points = concat(
-                set_z(sleeve_points(), 0),
-                set_z(sleeve_points(), wall_height)
-            ), faces=concat(
-                [[for (a=[spc-1:-1:0]) a]],
-                nquads(0, spc, spc),
-                [[for (a=[spc*1:spc*2-1]) a]]
-            ));
-        translate([0,0,-0.01]) cylinder(wall_height+0.02, post_hole/2, post_hole/2, $fn=30);
-        wir = wire_hole/2;
-        wio = (post_hole + wire_hole)/2;
-        translate([0,0,-0.01]) linear_extrude(height=wall_height+0.02, convexity=4) {
-            oan = 135;
-            polygon(concat(
-                [wir*[sin(oan+90), cos(oan+90)], wir*[sin(oan-90), cos(oan-90)]],
-                [for (an=[oan-90:12:oan+90]) wio*[sin(oan),cos(oan)]+wir*[sin(an),cos(an)]]
-            ));
+    hh = wall_height + (cap ? cap_height-2 : 0.01);
+    th = wall_height + (cap ? cap_height : 0);
+    render(convexity=8) {
+        difference() {
+            linear_extrude(height=th, convexity=8) polygon(sleeve_points());
+            /*
+            polyhedron(convexity=8,
+                points = concat(
+                    set_z(sleeve_points(), 0),
+                    set_z(sleeve_points(), wall_height)
+                ), faces=concat(
+                    [[for (a=[spc-1:-1:0]) a]],
+                    nquads(0, spc, spc),
+                    [[for (a=[spc*1:spc*2-1]) a]]
+                ));
+            */
+            translate([0,0,-0.01]) cylinder(hh+0.01, post_hole/2, post_hole/2, $fn=30);
+            wir = wire_hole/2;
+            wio = (post_hole + wire_hole)/2;
+            translate([0,0,-0.01]) linear_extrude(height=hh+0.01, convexity=4) {
+                oan = 135;
+                polygon(concat(
+                    [wir*[sin(oan+90), cos(oan+90)], wir*[sin(oan-90), cos(oan-90)]],
+                    [for (an=[oan-90:12:oan+90]) wio*[sin(oan),cos(oan)]+wir*[sin(an),cos(an)]]
+                ));
+            }
+        }
+        if (cap) {
+            sln = slot_neck/2;
+            slo = -(sln+2.5);
+            slt = slot_thick/2;
+            sls = -sr-fo;
+            sls0 = sls + 0.1;
+            sls1 = sls - 3;
+            sls2 = sls - 5;
+            slot_points = [
+                    [sls0, slo-sln], [sls1, slo-sln], [sls1, slo-slt], [sls2, slo-slt],
+                    [sls2, slo+slt], [sls1, slo+slt], [sls1, slo+sln], [sls0, slo+sln]
+            ];
+            translate([0,0,wall_height-cap_lip]) linear_extrude(height=cap_height+cap_lip-2, convexity=6) {
+                polygon(slot_points);
+            }
         }
     }
 
