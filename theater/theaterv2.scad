@@ -31,7 +31,9 @@ cover_depth = 16.8;
 if (doitem == "front_top_l") { rotate([0,180,0]) front_top_l(); } 
 if (doitem == "front_top_r") { rotate([0,180,0]) front_top_r(); } 
 if (doitem == "post_sleeve") { post_sleeve(); } 
-if (doitem == "post_sleeve_tl") { mirror([0,0,1]) post_sleeve(0,1); } 
+if (doitem == "post_sleeve_bl") { post_sleeve(0,0,1); } 
+if (doitem == "post_sleeve_tl") { mirror([0,0,1]) post_sleeve(0,1,1); } 
+if (doitem == "post_sleeve_tr") { rotate([0,180,0]) post_sleeve(0,1); } 
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
 if (doitem == "") {
 
@@ -41,12 +43,12 @@ if (doitem == "") {
     translate([0,0,0.2]) color("#9756") front_cover();
     for (m1 = [0:1]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
-        translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
+        *translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
         for (m2 = [0:1]) mirror([0,m2,0]) {
             translate(post_pos) {
                 post();
                 color("#985") post_sleeve(m2);
-                color("#985") translate([0,0,wall_height+0.1]) post_sleeve(m2, m2);
+                color("#985") translate([0,0,wall_height+0.1]) post_sleeve(m2, m2, (!m1 && m2));
             }
         }
     }
@@ -390,7 +392,7 @@ module side_wall()
 }
 
 // Front = 0 or 1, front/back offset
-module post_sleeve(front=0, cap=0)
+module post_sleeve(front=0, cap=0, cable=0)
 {
     sleeve_rad = (post_hole/2) + post_thick;
     slot_depth = 8;
@@ -459,17 +461,19 @@ module post_sleeve(front=0, cap=0)
                 ));
             */
             translate([0,0,-0.01]) cylinder(hh+0.01, post_hole/2, post_hole/2, $fn=30);
-            wir = wire_hole/2;
-            wio = (post_hole + wire_hole)/2;
-            hh2 = cap ? hh-cap_height : hh;
-            translate([0,0,-0.01]) linear_extrude(height=hh2+0.01, convexity=4) {
-                oan = 135;
-                polygon(concat(
-                    [wir*[sin(oan+90), cos(oan+90)], wir*[sin(oan-90), cos(oan-90)]],
-                    [for (an=[oan-90:12:oan+90]) wio*[sin(oan),cos(oan)]+wir*[sin(an),cos(an)]]
-                ));
+            if(cable) {
+                wir = wire_hole/2;
+                wio = (post_hole + wire_hole)/2;
+                hh2 = cap ? hh-cap_height : hh;
+                translate([0,0,-0.01]) linear_extrude(height=hh2+0.01, convexity=4) {
+                    oan = 135;
+                    polygon(concat(
+                        [wir*[sin(oan+90), cos(oan+90)], wir*[sin(oan-90), cos(oan-90)]],
+                        [for (an=[oan-90:12:oan+90]) wio*[sin(oan),cos(oan)]+wir*[sin(an),cos(an)]]
+                    ));
+                }
             }
-            if(cap) {
+            if(cap && cable) {
                 translate([0,0,wall_height+cap_height-cover_height]) {
                     rt = 90;
                     ro = 1;
