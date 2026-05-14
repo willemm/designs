@@ -32,6 +32,8 @@ if (doitem == "post_sleeve") { post_sleeve(); }
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
 if (doitem == "") {
 
+    translate([0,0,0.2]) color("#875") front_top();
+    translate([0,0,0.2]) color("#9756") front_cover();
     for (m1 = [0:1]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
         translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
@@ -43,8 +45,6 @@ if (doitem == "") {
             }
         }
     }
-    translate([0,0,0.2]) color("#875") front_top();
-    translate([0,0,0.2]) color("#975") front_cover();
     *light_bar();
 
     if(0) {
@@ -79,7 +79,7 @@ module front_cover()
     cd = cover_depth;
     fst = 2.2;
 
-    translate([wl, fp, wh]) rotate([90,180,0]) difference() {
+    render(convexity=8) translate([wl, fp, wh]) rotate([90,180,0]) difference() {
         union() {
             linear_extrude(height=ct, convexity=8) polygon([
                 [fst, fst], [cw, fst],
@@ -198,6 +198,12 @@ module front_top()
                     [cw, wh-co], [wl-co, wh-co]
                 ]);
             }
+            // Nub to hold cover in place
+            translate([wl-48, fp, wh-cover_height]) rotate([0,90,0]) {
+                linear_extrude(height=20) polygon([
+                    [-0.5,3], [1.5, 5], [5.5, 3]
+                ]);
+            }
         }
         // Slot for side post ridge
         translate([0, -posts_y/2, wh-100-0.01]) {
@@ -228,6 +234,14 @@ module front_top()
                 [wl-cw-4.5, 3], [wl-cw-4.5, 5.5], [wl-cw, 5.5], [wl-cw, 3]
             ]);
         }
+        /*
+        // Nub to hold cover in place
+        translate([wl-48, fp, wh-cover_height]) rotate([0,90,0]) {
+            linear_extrude(height=20) polygon([
+                [-2.5,3.1], [-2.5, 1.5], [0.5, 1.5], [0.5, 3.1]
+            ]);
+        }
+        */
     }
 }
 
@@ -390,12 +404,35 @@ module post_sleeve(front=0, cap=0)
             translate([0,0,-0.01]) cylinder(hh+0.01, post_hole/2, post_hole/2, $fn=30);
             wir = wire_hole/2;
             wio = (post_hole + wire_hole)/2;
-            translate([0,0,-0.01]) linear_extrude(height=hh+0.01, convexity=4) {
-                oan = 135;
+            hh2 = cap ? hh-cap_height-10 : hh;
+            translate([0,0,-0.01]) linear_extrude(height=hh2+0.01, convexity=4) {
+                oan = 225;
                 polygon(concat(
                     [wir*[sin(oan+90), cos(oan+90)], wir*[sin(oan-90), cos(oan-90)]],
                     [for (an=[oan-90:12:oan+90]) wio*[sin(oan),cos(oan)]+wir*[sin(an),cos(an)]]
                 ));
+            }
+            if(cap) {
+                translate([0,0,wall_height+cap_height-cover_height]) {
+                    rt = 43.83;
+                    ro = 1;
+                    rx = ro/cos(rt);
+                    ry = ro/sin(rt);
+                    rotate([0,0,rt]) rotate([0,90,0]) translate([0,0,-20]) linear_extrude(height=20) polygon(concat(
+                        [[-28, 5], [-28, -5], [3, -5], [8, 0], [3, 5]]
+                    ));
+                    rotate([0,90,0]) translate([0,0,-12.6]) linear_extrude(height=1.53) polygon(
+                        [[-28, -4.1], [-28, -4.1-rx], [2.3+ro, -4.1-rx], [2.3, -4.1]]
+                    );
+                    /*
+                    rotate([0,90,0]) translate([0,0,-12.6]) linear_extrude(height=1.53) polygon(
+                        [[-30, -4], [-30, -4-rx-2], [3+ro, -4-rx-2], [3+ro, -4-rx],  [3, -4]]
+                    );
+                    rotate([0,0,90]) rotate([0,90,0]) translate([0,0,-12.6]) linear_extrude(height=1.53) polygon(
+                        [[-30, 4], [-30, 4+ry+2], [3+ro, 4+ry+2], [3+ro, 4+ry], [3, 4]]
+                    );
+                    */
+                }
             }
         }
         if (cap) {
@@ -415,14 +452,6 @@ module post_sleeve(front=0, cap=0)
             }
         }
     }
-
-    *linear_extrude(height=wall_height, convexity=6) {
-        difference() {
-            polygon(sleeve_points());
-            circle(post_hole/2, $fn=30);
-        }
-    }
-    *#circle((post_hole/2+1.5), $fn=30);
 }
 
 // Front = 0 or 1, front/back offset
