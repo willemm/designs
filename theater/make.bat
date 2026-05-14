@@ -9,3 +9,6 @@ rem openscad -D doitem=\"tc_jig\" -o tht-tc_jig.stl theater.scad
 
 openscad -D doitem=\"side_wall\" -o tht-side_wall.stl theaterv2.scad
 openscad -D doitem=\"post_sleeve\" -o tht-post_sleeve.stl theaterv2.scad
+openscad -D doitem=\"post_sleeve_tl\" -o tht-post_sleeve-tl.stl theaterv2.scad
+openscad -D doitem=\"front_top_l\" -o tht-front_top-l.stl theaterv2.scad
+openscad -D doitem=\"front_top_r\" -o tht-front_top-r.stl theaterv2.scad
