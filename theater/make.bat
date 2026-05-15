@@ -7,6 +7,8 @@ rem openscad -D doitem=\"top_front_m\" -o tht-top_front_m.stl theater.scad
 rem openscad -D doitem=\"topfront_pin\" -o tht-topfront_pin.stl theater.scad
 rem openscad -D doitem=\"tc_jig\" -o tht-tc_jig.stl theater.scad
 
+openscad -D doitem=\"front_cover\" -o tht-switch_cover.stl theaterv2.scad
+openscad -D doitem=\"switch_shim\" -o tht-switch_shim.stl theaterv2.scad
 openscad -D doitem=\"side_wall\" -o tht-side_wall.stl theaterv2.scad
 openscad -D doitem=\"post_sleeve\" -o tht-post_sleeve.stl theaterv2.scad
 openscad -D doitem=\"post_sleeve_bl\" -o tht-post_sleeve-bl.stl theaterv2.scad
