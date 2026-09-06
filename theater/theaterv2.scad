@@ -37,19 +37,22 @@ if (doitem == "post_sleeve_bl") { post_sleeve(0,0,1); }
 if (doitem == "post_sleeve_tl") { mirror([0,0,1]) post_sleeve(0,1,1); } 
 if (doitem == "post_sleeve_tr") { rotate([0,180,0]) post_sleeve(0,1); } 
 if (doitem == "side_wall") { rotate([0,0,90]) side_wall(); } 
+if (doitem == "rod_holder") { rotate([0,90,0]) rod_holder(); } 
 if (doitem == "") {
 
     light_bar();
     light_switch();
+    curtain_rod();
     translate([0,0,0.2]) color("#999") switch_shim();
     for (m1 = [0:1]) mirror([m1,0,0]) {
         translate([post_pos.x+wall_offset,slot_front_off,0]) color("#7a4") side_wall();
-        *translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
+        translate([post_pos.x+wall_offset,slot_front_off,wall_height+0.1]) color("#7a4") side_wall();
         for (m2 = [0:1]) mirror([0,m2,0]) {
             translate(post_pos) {
                 post();
                 color("#985") post_sleeve(m2);
                 color("#985") translate([0,0,wall_height+0.1]) post_sleeve(m2, m2, (!m1 && m2));
+                color("#973") translate([6,-24,post_height+10.2]) rod_holder();
             }
         }
     }
@@ -57,6 +60,7 @@ if (doitem == "") {
     translate([0,0,0.2]) color("#875") render(convexity=10) front_top_l();
     translate([0,0,0.2]) color("#7856") render(convexity=10) front_top_r();
     translate([0,0,0.2]) color("#9756") front_cover();
+
 
     if(0) {
     translate([-50, 0, 0]) color("#985") post_sleeve();
@@ -69,6 +73,26 @@ if (doitem == "") {
 
     *translate([post_pos.x,0,225]) rotate([0,0,-90]) color("#aaa9") import("toneel_decor_zijkant.stl", convexity=8);
     *translate([post_pos.x,0,75]) rotate([0,0,-90]) color("#8889") import("toneel_decor_zijkant.stl", convexity=8);
+    }
+}
+
+module rod_holder()
+{
+    l = 18;
+    d = 6.7;
+    h = 40;
+    g = 20;
+    vg = 9;
+    vw = 6.4;
+    rotate([0,-90,0]) difference() {
+        linear_extrude(height=l, convexity=8) difference() {
+            polygon(concat(
+                [for (an=[0:5:180]) [ sin(an)*d, cos(an)*d ]],
+                [[-h, -d], [-h, -2], [-g, -2], [-g, 2], [-h, 2], [-h, d]]
+            ));
+            circle(5.2, $fn=72);
+        }
+        translate([-40.1, -vw/2, vg]) cube([20.1, vw, l-vg+0.1]);
     }
 }
 
@@ -649,6 +673,15 @@ module light_switch()
         ));
         translate([45/2,12,16/2]) rotate([-90,0,0]) cylinder(3, 2.8, 2.8, $fn=30);
     }
+}
+
+module curtain_rod()
+{
+    l = posts_x+15;
+    d = 10/2;
+    color("#ccc")
+    translate([-l/2, -posts_y/2+24, post_height+10])
+    rotate([0,90,0]) cylinder(l, d, d, $fn=48);
 }
 
 function set_z(pts, z) = [for (p=pts) [p.x, p.y, z]];
