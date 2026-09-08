@@ -84,18 +84,28 @@ module rod_holder()
     g = 20;
     vg = 9;
     vw = 6.4;
-    hd = 5.3;
-    hr = 0.25;
+    hd = 5.2;
+    hr = 0.35;
+
+    cw = 1;
+    cg = l;
+    nrib = 12;
+    orib = 180;
     rotate([0,-90,0]) difference() {
         linear_extrude(height=l, convexity=8) difference() {
             polygon(concat(
                 [for (an=[0:5:180]) [ sin(an)*d, cos(an)*d ]],
                 [[-h, -d], [-h, -2], [-g, -2], [-g, 2], [-h, 2], [-h, d]]
             ));
-            polygon([for (an=[1:1:360]) [sin(an)*(hd - hr*cos(an*18)), cos(an)*(hd - hr*cos(an*18)) ] ]);
+            polygon([for (an=[1:1:360]) [sin(an)*(hd - hr*cos(an*nrib+orib)), cos(an)*(hd - hr*cos(an*nrib+orib)) ] ]);
             // circle(5.2, $fn=72);
         }
         translate([-40.1, -vw/2, vg]) cube([20.1, vw, l-vg+0.1]);
+        //#translate([-16, -cw/2, -0.1]) cube([12, cw, cg+0.2]);
+        translate([0, 0, -0.1]) linear_extrude(height=cg+0.2, convexity=6) polygon(concat(
+            [[-4, -cw/2], [-4, cw/2]],
+            [for (an=[0:12:180]) [-17-(cw/2)*sin(an), (cw/2)*cos(an)]]
+        ));
     }
 }
 
